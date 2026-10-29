@@ -769,7 +769,7 @@ body.bg-modal-open{ overflow: hidden; }
          links. "Your next step" keeps its own gold treatment - it is the one card meant to stand
          out, and a second colour on it would fight that. -->
     <section class="card tinted sec0">
-      <div class="row"><div class="eyebrow" id="agency"></div><div class="spacer"></div><span class="chip gold" id="stage"></span></div>
+      <div class="row"><div class="eyebrow" id="agency"></div><div class="spacer"></div><span class="chip gold" id="stage"></span><span class="chip" id="stageTitle" style="margin-left:6px"></span></div>
       <h1 id="name"></h1>
       <p class="muted small" id="stageSince"></p>
       <div class="stagebar" id="stagebar"></div>
@@ -1017,7 +1017,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-29.5';
+  const BUILD='2026-10-29.6';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3017,7 +3017,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     $('asNote').textContent=!va?"Pick a person to see the app exactly as they see it, or a stage to see it with nobody's data. Read-only."
       :(va.preview?("Nobody's record — this is the view on day one at "+va.stage+". Steps read as not started and the figures show 0; each member sees their own.")
                   :('Read-only preview of what '+va.name+' sees. Buttons are off — nothing here writes to their record.'));
-    $('name').textContent=p.name; $('agency').textContent=p.agency||'Enspire'; $('stage').textContent=p.stage;
+    $('name').textContent=p.name; $('agency').textContent=p.agency||'Enspire'; $('stage').textContent=p.stage; $('stageTitle').textContent=p.title||''; $('stageTitle').classList.toggle('hidden',!p.title);
     $('stageSince').textContent=p.daysInStage==null?'':(p.daysInStage+' days in this stage'+(p.mentor?' · mentor '+p.mentor.replace(/@.*/,''):''));
     const stageList=data.stages||[]; const idx=stageList.indexOf(p.stage); $('stagebar').innerHTML=stageList.map((s,i)=>'<i class="'+(i<idx?'on':i===idx?'cur':'')+'" title="'+esc(s)+'"></i>').join('');
     renderActionNeeded_();
@@ -3129,7 +3129,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       $('mReqPeople').innerHTML='<span class="muted small">Loading people…</span>'; $('mSubmit').disabled=true;
       confirmersFor_(id).then(people=>{
         if(!modalStep||modalStep.id!==id||modalStep.mode!=='request')return;
-        $('mReqPeople').innerHTML=(people||[]).map(p=>'<label class="req-person"><input type="checkbox" value="'+esc(p.id)+'"><span><b>'+esc(p.name)+'</b><small>'+esc(p.stage)+'</small></span></label>').join('');
+        $('mReqPeople').innerHTML=(people||[]).map(p=>'<label class="req-person"><input type="checkbox" value="'+esc(p.id)+'"><span><b>'+esc(p.name)+'</b><small>'+esc(p.title?p.title+' · '+p.stage:p.stage)+'</small></span></label>').join('');
         $('mReqPeopleHint').textContent=people&&people.length?people.length+' people · Scroll for more. Pick at least one. People already asked or confirmed are not shown.':'No new eligible confirmer is available for this step.';
         $('mReqPeople').onchange=()=>{ $('mSubmit').disabled=!$('mReqPeople').querySelector('input:checked'); };
         $('mSubmit').disabled=true;
