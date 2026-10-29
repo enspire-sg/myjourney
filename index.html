@@ -982,7 +982,7 @@ body.bg-modal-open{ overflow: hidden; }
     return text;
   }
   function setFreshness_(savedAt,notRefreshed){
-    $('freshness').textContent=savedAt?freshnessText_(savedAt,notRefreshed):'';
+    $('freshness').textContent=savedAt?freshnessText_(savedAt,notRefreshed)+' · build '+BUILD:'';
     $('freshnessSlot').classList.toggle('not-refreshed',!!notRefreshed);
   }
   function staySignedInKey_(state){ const id=data&&data.person&&data.person.id; return id?(STAY_SIGNED_IN_DISMISS_PREFIX+state+'.'+id):''; }
@@ -1012,6 +1012,20 @@ body.bg-modal-open{ overflow: hidden; }
   function readFile_(f){ return new Promise((res,rej)=>{ const rd=new FileReader(); rd.onload=()=>res(String(rd.result).split(',')[1]); rd.onerror=()=>rej(new Error('Could not read the file.')); rd.readAsDataURL(f); }); }
   // Set this to the existing Apps Script /exec URL before publishing the static shell.
   // Keep ?api=1: it selects the narrow, allow-listed JSON bridge.
+  /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
+   * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
+   * behind. The stamp is also shown under the page so a screenshot says which build it was. */
+  const BUILD='2026-10-29.3';
+  (function selfUpdate_(){
+    try{
+      fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
+        v=String(v||'').trim(); if(!v||v===BUILD)return;
+        const key='journey.selfupdate.'+v; if(sessionStorage.getItem(key))return;
+        sessionStorage.setItem(key,'1');
+        location.replace(location.pathname+'?v='+encodeURIComponent(v));
+      }).catch(function(){});
+    }catch(e){}
+  })();
   const API_URL='https://script.google.com/macros/s/AKfycbw7iDdgoP_JdGq_lchaQiH2iLk7tGi2XeADYKTkRaZ3hX97LxYoFp9a33Rd5oyiwFPNvg/exec?api=1';
   async function run(fn){
     const args=[].slice.call(arguments,1);
@@ -2693,7 +2707,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const secs=function(){ return ((Date.now()-t0)/1000).toFixed(1)+'s'; };
     try{
       const confirmation=await run(fn,token,stepId);
-      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()); render();
+      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()+(confirmation&&confirmation.serverMs!=null?' (server '+(Number(confirmation.serverMs)/1000).toFixed(1)+'s)':'')); render();
       refreshJourneyAfterFastTick_();
     }catch(e){
       setQuestSaveStatus_(stepId,'info','Checking…'); render();
