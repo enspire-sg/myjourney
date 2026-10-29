@@ -2661,18 +2661,60 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     }
     ownData=data;
   }
-  function refreshJourneyAfterFastTick_(){ Promise.resolve().then(function(){return load({background:true});}).catch(function(){}); }
-  async function markTrainingAttended(stepId, title, btn){
-    if(!confirm('Mark "'+title+'" as attended?\n\nYour agency head will verify it. Nothing to upload.'))return;
-    btn.disabled=true; const was=btn.textContent; btn.textContent='Saving…';
+  /* One shared save path for both kinds of tick.
+   * - Ticks in flight are counted, and the full-journey refresh waits until things are quiet (3 s after
+   *   the last tick), so several quick taps never pile a heavy refresh on top of each other.
+   * - A failed call is NOT shown as "Not saved" straight away. A dropped reply does not mean the write
+   *   failed (29 Oct 2026: two taps were saved on the server but reported as not saved). The page
+   *   re-reads the journey and only says "Not saved" if the step really did not change. If it cannot
+   *   re-read, it says it could not confirm, so nobody retries into a duplicate. */
+  let tickInFlight_=0, tickRefreshTimer_=null;
+  function refreshJourneyAfterFastTick_(){
+    clearTimeout(tickRefreshTimer_);
+    tickRefreshTimer_=setTimeout(function(){
+      if(tickInFlight_>0){ refreshJourneyAfterFastTick_(); return; }
+      Promise.resolve().then(function(){return load({background:true});}).catch(function(){});
+    },3000);
+  }
+  function findStepItem_(d,stepId){
+    let found=null;
+    ((d&&d.quests)||[]).some(function(q){ return (q.phases||[]).some(function(ph){
+      const it=(ph.items||[]).filter(function(x){return String(x.id)===String(stepId);})[0];
+      if(it){found=it;return true;} return false; }); });
+    return found;
+  }
+  function stepSnapshot_(it){ return it?JSON.stringify([it.state,it.note||'',it.when||'']):''; }
+  async function saveTick_(fn, stepId, title, btn){
+    const was=btn.textContent, before=stepSnapshot_(findStepItem_(data,stepId)), t0=Date.now();
+    btn.disabled=true; btn.textContent='Saving…'; tickInFlight_++;
+    const secs=function(){ return ((Date.now()-t0)/1000).toFixed(1)+'s'; };
     try{
-      const confirmation=await run('markTrainingAttendedFast',token,stepId);
-      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title); render();
+      const confirmation=await run(fn,token,stepId);
+      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()); render();
       refreshJourneyAfterFastTick_();
     }catch(e){
-      setQuestSaveStatus_(stepId,'error','Not saved · Retry'); render(); alert('Not saved. '+e.message);
-      btn.disabled=false; btn.textContent=was;
-    }
+      setQuestSaveStatus_(stepId,'info','Checking…'); render();
+      let outcome='unknown', bundle=null;
+      try{
+        bundle=await bootRead_('getJourneyBundle',token);
+        const after=stepSnapshot_(findStepItem_(bundle&&bundle.journey,stepId));
+        outcome=after&&after!==before?'saved':'notsaved';
+      }catch(e2){ outcome='unknown'; }
+      if(outcome==='saved'){
+        try{ writeJourneyBundleCache_(bundle); applyJourneyBundle_(bundle,false,true); }catch(e3){}
+        setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()+' (confirmed on re-check)');
+      }else if(outcome==='notsaved'){
+        setQuestSaveStatus_(stepId,'error','Not saved · Retry ('+String(e&&e.message||'no reply').slice(0,70)+')');
+        btn.disabled=false; btn.textContent=was;
+      }else{
+        setQuestSaveStatus_(stepId,'error','Could not confirm. Pull down to refresh before you retry.');
+      }
+      render();
+    }finally{ tickInFlight_--; }
+  }
+  async function markTrainingAttended(stepId, title, btn){
+    if(!confirm('Mark "'+title+'" as attended?\n\nYour agency head will verify it. Nothing to upload.'))return;
+    return saveTick_('markTrainingAttendedFast',stepId,title,btn);
   }
   async function markAttended(stepId, title, btn){
     /* The wording follows the button: logging a session you have already been to adds one more,
@@ -2681,15 +2723,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       ? 'Log another "'+title+'"?\n\nThis adds one more to your count. Your leaders can see it, and it cannot be undone.'
       : 'Mark "'+title+'" as attended?\n\nYour leaders can see this, and it cannot be undone.';
     if(!confirm(msg))return;
-    btn.disabled=true; const was=btn.textContent; btn.textContent='Saving…';
-    try{
-      const confirmation=await run('markSessionAttendedFast',token,stepId);
-      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title); render();
-      refreshJourneyAfterFastTick_();
-    }catch(e){
-      setQuestSaveStatus_(stepId,'error','Not saved · Retry'); render(); alert('Not saved. '+e.message);
-      btn.disabled=false; btn.textContent=was;
-    }
+    return saveTick_('markSessionAttendedFast',stepId,title,btn);
   }
   /* ---- folding stages and skill groups (Li Wei, 11 Oct 2026) --------------------------------
    * A stage folds; inside a stage, a run of steps sharing a "Skill: " prefix folds as one group.
