@@ -1017,7 +1017,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-29.4';
+  const BUILD='2026-10-29.5';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2783,12 +2783,25 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         g.key=null; } });
     return out; }
   function stepRow_(it,ix,quest){ const saved=questSaveStatus_[String(it.id)]||{state:'',text:''}; return '<div class="step '+esc(it.state)+'"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small></div><div class="act"><div class="quest-save '+esc(saved.state)+'" data-save-status="'+esc(it.id)+'" aria-live="polite">'+esc(saved.text)+'</div>'+actionButton(it)+'</div></div>'; }
+  /* What each section EARNS (Li Wei, 29 Oct 2026). The sheet keeps its phase names because the
+   * access rules and the nightly compute read them; only the title the person reads changes.
+   * "Probation" holds the Certification steps and "Qualified ..." is the last stage, so a Certified
+   * Team Leader no longer reads a section called "Qualified Team Leader" as something they already are. */
+  const PHASE_LABEL_={
+    'TLQ|Pre-requisite':'Pre-requisite \u2192 enter Team Leader Probation',
+    'TLQ|Probation':'Probation \u2192 become Certified Team Leader',
+    'TLQ|Qualified Team Leader':'Qualified stage \u2192 become Qualified Team Leader',
+    'EQ|Pre-requisite':'Pre-requisite \u2192 enter Entrepreneur Probation',
+    'EQ|Probation':'Probation \u2192 become Certified Entrepreneur',
+    'EQ|Qualified Entrepreneur':'Qualified stage \u2192 become Qualified Entrepreneur'
+  };
+  function phaseLabel_(q,ph){ return PHASE_LABEL_[String(q.quest)+'|'+String(ph.phase)]||String(ph.phase); }
   function phaseHtml_(ph,q){
     const key='mj.open.'+q.quest+'|'+ph.phase;
     const open=openState_(key,ph.done,ph.total,ph.locked);
     const head='<button type="button" class="phase-h" data-toggle="'+esc(key)+'" aria-expanded="'
       +(open?'true':'false')+'"><span class="chev" aria-hidden="true">\u25be</span><h3>'
-      +esc(ph.phase)+' \u00b7 '+(ph.locked?'locked':ph.done+' of '+ph.total)+'</h3></button>';
+      +esc(phaseLabel_(q,ph))+' \u00b7 '+(ph.locked?'locked':ph.done+' of '+ph.total)+'</h3></button>';
     if(ph.locked) return '<div class="phase">'+head+'<div class="phase-body'+(open?'':' hidden')
       +'"><p class="muted small">'+esc(ph.lockReason)+'</p></div></div>';
     let ix=0;
