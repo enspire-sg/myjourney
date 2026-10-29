@@ -10,6 +10,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="My Journey">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="apple-touch-icon" href="icon-180.png">
   <title>My Journey · Enspire</title>
   <style>
@@ -1015,7 +1017,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-29.3';
+  const BUILD='2026-10-29.4';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2667,7 +2669,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       found.state='pending'; found.note='Waiting for verification'; found.when=String(confirmation.at||'').slice(0,10);
       found.action=''; found.again=false;
     }else if(confirmation.kind==='Attendance'){
-      found.state='done'; found.note=confirmation.count===1?'Logged once':'Logged '+confirmation.count+' times';
+      let n=confirmation.count;
+      if(n==null){ const m=/Logged (\d+) times/.exec(found.note||''); n=(m?Number(m[1]):(/Logged once/.test(found.note||'')?1:0))+1; }
+      found.state='done'; found.note=n===1?'Logged once':'Logged '+n+' times';
       found.when=String(confirmation.at||'').slice(0,10); found.action='attend'; found.again=true;
     }else{
       found.state='done'; found.note='You marked this done'; found.when=''; found.action=''; found.again=false;
