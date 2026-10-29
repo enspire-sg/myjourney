@@ -72,7 +72,7 @@
     .chev{flex:0 0 auto;color:var(--muted);font-size:10px;line-height:1;transition:transform .15s ease}[aria-expanded="false"] .chev{transform:rotate(-90deg)}
     .sgroup{border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}.sgroup-h{display:flex;align-items:center;gap:9px;width:100%;background:#0b1628;border:0;padding:10px 13px;cursor:pointer;text-align:left;color:var(--ink);font-size:14px}.sgroup-h b{flex:1;font-size:14px}.sgroup-h .cnt{color:var(--muted);font-size:12px;white-space:nowrap}.sgroup-body{padding:0 13px}
     .step{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid rgba(42,59,86,.6)}.step:first-of-type{border-top:0}.dot{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900;border:1px solid var(--line);color:var(--muted);background:#0b1628}.dot.done{background:rgba(69,215,163,.16);border-color:rgba(69,215,163,.5);color:var(--green)}.dot.pending{background:rgba(111,177,255,.14);border-color:rgba(111,177,255,.5);color:var(--blue)}.dot.rejected{background:rgba(255,107,107,.14);border-color:rgba(255,107,107,.5);color:var(--red)}.dot.locked{opacity:.45}
-    .step .t{flex:1;min-width:0}.step .t b{display:block;font-size:14px;line-height:1.35}.step .t small{white-space:pre-line;display:block;color:var(--muted);font-size:12px;line-height:1.45;margin-top:2px}.step.locked .t{opacity:.5}.step .act{flex:0 0 auto}.btn.mini{padding:8px 12px;font-size:12px;border-radius:10px}
+    .step .t{flex:1;min-width:0}.step .t b{display:block;font-size:14px;line-height:1.35}.step .t small{white-space:pre-line;display:block;color:var(--muted);font-size:12px;line-height:1.45;margin-top:2px}.step.locked .t{opacity:.5}.step .act{flex:0 0 128px;width:128px}.quest-save{min-height:16px;margin-bottom:3px;text-align:center;font-size:11px;font-weight:800;line-height:1.25}.quest-save.success{color:var(--green)}.quest-save.error{color:var(--red)}.step .act .btn{width:100%}.btn.mini{padding:8px 12px;font-size:12px;border-radius:10px}
     .links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.links a{padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(7,15,27,.45);color:var(--ink);text-decoration:none;font-weight:700;font-size:14px}.links a span{display:block;color:var(--muted);font-size:12px;font-weight:400;margin-top:2px}
     .hidden{display:none!important}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.spacer{flex:1}
     .modal{position:fixed;inset:0;background:rgba(3,8,16,.7);display:none;place-items:end center;z-index:50;padding:12px}.modal.open{display:grid}.sheet{width:min(100%,640px);border:1px solid var(--line);border-radius:22px;background:#111c2e;padding:20px;box-shadow:var(--shadow);max-height:92vh;overflow:auto}
@@ -1126,10 +1126,11 @@ body.bg-modal-open{ overflow: hidden; }
       data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
-  async function load(){
-    const cached=readJourneyBundleCache_();
+  async function load(options){
+    const background=!!(options&&options.background);
+    const cached=background?null:readJourneyBundleCache_();
     if(cached){ applyJourneyBundle_(cached.bundle,true); setFreshness_(cached.savedAt,false); booting_(false); }
-    else booting_(true);
+    else if(!background)booting_(true);
     try{ const bundle=await bootRead_('getJourneyBundle',token);
       if(!bundle||bundle.dataVersion!==JOURNEY_DATA_VERSION||!cacheEmail_(bundle.cacheIdentity))throw new Error('The refreshed journey was not compatible with this app.');
       const saved=writeJourneyBundleCache_(bundle);
@@ -1137,6 +1138,7 @@ body.bg-modal-open{ overflow: hidden; }
       setFreshness_(saved&&saved.savedAt||Date.now(),false);
 
     } catch(e){
+      if(background){ setFreshness_(Date.now(),true); return; }
       if(cached){ setFreshness_(cached.savedAt,true); return; }
       if(bootTimedOut_(e)){
         // keep the token: the server was slow, not the session invalid
@@ -1145,7 +1147,7 @@ body.bg-modal-open{ overflow: hidden; }
         return;
       }
       token=null; saveToken(null); showLogin_(); msg($('loginMsg'),e.message,'error');
-    } finally { if(!cached)booting_(false); } }
+    } finally { if(!cached&&!background)booting_(false); } }
 
   // The numbers panel pages through the month history, newest first. Index 0 is the current
   // month, the only one still moving - so "as of" belongs to it alone.
@@ -2630,11 +2632,43 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   let activeQuest='IQ';
   function questTabLabel(q){ return {'IQ':'IQ Steps','IQ Sessions':'IQ Sessions','TLQ':'Team Leader','EQ':'Entrepreneur'}[q.quest]||q.label; }
   function revealActiveQuestTab(){ const nav=$('questTabs'), selected=nav.querySelector('[aria-selected="true"]'); if(!selected||nav.scrollWidth<=nav.clientWidth)return; const left=selected.offsetLeft-nav.offsetLeft, right=left+selected.offsetWidth; if(left<nav.scrollLeft)nav.scrollLeft=left; else if(right>nav.scrollLeft+nav.clientWidth)nav.scrollLeft=right-nav.clientWidth; }
+  var questSaveStatus_={};
+  function setQuestSaveStatus_(stepId,state,text){ questSaveStatus_[String(stepId)]={state:state,text:text}; }
+  function applyFastTick_(confirmation){
+    let found=null, phase=null, quest=null;
+    (data.quests||[]).some(function(q){
+      return (q.phases||[]).some(function(ph){
+        const it=(ph.items||[]).filter(function(x){return String(x.id)===String(confirmation.stepId);})[0];
+        if(!it)return false; found=it; phase=ph; quest=q; return true; }); });
+    if(!found)return;
+    const wasDone=found.state==='done';
+    if(confirmation.pending){
+      found.state='pending'; found.note='Waiting for verification'; found.when=String(confirmation.at||'').slice(0,10);
+      found.action=''; found.again=false;
+    }else if(confirmation.kind==='Attendance'){
+      found.state='done'; found.note=confirmation.count===1?'Logged once':'Logged '+confirmation.count+' times';
+      found.when=String(confirmation.at||'').slice(0,10); found.action='attend'; found.again=true;
+    }else{
+      found.state='done'; found.note='You marked this done'; found.when=''; found.action=''; found.again=false;
+    }
+    if(!wasDone&&found.state==='done'){
+      if(phase)phase.done=Math.min(Number(phase.total||phase.done+1),Number(phase.done||0)+1);
+      if(quest)quest.done=Math.min(Number(quest.total||quest.done+1),Number(quest.done||0)+1);
+    }
+    ownData=data;
+  }
+  function refreshJourneyAfterFastTick_(){ Promise.resolve().then(function(){return load({background:true});}).catch(function(){}); }
   async function markTrainingAttended(stepId, title, btn){
     if(!confirm('Mark "'+title+'" as attended?\n\nYour agency head will verify it. Nothing to upload.'))return;
     btn.disabled=true; const was=btn.textContent; btn.textContent='Saving…';
-    try{ data=await run('markTrainingAttended',token,stepId); ownData=data; render(); }
-    catch(e){ alert(e.message); btn.disabled=false; btn.textContent=was; }
+    try{
+      const confirmation=await run('markTrainingAttendedFast',token,stepId);
+      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title); render();
+      refreshJourneyAfterFastTick_();
+    }catch(e){
+      setQuestSaveStatus_(stepId,'error','Not saved · Retry'); render(); alert('Not saved. '+e.message);
+      btn.disabled=false; btn.textContent=was;
+    }
   }
   async function markAttended(stepId, title, btn){
     /* The wording follows the button: logging a session you have already been to adds one more,
@@ -2644,8 +2678,14 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       : 'Mark "'+title+'" as attended?\n\nYour leaders can see this, and it cannot be undone.';
     if(!confirm(msg))return;
     btn.disabled=true; const was=btn.textContent; btn.textContent='Saving…';
-    try{ data=await run('markSessionAttended',token,stepId); ownData=data; render(); }
-    catch(e){ alert(e.message); btn.disabled=false; btn.textContent=was; }
+    try{
+      const confirmation=await run('markSessionAttendedFast',token,stepId);
+      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title); render();
+      refreshJourneyAfterFastTick_();
+    }catch(e){
+      setQuestSaveStatus_(stepId,'error','Not saved · Retry'); render(); alert('Not saved. '+e.message);
+      btn.disabled=false; btn.textContent=was;
+    }
   }
   /* ---- folding stages and skill groups (Li Wei, 11 Oct 2026) --------------------------------
    * A stage folds; inside a stage, a run of steps sharing a "Skill: " prefix folds as one group.
@@ -2683,7 +2723,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         g.items=g.items.map(function(x){ return Object.assign({},x,{title:x.fullTitle||x.title}); });
         g.key=null; } });
     return out; }
-  function stepRow_(it,ix,quest){ return '<div class="step '+esc(it.state)+'"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small></div><div class="act">'+actionButton(it)+'</div></div>'; }
+  function stepRow_(it,ix,quest){ const saved=questSaveStatus_[String(it.id)]||{state:'',text:''}; return '<div class="step '+esc(it.state)+'"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small></div><div class="act"><div class="quest-save '+esc(saved.state)+'" data-save-status="'+esc(it.id)+'" aria-live="polite">'+esc(saved.text)+'</div>'+actionButton(it)+'</div></div>'; }
   function phaseHtml_(ph,q){
     const key='mj.open.'+q.quest+'|'+ph.phase;
     const open=openState_(key,ph.done,ph.total,ph.locked);
