@@ -1118,12 +1118,12 @@ body.bg-modal-open{ overflow: hidden; }
     if(url){ a.setAttribute('href',url); a.classList.remove('hidden'); }
     else { a.removeAttribute('href'); a.classList.add('hidden'); } }
   function booting_(on){ $('booting').classList.toggle('hidden',!on); }
-  function applyJourneyBundle_(bundle,fromCache){
+  function applyJourneyBundle_(bundle,fromCache,keepView){
       planningAccess=bundle.planningAccess;
       applicationsAccess=bundle.applicationsAccess;
       applyLauncher_(bundle.launcherUrl);
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
-      data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
+      data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
   async function load(options){
@@ -1134,7 +1134,11 @@ body.bg-modal-open{ overflow: hidden; }
     try{ const bundle=await bootRead_('getJourneyBundle',token);
       if(!bundle||bundle.dataVersion!==JOURNEY_DATA_VERSION||!cacheEmail_(bundle.cacheIdentity))throw new Error('The refreshed journey was not compatible with this app.');
       const saved=writeJourneyBundleCache_(bundle);
-      applyJourneyBundle_(bundle,false);
+      /* A background refresh (after a tick) redraws in place: no jump to the top, no change of panel,
+       * and the quest tab and scroll position stay where the person left them. */
+      const keepY=window.scrollY||0;
+      applyJourneyBundle_(bundle,false,background);
+      if(background)requestAnimationFrame(function(){ window.scrollTo(0,keepY); });
       setFreshness_(saved&&saved.savedAt||Date.now(),false);
 
     } catch(e){
