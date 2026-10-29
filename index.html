@@ -1557,7 +1557,14 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   // ---- guide sheet
   let guide=null;
   async function openGuide(id, kicker){ $('gKicker').textContent=kicker||'Guide'; $('gTitle').textContent='Loading…'; $('gBody').innerHTML=''; $('gNav').classList.add('hidden'); $('gEditWrap').classList.add('hidden'); $('gEdit').classList.add('hidden'); msg($('gMsg'),'',''); $('guide').classList.add('open');
-    try{ guide=viewAs?await run('getGuideAs',token,viewAs.id,id):await run('getGuide',token,id); renderGuide(); }catch(e){ $('gTitle').textContent=''; $('gBody').innerHTML='<p class="muted">'+esc(e.message)+'</p>'; if(mayEdit(team&&team.duties&&team.duties.admin)){ guide={id:id,title:'',body:'',canEdit:true}; $('gEdit').classList.remove('hidden'); } } }
+    try{
+      const savedG=viewAs?null:savedTextRead_('guide',id);
+      if(savedG&&savedG.id===id&&typeof savedG.body==='string'){
+        guide=savedG; renderGuide();
+        run('getGuide',token,id).then(function(fresh){ savedTextWrite_('guide',id,fresh); if(guide&&guide.id===id&&$('guide').classList.contains('open')&&(fresh.body!==guide.body||fresh.title!==guide.title)&&$('gEditWrap').classList.contains('hidden')){ guide=fresh; renderGuide(); } }).catch(function(){});
+        return;
+      }
+      guide=viewAs?await run('getGuideAs',token,viewAs.id,id):await run('getGuide',token,id); if(!viewAs)savedTextWrite_('guide',id,guide); renderGuide(); }catch(e){ $('gTitle').textContent=''; $('gBody').innerHTML='<p class="muted">'+esc(e.message)+'</p>'; if(mayEdit(team&&team.duties&&team.duties.admin)){ guide={id:id,title:'',body:'',canEdit:true}; $('gEdit').classList.remove('hidden'); } } }
   // One section per page. Sections are the ## headings, which md() makes <h2>.
   let gPages=[], gPage=0;
   function paginateGuide(){
@@ -1602,7 +1609,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   $('gNext').onclick=()=>{ if(gPage>=gPages.length-1) $('guide').classList.remove('open'); else showGuidePage(gPage+1); };
   $('gEdit').onclick=()=>{ $('gEditTitle').value=guide.title||''; $('gEditBody').value=guide.body||''; $('gEditWrap').classList.remove('hidden'); $('gBody').classList.add('hidden'); $('gNav').classList.add('hidden'); };
   $('gEditCancel').onclick=()=>{ $('gEditWrap').classList.add('hidden'); $('gBody').classList.remove('hidden'); if(gPages.length>1)$('gNav').classList.remove('hidden'); };
-  $('gEditSave').onclick=async()=>{ $('gEditSave').disabled=true; try{ guide=await run('saveGuide',token,guide.id,$('gEditTitle').value,$('gEditBody').value); guideIndex[guide.id]=guide.title; renderGuide(); msg($('gMsg'),'Saved.','success'); }catch(e){ msg($('gMsg'),e.message,'error'); } finally{ $('gEditSave').disabled=false; } };
+  $('gEditSave').onclick=async()=>{ $('gEditSave').disabled=true; try{ guide=await run('saveGuide',token,guide.id,$('gEditTitle').value,$('gEditBody').value); savedTextWrite_('guide',guide.id,guide); guideIndex[guide.id]=guide.title; renderGuide(); msg($('gMsg'),'Saved.','success'); }catch(e){ msg($('gMsg'),e.message,'error'); } finally{ $('gEditSave').disabled=false; } };
   document.addEventListener('click',e=>{ const a=e.target.closest('[data-guide]'); if(a){ e.preventDefault(); openGuide(a.dataset.guide,'Guide'); } });
 
   // ---- resources
@@ -1651,6 +1658,25 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const changed=!resData||resData._key!==key||resourceListComparable_(resData)!==resourceListComparable_(fresh);
     fresh._key=key; resData=fresh; writeCachedResourceList_(key,fresh);
     if(changed&&resourcePanelOpen_())renderResourcesPreservingScroll_();
+    warmSavedText_();
+  }
+  /* Quietly save every resource body and guide this person can read, two at a time, once the page is
+   * idle, so the first tap on any of them is already on the phone. Missing ones only. */
+  let savedTextWarmStarted=false;
+  function warmSavedText_(){
+    if(savedTextWarmStarted||viewAs||!data||!data.person)return;
+    savedTextWarmStarted=true;
+    setTimeout(function(){
+      const jobs=[];
+      ((resData&&resData.sections)||[]).forEach(function(sec){ (sec.items||[]).forEach(function(it){
+        if(it.id&&it.hasBody&&savedTextRead_('res',it.id)===null)jobs.push(function(){ return run('getResourceBody',token,it.id).then(function(r){ savedTextWrite_('res',it.id,String(r&&r.body||'')); }); });
+      }); });
+      Object.keys(guideIndex||{}).forEach(function(gid){
+        if(savedTextRead_('guide',gid)===null)jobs.push(function(){ return run('getGuide',token,gid).then(function(g){ savedTextWrite_('guide',gid,g); }); });
+      });
+      let active=0;
+      (function pump(){ while(active<2&&jobs.length){ active++; jobs.shift()().catch(function(){}).then(function(){ active--; pump(); }); } })();
+    },3000);
   }
   function warmResourceList_(){
     if(resourceListWarmStarted)return;
@@ -2439,16 +2465,35 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     showLogin_(); msg($('loginMsg'),note||'Signed out.','');
   }
   const resourceBodyQueued={};
+  /* Saved copies of resource bodies and guides (Layer 2, 29 Oct 2026). Kept on this phone under the
+   * journey.bundle. prefix, so sign-out, a new sign-in and a data-version change all wipe them with
+   * the rest of the saved journey. Own journey only: a View As preview is never written to disk. */
+  const SAVED_TEXT_PREFIX=JOURNEY_CACHE_PREFIX+'text.';
+  function savedTextKey_(kind,id){ return viewAs||!data||!data.person?null:SAVED_TEXT_PREFIX+kind+'.'+data.person.id+'.'+id; }
+  function savedTextRead_(kind,id){ try{ const k=savedTextKey_(kind,id); if(!k)return null; const raw=localStorage.getItem(k); return raw===null?null:JSON.parse(raw); }catch(e){ return null; } }
+  function savedTextWrite_(kind,id,value){ try{ const k=savedTextKey_(kind,id); if(k)localStorage.setItem(k,JSON.stringify(value)); }catch(e){} }
   function loadResourceBody_(it){
     it=it||{};
     const cacheKey=resourceOwnerKey_()+'|'+String(it.id||'');
     if(it.bodyLoaded)return Promise.resolve(it);
+    if(it.id&&it.hasBody&&!resourceBodies[cacheKey]){
+      const saved=savedTextRead_('res',it.id);
+      if(saved!==null&&typeof saved==='string'){
+        it.body=saved; it.bodyLoaded=true; resourceBodies[cacheKey]=Promise.resolve(saved);
+        const previewId0=viewAs&&viewAs.id;
+        (previewId0?run('getResourceBodyAs',token,previewId0,it.id):run('getResourceBody',token,it.id)).then(function(result){
+          const fresh=String(result&&result.body||''); savedTextWrite_('res',it.id,fresh);
+          if(fresh!==it.body){ it.body=fresh; resourceBodies[cacheKey]=Promise.resolve(fresh); if(resReading===it&&$('guide').classList.contains('open'))openResourceReader(it); }
+        }).catch(function(){});
+        return Promise.resolve(it);
+      }
+    }
     if(resourceBodies[cacheKey])return resourceBodies[cacheKey].then(function(body){it.body=body;it.bodyLoaded=true;return it;});
     if(Object.prototype.hasOwnProperty.call(it,'body')){it.bodyLoaded=true;resourceBodies[cacheKey]=Promise.resolve(String(it.body||''));return Promise.resolve(it);}
     if(!it.hasBody){it.body='';it.bodyLoaded=true;resourceBodies[cacheKey]=Promise.resolve('');return Promise.resolve(it);}
     const previewId=viewAs&&viewAs.id;
     const request=previewId?run('getResourceBodyAs',token,previewId,it.id):run('getResourceBody',token,it.id);
-    resourceBodies[cacheKey]=request.then(function(result){return String(result&&result.body||'');})
+    resourceBodies[cacheKey]=request.then(function(result){const b=String(result&&result.body||''); savedTextWrite_('res',it.id,b); return b;})
       .catch(function(err){delete resourceBodies[cacheKey];throw err;});
     return resourceBodies[cacheKey].then(function(body){it.body=body;it.bodyLoaded=true;return it;});
   }
@@ -2542,7 +2587,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(it.id&&!it.bodyLoaded){ alert('Cannot save this resource because its text is not loaded.'); return; }
     const section=prompt('Section',it.section||'General'); if(section===null)return; const title=prompt('Title',it.title||''); if(title===null)return; const url=prompt('Link (optional)',it.url||''); if(url===null)return; const body=prompt('Text (markdown-lite, optional)',it.body||''); if(body===null)return; const agency=prompt('Agency (blank = everyone)',it.agency||''); if(agency===null)return;
     try{
-      const saved=await run('saveResource',token,{id:it.id,section:section,title:title,url:url,body:body,agency:agency,order:it.order||0});
+      const saved=await run('saveResource',token,{id:it.id,section:section,title:title,url:url,body:body,agency:agency,order:it.order||0}); try{ if(saved&&saved.id)savedTextWrite_('res',saved.id,body); else if(it.id)savedTextWrite_('res',it.id,body); }catch(e){}
       const key=resourceOwnerKey_(); resData=lightResourceData_(saved); resData._key=key; writeCachedResourceList_(key,resData);
       const savedId=it.id||((saved.sections||[]).flatMap(function(s){return s.items||[];}).filter(function(x){return x.title===title;})[0]||{}).id;
       if(savedId)resourceBodies[key+'|'+savedId]=Promise.resolve(String(body));
