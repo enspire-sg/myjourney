@@ -1136,9 +1136,12 @@ body.bg-modal-open{ overflow: hidden; }
       const saved=writeJourneyBundleCache_(bundle);
       /* A background refresh (after a tick) redraws in place: no jump to the top, no change of panel,
        * and the quest tab and scroll position stay where the person left them. */
+      /* Same when the page opened from the saved copy: the fresh data lands a few seconds later and
+       * must not throw a person who has already scrolled, or opened a guide, back to the top. */
+      const keepView=background||!!cached;
       const keepY=window.scrollY||0;
-      applyJourneyBundle_(bundle,false,background);
-      if(background)requestAnimationFrame(function(){ window.scrollTo(0,keepY); });
+      applyJourneyBundle_(bundle,false,keepView);
+      if(keepView)requestAnimationFrame(function(){ window.scrollTo(0,keepY); });
       setFreshness_(saved&&saved.savedAt||Date.now(),false);
 
     } catch(e){
