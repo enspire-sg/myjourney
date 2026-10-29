@@ -283,7 +283,7 @@ body.bg-modal-open{ overflow: hidden; }
     @supports not (scrollbar-gutter: stable){html{overflow-y:scroll}}
   </style>
 </head>
-<body>
+<body style="padding-top:env(safe-area-inset-top)">
 <main class="shell">
   <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><a class="btn ghost mini hidden" id="appsBtn" target="_top" rel="noopener">Enspire Apps</a><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button></div></div>
   <div id="freshnessSlot" class="freshness-slot" role="status" aria-live="polite"><span id="freshness"></span></div>
