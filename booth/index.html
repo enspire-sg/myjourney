@@ -779,12 +779,12 @@
 
   <div id="freshness" class="note warn" role="status" aria-live="polite">Opening Booth Shifts…</div>
   <div id="boot" class="spin">Loading…</div>
-  <div class="buildTag" id="buildTag">Shell 2026-10-30.3</div>
+  <div class="buildTag" id="buildTag">Shell 2026-10-30.4</div>
 </div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-30.3';
+  const SHELL_VERSION = '2026-10-30.4';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -860,7 +860,7 @@
 
   var TABKEY = 'booth.tab.v2', loaded = {}, tabs = [];
 
-  function openTab(id) {
+  function openTab(id, shouldScroll) {
     tabs.forEach(function (t) {
       $('panel-' + t.id).style.display = t.id === id ? '' : 'none';
       t.btn.setAttribute('aria-selected', t.id === id ? 'true' : 'false');
@@ -873,7 +873,7 @@
       if (id === 'saturday') loadSaturday();
       if (id === 'allocation') loadAllocation();
     }
-    window.scrollTo(0, 0);
+    if (shouldScroll !== false) window.scrollTo(0, 0);
   }
 
   function buildTabs(canAllocate) {
@@ -902,7 +902,7 @@
     var want = 'attendance';
     try { want = localStorage.getItem(TABKEY) || 'attendance'; } catch (e) {}
     if (!defs.some(function (d) { return d.id === want; })) want = 'attendance';
-    openTab(want);
+    openTab(want, false);
   }
 
   function show(which) {

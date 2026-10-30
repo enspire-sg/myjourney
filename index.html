@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.15';
+  const BUILD='2026-10-30.16';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3122,17 +3122,17 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const personId=String(ownData&&ownData.person&&ownData.person.id||data&&data.person&&data.person.id||'');
     const boothQuickBtn=$('boothQuickBtn');
     if(boothQuickBtn.disabled)return;
-    const oldLabel=boothQuickBtn.textContent, oldMinWidth=boothQuickBtn.style.minWidth;
-    boothQuickBtn.style.minWidth=Math.ceil(boothQuickBtn.getBoundingClientRect().width)+'px';
+    const oldLabel=boothQuickBtn.textContent, oldWidth=boothQuickBtn.style.width;
+    boothQuickBtn.style.width=Math.ceil(boothQuickBtn.getBoundingClientRect().width)+'px';
     boothQuickBtn.disabled=true;
-    boothQuickBtn.textContent='Opening Booth Shifts…';
+    boothQuickBtn.textContent='Opening…';
     try{
       const result=await run('issueBoothHandoff',token);
       window.location.assign(base+'#handoff='+encodeURIComponent(result.assertion)+'&person='+encodeURIComponent(personId));
     }catch(e){
       boothQuickBtn.disabled=false;
       boothQuickBtn.textContent=oldLabel||'Book Shift';
-      boothQuickBtn.style.minWidth=oldMinWidth;
+      boothQuickBtn.style.width=oldWidth;
       $('freshness').textContent='Could not open Booth Shifts. Tap Book Shift to try again.';
     }
   }
