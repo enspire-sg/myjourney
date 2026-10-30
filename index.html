@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.14';
+  const BUILD='2026-10-30.15';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3120,37 +3120,20 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(own&&own.indexOf('script.google.com')<0&&own.indexOf('enspire-sg.github.io/myjourney/booth')<0){ window.open(own,'_blank','noopener'); return; }
     const base='https://enspire-sg.github.io/myjourney/booth/';
     const personId=String(ownData&&ownData.person&&ownData.person.id||data&&data.person&&data.person.id||'');
-    const fallback=async()=>{
-      const result=await run('issueBoothHandoff',token);
-      window.location.assign(base+'#handoff='+encodeURIComponent(result.assertion)+'&person='+encodeURIComponent(personId));
-    };
-    if(typeof BroadcastChannel!=='function'||!window.crypto||typeof crypto.getRandomValues!=='function'){
-      try{ await fallback(); }catch(e){ window.alert(e.message||'Could not open Booth Shifts.'); }
-      return;
-    }
-    const random=new Uint8Array(16); crypto.getRandomValues(random);
-    const channelId=Array.from(random,b=>b.toString(16).padStart(2,'0')).join('');
-    const channel=new BroadcastChannel('booth-handoff-'+channelId);
-    const shellUrl=base+'#channel='+encodeURIComponent(channelId)+'&person='+encodeURIComponent(personId);
-    let assertion='',ready=false,done=false,timedOut=false,timer=null;
-    const closeChannel=()=>{ if(timer)clearTimeout(timer); channel.close(); };
-    const sendAssertion=()=>{ if(ready&&assertion&&!done)channel.postMessage({type:'booth-assertion',channel:channelId,assertion}); };
-    channel.onmessage=e=>{
-      const m=e&&e.data||{};
-      if(m.channel!==channelId)return;
-      if(m.type==='booth-ready'){ ready=true; sendAssertion(); }
-      if(m.type==='booth-accepted'){ done=true; closeChannel(); }
-    };
-    window.open(shellUrl,'_blank','noopener');
-    timer=setTimeout(()=>{ timedOut=true; closeChannel(); if(assertion&&!done)window.location.assign(base+'#handoff='+encodeURIComponent(assertion)+'&person='+encodeURIComponent(personId)); },8000);
+    const boothQuickBtn=$('boothQuickBtn');
+    if(boothQuickBtn.disabled)return;
+    const oldLabel=boothQuickBtn.textContent, oldMinWidth=boothQuickBtn.style.minWidth;
+    boothQuickBtn.style.minWidth=Math.ceil(boothQuickBtn.getBoundingClientRect().width)+'px';
+    boothQuickBtn.disabled=true;
+    boothQuickBtn.textContent='Opening Booth Shifts…';
     try{
       const result=await run('issueBoothHandoff',token);
-      assertion=result.assertion;
-      if(timedOut){ window.location.assign(base+'#handoff='+encodeURIComponent(assertion)+'&person='+encodeURIComponent(personId)); return; }
-      sendAssertion();
+      window.location.assign(base+'#handoff='+encodeURIComponent(result.assertion)+'&person='+encodeURIComponent(personId));
     }catch(e){
-      done=true; closeChannel();
-      window.alert(e.message||'Could not open Booth Shifts.');
+      boothQuickBtn.disabled=false;
+      boothQuickBtn.textContent=oldLabel||'Book Shift';
+      boothQuickBtn.style.minWidth=oldMinWidth;
+      $('freshness').textContent='Could not open Booth Shifts. Tap Book Shift to try again.';
     }
   }
 
