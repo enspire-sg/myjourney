@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.3';
+  const BUILD='2026-10-30.5';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2742,7 +2742,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(tickPending_[String(stepId)]||tickBlocked_[String(stepId)])return;
     const was=btn.textContent, before=stepSnapshot_(findStepItem_(data,stepId)), t0=Date.now();
     btn.disabled=true; btn.textContent='Saving…'; tickPending_[String(stepId)]=true;
-    setQuestSaveStatus_(stepId,'info','Saving…'); render(); tickInFlight_++;
+    setQuestSaveStatus_(stepId,'info',''); render(); tickInFlight_++;
     const secs=function(){ return ((Date.now()-t0)/1000).toFixed(1)+'s'; };
     let timingOutcome='failed', timingServer=null, timingKind=fn==='markTrainingAttendedFast'?'Verify':'Attendance';
     try{
@@ -3354,7 +3354,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(want==='person') return canSeePeople ? 'person' : (tabIds[0]||'verify');
     return tabIds.indexOf(want)>=0 ? want : (tabIds[0]||'verify'); }
   function applyTeamReadOnly_(){
-    setReadOnlyPreview_('team','[data-approve],[data-reject],[data-tapp],[data-pass-interview],#cPerson,#cStep,#cNote,#cTap,#pNewStage,#pReason,#pSetStage,#pMentor,#pSaveMentor,#pAppraisal,#pAppraisalReason,#pSetAppraisal');
+    setReadOnlyPreview_('team','[data-approve],[data-reject],[data-tapp],[data-decline],[data-pass-interview],#cPerson,#cStep,#cNote,#cTap,#pNewStage,#pReason,#pSetStage,#pMentor,#pSaveMentor,#pAppraisal,#pAppraisalReason,#pSetAppraisal');
   }
   function renderTeam(){ const d=team.duties||{}; $('teamScope').textContent=(team.me?team.me.name+' · '+team.me.scope:'')+(viewAs?' · Read-only preview':'');
     const tabs=[]; if(d.leader)tabs.push(['leaders','People',0]); if(d.planning)tabs.push(['planning','Q4 Planning',0]); if(d.applications)tabs.push(['applications','Application Answers',0]); if(d.verify)tabs.push(['verify','Verify',(team.queue||[]).length]); if(d.certify)tabs.push(['certify','Confirm',(team.requests||[]).filter(r=>!r.mine).length]);
@@ -3475,13 +3475,15 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   function renderCertify(){ const reqs=(team.requests||[]), admin=!!(team.duties&&team.duties.admin);
     $('certifyHint').textContent=admin?'Requests first. Admins may also pick any eligible person and step.':'Only requests addressed to you are shown.';
     $('cAdminForm').classList.toggle('hidden',!admin);
-    $('requests').innerHTML=reqs.length?reqs.map(r=>'<div class="step" style="flex-direction:column;gap:6px"><div class="row"><b>'+esc(r.name)+'</b><span class="chip">'+esc(r.stage)+'</span><span class="muted small">'+esc(r.have)+' of '+esc(r.need)+' confirmed</span></div><div class="small"><span class="muted">'+esc(r.quest+' · '+r.phase)+'</span><br><b>'+esc(stepTitle_(r.step))+'</b>'+(r.evidence?'<div class="small" style="margin-top:4px">'+evidenceHtml(r.evidence)+'</div>':'')+'</div><div>'+(r.mine?'<span class="chip">You confirmed '+esc(String(r.mine).slice(0,10))+'</span>':'<button class="btn primary mini" data-tapp="'+esc(r.personId)+'" data-taps="'+esc(r.stepId)+'">Confirm</button>')+'</div></div>').join(''):'<p class="muted small" style="margin:12px 0">No open requests for you.</p>';
+    $('requests').innerHTML=reqs.length?reqs.map(r=>'<div class="step" style="flex-direction:column;gap:6px"><div class="row"><b>'+esc(r.name)+'</b><span class="chip">'+esc(r.stage)+'</span><span class="muted small">'+esc(r.have)+' of '+esc(r.need)+' confirmed</span></div><div class="small"><span class="muted">'+esc(r.quest+' · '+r.phase)+'</span><br><b>'+esc(stepTitle_(r.step))+'</b>'+(r.evidence?'<div class="small" style="margin-top:4px">'+evidenceHtml(r.evidence)+'</div>':'')+'</div><div>'+(r.mine?'<span class="chip">You confirmed '+esc(String(r.mine).slice(0,10))+'</span>':r.own?'<span class="chip">Your own request</span>':'<div class="row"><button class="btn primary mini" data-tapp="'+esc(r.personId)+'" data-taps="'+esc(r.stepId)+'">Confirm</button><button class="btn secondary mini" data-decline="'+esc(r.personId)+'" data-declines="'+esc(r.stepId)+'">Decline</button></div>')+'</div></div>').join(''):'<p class="muted small" style="margin:12px 0">No open requests for you.</p>';
     document.querySelectorAll('[data-tapp]').forEach(b=>b.onclick=()=>{ const r=reqs.find(x=>x.personId===b.dataset.tapp&&x.stepId===b.dataset.taps); tap(b.dataset.tapp,b.dataset.taps,'',r&&r.name,r&&r.step,b); });
+    document.querySelectorAll('[data-decline]').forEach(b=>b.onclick=()=>{ const r=reqs.find(x=>x.personId===b.dataset.decline&&x.stepId===b.dataset.declines); decline(b.dataset.decline,b.dataset.declines,r&&r.name,r&&r.step,b); });
     if(!admin)return;
     $('cPerson').innerHTML='<option value="">Choose a person</option>'+(team.roster||[]).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+' · '+esc(p.stage)+'</option>').join('');
     $('cStep').innerHTML='<option value="">Choose a step</option>'+(team.tapSteps||[]).map(s=>'<option value="'+esc(s.id)+'">'+esc(s.quest+' · '+stepTitle_(s.title))+' ('+s.need+')</option>').join('');
     $('cTap').onclick=()=>{ const p=$('cPerson').value,s=$('cStep').value; if(!p||!s){ msg($('cMsg'),'Choose a person and a step.','error'); return; } const po=$('cPerson').options[$('cPerson').selectedIndex],so=$('cStep').options[$('cStep').selectedIndex]; tap(p,s,$('cNote').value,po&&po.textContent,so&&so.textContent,$('cTap')); }; }
   async function tap(pid,sid,note,name,step,btn){ const who=name||'this person',what=stepTitle_(step||sid); if(!confirm('Confirm '+who+' — '+what+'?'))return; msg($('cMsg'),'',''); if(btn)btn.disabled=true; try{ team=await run('tapStep',token,pid,sid,note); renderTeam(); msg($('cMsg'),'Saved ✓ Confirmed for '+who+' — '+what+'.','success'); }catch(e){ msg($('cMsg'),'Not saved — tap Confirm to retry. '+e.message,'error'); if(btn)btn.disabled=false; } }
+  async function decline(pid,sid,name,step,btn){ let reason=prompt('Why are you declining? The person will see this.'); if(reason===null||!reason.trim())return; reason=reason.trim(); const who=name||'this person',what=stepTitle_(step||sid); msg($('cMsg'),'',''); if(btn)btn.disabled=true; try{ team=await run('declineRequest',token,pid,sid,reason); renderTeam(); msg($('cMsg'),'Saved ✓ Declined '+who+' · '+what,'success'); }catch(e){ msg($('cMsg'),'Not saved — tap Decline to retry. '+e.message,'error'); if(btn)btn.disabled=false; } }
 
   // ---- boot
   // A stored token still wins, so a reload never re-spends a used assertion.
