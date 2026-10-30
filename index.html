@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.12';
+  const BUILD='2026-10-30.13';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3117,19 +3117,13 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
 
   async function openBooth_(){
     const own=ownData&&ownData.links&&ownData.links.booth;
-    if(own&&own.indexOf('script.google.com')<0){ window.open(own,'_blank','noopener'); return; }
-    // Open synchronously so mobile browsers see a direct tap rather than blocking the new tab
-    // after the server round-trip. It remains blank for only the handoff-minting call.
+    if(own&&own.indexOf('script.google.com')<0&&own.indexOf('enspire-sg.github.io/myjourney/booth')<0){ window.open(own,'_blank','noopener'); return; }
     const tab=window.open('about:blank','_blank');
     try{
       const result=await run('issueBoothHandoff',token);
-      const target='booth_handoff_'+Date.now();
-      if(tab)tab.name=target;
-      const form=document.createElement('form');
-      form.method='POST'; form.action=result.url; form.target=tab?target:'_top';
-      const field=document.createElement('input');
-      field.type='hidden'; field.name='sso'; field.value=result.assertion;
-      form.appendChild(field); document.body.appendChild(form); form.submit(); form.remove();
+      const url='https://enspire-sg.github.io/myjourney/booth/#handoff='+encodeURIComponent(result.assertion);
+      if(tab){ tab.opener=null; tab.location.replace(url); }
+      else window.location.assign(url);
     }catch(e){
       if(tab)tab.close();
       window.alert(e.message||'Could not open Booth Shifts.');
