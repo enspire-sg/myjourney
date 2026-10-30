@@ -47,7 +47,10 @@
   .suspendedFlag { display:inline-block; margin-left:6px; padding:2px 7px; border-radius:999px;
                    background:var(--dangerbg); color:var(--danger); font-size:12px; font-weight:800; }
   .wrap { max-width:760px; margin:0 auto; padding:16px 16px 64px; }
-  header { background:var(--navy); color:#fff; padding:18px 16px; }
+  header { background:var(--navy); color:#fff;
+           padding:calc(18px + env(safe-area-inset-top, 0px))
+                   calc(16px + env(safe-area-inset-right, 0px)) 18px
+                   calc(16px + env(safe-area-inset-left, 0px)); }
   header .inner { max-width:760px; margin:0 auto; display:flex; align-items:baseline; gap:10px; }
   header h1 { font-size:19px; margin:0; font-weight:650; letter-spacing:.2px; }
   .buildTag { margin:18px 0 8px; text-align:center; font-size:11px; color:var(--muted); }
@@ -121,7 +124,7 @@
   .bar .tally { font-size:13px; color:var(--muted); }
   .count .big { min-width:5.5em; }
   .err { color:var(--danger); font-size:13px; margin-top:8px; }
-  .writeStatus { min-height:48px; position:sticky; top:0; z-index:20; display:flex;
+  .writeStatus { min-height:48px; position:sticky; top:env(safe-area-inset-top, 0px); z-index:20; display:flex;
                  align-items:center; padding:8px 12px; margin:0 0 8px; border-radius:10px;
                  background:transparent; color:transparent; font-size:14px; font-weight:750; }
   .writeStatus.saving { color:var(--muted); background:var(--soft); }
@@ -776,19 +779,18 @@
 
   <div id="freshness" class="note warn" role="status" aria-live="polite">Opening Booth Shifts…</div>
   <div id="boot" class="spin">Loading…</div>
-  <div class="buildTag" id="buildTag">Shell 2026-10-30.2</div>
+  <div class="buildTag" id="buildTag">Shell 2026-10-30.3</div>
 </div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-30.2';
+  const SHELL_VERSION = '2026-10-30.3';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
-  var SSO_HANDOFF = '', HANDOFF_CHANNEL_ID = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
+  var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
   (function readHandoffFragment_() {
     var raw = String(location.hash || '').replace(/^#/, ''), params = new URLSearchParams(raw);
     SSO_HANDOFF = params.get('handoff') || '';
-    HANDOFF_CHANNEL_ID = params.get('channel') || '';
     EXPECTED_PERSON_ID = params.get('person') || '';
     if (EXPECTED_PERSON_ID) EXPECTED_CACHE_IDENTITY = 'person:' + EXPECTED_PERSON_ID;
     if (raw) history.replaceState(null, '', location.pathname + location.search);
@@ -802,6 +804,7 @@
 
   function $(id) { return document.getElementById(id); }
   function clearBoothCache_() { try { localStorage.removeItem(CACHE_KEY); } catch (e) {} }
+  function clearTokenOnly_() { try { localStorage.removeItem(KEY); } catch (e) {} }
   function store(v) {
     try {
       if (!v) { localStorage.removeItem(KEY); clearBoothCache_(); return; }
@@ -912,11 +915,17 @@
   function acceptFreshBooking_(booking) {
     var identity = String(booking && booking.cacheIdentity || '');
     if (!identity) { clearBoothCache_(); throw new Error('Booth identity was not returned.'); }
-    if (EXPECTED_CACHE_IDENTITY && booking.cacheIdentity !== EXPECTED_CACHE_IDENTITY) clearBoothCache_();
+    if (EXPECTED_CACHE_IDENTITY && booking.cacheIdentity !== EXPECTED_CACHE_IDENTITY) {
+      clearBoothCache_(); throw new Error('Booth opened for a different account. Please try again.');
+    }
     EXPECTED_CACHE_IDENTITY = identity;
     cacheBooking_(booking);
     render(booking);
     setStale_(false);
+  }
+
+  function bookingMatchesExpected_(booking) {
+    return !EXPECTED_CACHE_IDENTITY || String(booking && booking.cacheIdentity || '') === EXPECTED_CACHE_IDENTITY;
   }
 
   function redeemHandoff_(assertion) {
@@ -926,51 +935,38 @@
       try { acceptFreshBooking_(r.booking); }
       catch (e) { store(''); token = ''; $('sierr').textContent = e.message; show('signin'); }
     }, function (e) {
-      if (load()) { HANDOFF_CHANNEL_ID = ''; return boot(); }
+      if (load()) return boot();
       clearBoothCache_(); $('sierr').textContent = e.message; show('signin');
     });
   }
 
-  var handoffChannel = null, handoffTimer = null;
-  function closeHandoffChannel_() {
-    if (handoffTimer) { clearTimeout(handoffTimer); handoffTimer = null; }
-    if (handoffChannel) { handoffChannel.close(); handoffChannel = null; }
-    HANDOFF_CHANNEL_ID = '';
-  }
-  function listenForHandoff_() {
-    if (!HANDOFF_CHANNEL_ID || !/^[a-f0-9]{32}$/.test(HANDOFF_CHANNEL_ID) ||
-        typeof BroadcastChannel !== 'function') return false;
-    var channelId = HANDOFF_CHANNEL_ID;
-    handoffChannel = new BroadcastChannel('booth-handoff-' + channelId);
-    handoffChannel.onmessage = function (event) {
-      var message = event && event.data || {};
-      if (message.type !== 'booth-assertion' || message.channel !== channelId ||
-          typeof message.assertion !== 'string' || !message.assertion || message.assertion.length > 4096) return;
-      handoffChannel.postMessage({type:'booth-accepted', channel:channelId});
-      var assertion = message.assertion;
-      closeHandoffChannel_();
+  function tryExistingSessionBeforeHandoff_(assertion, cached) {
+    render(cached);
+    setStale_(true, 'Refreshing cached screen… actions are disabled.');
+    run('getBooking', [token], function (booking) {
+      if (!bookingMatchesExpected_(booking)) {
+        clearTokenOnly_(); clearBoothCache_();
+        return redeemHandoff_(assertion);
+      }
+      assertion = ''; // valid existing session won; let the unused one-time assertion expire in memory
+      acceptFreshBooking_(booking);
+    }, function () {
+      clearTokenOnly_();
       redeemHandoff_(assertion);
-    };
-    handoffChannel.postMessage({type:'booth-ready', channel:channelId});
-    handoffTimer = setTimeout(function () {
-      closeHandoffChannel_();
-      if (load()) return boot();
-      $('freshness').textContent = 'Connection took too long. Open Booth Shifts from My Journey again.';
-      show('signin');
-    }, 8000);
-    return true;
+    });
   }
 
   function boot() {
     if (SSO_HANDOFF) {
       var assertion = SSO_HANDOFF;
       SSO_HANDOFF = ''; // never persist or retry the one-time assertion
+      token = load();
+      var handoffCached = cachedBooking_(EXPECTED_CACHE_IDENTITY);
+      if (token && handoffCached) {
+        tryExistingSessionBeforeHandoff_(assertion, handoffCached);
+        return;
+      }
       redeemHandoff_(assertion);
-      return;
-    }
-    if (HANDOFF_CHANNEL_ID && listenForHandoff_()) {
-      var waitingCached = cachedBooking_(EXPECTED_CACHE_IDENTITY);
-      if (waitingCached) { render(waitingCached); setStale_(true, 'Refreshing cached screen… actions are disabled.'); }
       return;
     }
     token = load();
