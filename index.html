@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.2';
+  const BUILD='2026-10-30.3';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1046,6 +1046,32 @@ body.bg-modal-open{ overflow: hidden; }
     if(!response.ok||!payload||payload.ok!==true)throw new Error(String(payload&&payload.error||'Request failed.'));
     return payload.result;
   }
+  const TIMING_QUEUE_KEY='journey.save-timings.v1';
+  let timingFlushInFlight_=false, timingOpenFlushStarted_=false;
+  function timingQueueRead_(){ try{ const q=JSON.parse(localStorage.getItem(TIMING_QUEUE_KEY)||'[]'); return Array.isArray(q)?q:[]; }catch(e){ return []; } }
+  function timingQueueWrite_(q){ try{ localStorage.setItem(TIMING_QUEUE_KEY,JSON.stringify(q.slice(-200))); }catch(e){} }
+  function timingSgt_(){ return new Date(Date.now()+8*60*60*1000).toISOString().replace('Z','+08:00'); }
+  function enqueueTiming_(row){
+    const q=timingQueueRead_(); q.push(row); timingQueueWrite_(q);
+    if(q.length>=20)flushTimingQueue_();
+  }
+  function scheduleSaveTiming_(stepId,kind,totalMs,serverMs,outcome){
+    setTimeout(function(){
+      enqueueTiming_({at:timingSgt_(),personId:String(data&&data.person&&data.person.id||''),stepId:String(stepId||''),
+        kind:String(kind||''),totalMs:Math.max(0,Math.round(Number(totalMs)||0)),
+        serverMs:serverMs==null?'':Math.max(0,Math.round(Number(serverMs)||0)),build:BUILD,
+        effectiveType:String(navigator.connection&&navigator.connection.effectiveType||''),outcome:outcome==='ok'?'ok':'failed'});
+    },0);
+  }
+  async function flushTimingQueue_(){
+    if(timingFlushInFlight_||!token)return;
+    const q=timingQueueRead_(), batch=q.slice(0,50); if(!batch.length)return;
+    timingFlushInFlight_=true;
+    try{ const result=await run('logTimings',token,batch); const accepted=Math.min(batch.length,Number(result&&result.accepted)||0);
+      if(accepted>0){ const fresh=timingQueueRead_(); timingQueueWrite_(fresh.slice(accepted)); }
+    }catch(e){} finally{ timingFlushInFlight_=false; }
+  }
+  function scheduleTimingOpenFlush_(){ if(timingOpenFlushStarted_)return; timingOpenFlushStarted_=true; setTimeout(flushTimingQueue_,0); }
   /* Usage log (14 Oct 2026): which buttons get used. Own session only; View As is never logged;
    * fire-and-forget so a failure here can never block anything the person is doing. */
   function track_(name){ try{ if(viewAs||!token)return; run('logUse',token,name).catch(function(){}); }catch(e){} }
@@ -1147,6 +1173,7 @@ body.bg-modal-open{ overflow: hidden; }
       if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
   async function load(options){
+    scheduleTimingOpenFlush_();
     const background=!!(options&&options.background);
     const cached=background?null:readJourneyBundleCache_();
     if(cached){ applyJourneyBundle_(cached.bundle,true); setFreshness_(cached.savedAt,false); booting_(false); }
@@ -2644,6 +2671,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
                .replace('class="btn ', 'class="btn preview-only ');
   }
   function actionButtonFor_(it){
+    if(typeof tickBlocked_!=='undefined'&&tickBlocked_[String(it.id)])return '<button class="btn secondary mini" disabled>Refresh first</button>';
+    if(typeof tickPending_!=='undefined'&&tickPending_[String(it.id)])return '<button class="btn secondary mini" disabled>Saving…</button>';
     // `again` is the one thing that survives being done: a session you can attend next week too.
     if(it.state==='locked'||(it.state==='done'&&!it.again)||it.state==='pending')return '';
     if(it.action==='upload')return '<button class="btn primary mini" data-step="'+esc(it.id)+'" data-mode="upload">'+(it.state==='rejected'?'Resubmit':'Upload')+'</button>';
@@ -2659,7 +2688,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   let activeQuest='IQ';
   function questTabLabel(q){ return {'IQ':'IQ Steps','IQ Sessions':'IQ Sessions','TLQ':'Team Leader','EQ':'Entrepreneur'}[q.quest]||q.label; }
   function revealActiveQuestTab(){ const nav=$('questTabs'), selected=nav.querySelector('[aria-selected="true"]'); if(!selected||nav.scrollWidth<=nav.clientWidth)return; const left=selected.offsetLeft-nav.offsetLeft, right=left+selected.offsetWidth; if(left<nav.scrollLeft)nav.scrollLeft=left; else if(right>nav.scrollLeft+nav.clientWidth)nav.scrollLeft=right-nav.clientWidth; }
-  var questSaveStatus_={};
+  var questSaveStatus_={}, tickPending_={}, tickBlocked_={};
   function setQuestSaveStatus_(stepId,state,text){ questSaveStatus_[String(stepId)]={state:state,text:text}; }
   function applyFastTick_(confirmation){
     let found=null, phase=null, quest=null;
@@ -2710,11 +2739,16 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   }
   function stepSnapshot_(it){ return it?JSON.stringify([it.state,it.note||'',it.when||'']):''; }
   async function saveTick_(fn, stepId, title, btn){
+    if(tickPending_[String(stepId)]||tickBlocked_[String(stepId)])return;
     const was=btn.textContent, before=stepSnapshot_(findStepItem_(data,stepId)), t0=Date.now();
-    btn.disabled=true; btn.textContent='Saving…'; tickInFlight_++;
+    btn.disabled=true; btn.textContent='Saving…'; tickPending_[String(stepId)]=true;
+    setQuestSaveStatus_(stepId,'info','Saving…'); render(); tickInFlight_++;
     const secs=function(){ return ((Date.now()-t0)/1000).toFixed(1)+'s'; };
+    let timingOutcome='failed', timingServer=null, timingKind=fn==='markTrainingAttendedFast'?'Verify':'Attendance';
     try{
       const confirmation=await run(fn,token,stepId);
+      timingOutcome='ok'; timingServer=confirmation&&confirmation.serverMs; timingKind=confirmation&&confirmation.kind||timingKind;
+      delete tickPending_[String(stepId)];
       applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()+(confirmation&&confirmation.serverMs!=null?' (server '+(Number(confirmation.serverMs)/1000).toFixed(1)+'s)':'')); render();
       refreshJourneyAfterFastTick_();
     }catch(e){
@@ -2726,16 +2760,19 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         outcome=after&&after!==before?'saved':'notsaved';
       }catch(e2){ outcome='unknown'; }
       if(outcome==='saved'){
+        timingOutcome='ok'; delete tickPending_[String(stepId)];
         try{ writeJourneyBundleCache_(bundle); applyJourneyBundle_(bundle,false,true); }catch(e3){}
         setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()+' (confirmed on re-check)');
       }else if(outcome==='notsaved'){
+        delete tickPending_[String(stepId)];
         setQuestSaveStatus_(stepId,'error','Not saved · Retry ('+String(e&&e.message||'no reply').slice(0,70)+')');
         btn.disabled=false; btn.textContent=was;
       }else{
+        delete tickPending_[String(stepId)]; tickBlocked_[String(stepId)]=true;
         setQuestSaveStatus_(stepId,'error','Could not confirm. Pull down to refresh before you retry.');
       }
       render();
-    }finally{ tickInFlight_--; }
+    }finally{ scheduleSaveTiming_(stepId,timingKind,Date.now()-t0,timingServer,timingOutcome); tickInFlight_--; }
   }
   async function markTrainingAttended(stepId, title, btn){
     if(!confirm('Mark "'+title+'" as attended?\n\nYour agency head will verify it. Nothing to upload.'))return;
@@ -2786,7 +2823,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         g.items=g.items.map(function(x){ return Object.assign({},x,{title:x.fullTitle||x.title}); });
         g.key=null; } });
     return out; }
-  function stepRow_(it,ix,quest){ const saved=questSaveStatus_[String(it.id)]||{state:'',text:''}; const flow=it.state==='done'?'':(it.state==='locked'&&it.lockedUntil?'<small>'+esc('Locked until: '+it.lockedUntil)+'</small>':(it.waitingOn?'<small>'+esc(it.waitingOn==='Your turn'?'Your turn':'Waiting on: '+it.waitingOn)+'</small>':'')+(it.next?'<small>'+esc('Next: '+it.next)+'</small>':'')); return '<div class="step '+esc(it.state)+'"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small>'+flow+'</div><div class="act"><div class="quest-save '+esc(saved.state)+'" data-save-status="'+esc(it.id)+'" aria-live="polite">'+esc(saved.text)+'</div>'+actionButton(it)+'</div></div>'; }
+  function stepRow_(it,ix,quest){ const statuses=typeof questSaveStatus_==='undefined'?{}:questSaveStatus_, pending=typeof tickPending_==='undefined'?{}:tickPending_, saved=statuses[String(it.id)]||{state:'',text:''}, visual=pending[String(it.id)]?'pending':it.state; const flow=it.state==='done'?'':(it.state==='locked'&&it.lockedUntil?'<small>'+esc('Locked until: '+it.lockedUntil)+'</small>':(it.waitingOn?'<small>'+esc(it.waitingOn==='Your turn'?'Your turn':'Waiting on: '+it.waitingOn)+'</small>':'')+(it.next?'<small>'+esc('Next: '+it.next)+'</small>':'')); return '<div class="step '+esc(visual)+'"><div class="dot '+esc(visual)+'">'+stateLabel(visual)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small>'+flow+'</div><div class="act"><div class="quest-save '+esc(saved.state)+'" aria-live="polite">'+esc(saved.text)+'</div>'+actionButton(it)+'</div></div>'; }
   /* What each section EARNS (Li Wei, 29 Oct 2026). The sheet keeps its phase names because the
    * access rules and the nightly compute read them; only the title the person reads changes.
    * "Probation" holds the Certification steps and "Qualified ..." is the last stage, so a Certified
