@@ -39,6 +39,12 @@
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { margin:0; background:var(--bg); color:var(--ink);
          font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
+  /* In iPhone Home Screen mode, viewport-fit=cover lets scrolling content pass behind the
+     transparent status bar after the header has left the viewport. Keep that area navy on every
+     scroll position; the inset is zero on ordinary browsers, so desktop is unchanged. */
+  body::before { content:''; position:fixed; z-index:1000; top:0; left:0; right:0;
+                 height:env(safe-area-inset-top, 0px); background:var(--navy);
+                 pointer-events:none; }
   #bookingNoticeSlot { min-height:0; }
   #bookingNoticeSlot.hasNotice { min-height:72px; margin-bottom:10px; }
   .bookingNotice { margin:0 0 8px; padding:10px 12px; border-radius:10px;
@@ -779,12 +785,12 @@
 
   <div id="freshness" class="note warn" role="status" aria-live="polite">Opening Booth Shifts…</div>
   <div id="boot" class="spin">Loading…</div>
-  <div class="buildTag" id="buildTag">Shell 2026-10-30.4</div>
+  <div class="buildTag" id="buildTag">Shell 2026-10-30.5</div>
 </div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-30.4';
+  const SHELL_VERSION = '2026-10-30.5';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
