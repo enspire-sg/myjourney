@@ -816,7 +816,7 @@ body.bg-modal-open{ overflow: hidden; }
         </div>
         <div class="tier-activity-grid">
           <div class="tier-activity-card"><b id="rsWeeks">0</b><span>Rising Star weeks so far</span></div>
-          <div class="tier-activity-card"><b id="shiftsMonth">0</b><span>Booth shifts booked</span></div>
+          <div class="tier-activity-card"><b id="pvPeriod">0</b><span id="pvPeriodLabel">PV this week</span></div>
         </div>
         <p class="small month-run empty" id="rsRun"></p>
         <div class="tier-activity-foot"><span class="muted small" id="asOf"></span><span class="muted small">Updated every morning.</span></div>
@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.7';
+  const BUILD='2026-10-30.8';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1211,7 +1211,9 @@ body.bg-modal-open{ overflow: hidden; }
     const cur=ms.length?ms[Math.min(monthIdx,ms.length-1)]:null;
     $('monthLabel').textContent=cur?cur.label:data.numbers.month;
     $('rsWeeks').textContent=fmt(cur?cur.rsWeeks:data.numbers.rsWeeks);
-    $('shiftsMonth').textContent=fmt(cur?cur.shifts:data.numbers.shiftsMonth);
+    const current=monthIdx===0;
+    $('pvPeriod').textContent=fmt(current?data.numbers.pvWeek:(cur?cur.pv:0));
+    $('pvPeriodLabel').textContent=current?'PV this week':'PV that month';
     $('asOf').textContent=(monthIdx===0&&data.numbers.asOf)?('as of '+data.numbers.asOf.replace(' SGT','')):'';
     renderRun(monthIdx===0);
     $('monthNav').classList.toggle('hidden',ms.length<2);
