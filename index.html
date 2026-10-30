@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.9';
+  const BUILD='2026-10-30.10';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2826,7 +2826,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         g.items=g.items.map(function(x){ return Object.assign({},x,{title:x.fullTitle||x.title}); });
         g.key=null; } });
     return out; }
-  function stepRow_(it,ix,quest){ const statuses=typeof questSaveStatus_==='undefined'?{}:questSaveStatus_, pending=typeof tickPending_==='undefined'?{}:tickPending_, saved=statuses[String(it.id)]||{state:'',text:''}, visual=pending[String(it.id)]?'pending':it.state; const flow=it.state==='done'?'':(it.state==='locked'&&it.lockedUntil?'<small>'+esc('Locked until: '+it.lockedUntil)+'</small>':(it.waitingOn?'<small>'+esc(it.waitingOn==='Your turn'?'Your turn':'Waiting on: '+it.waitingOn)+'</small>':'')+(it.next?'<small>'+esc('Next: '+it.next)+'</small>':'')),reflection=it.reflection?'<div class="step-reflection"><b>Your reflection</b>'+esc(it.reflection)+'</div>':''; return '<div class="step '+esc(visual)+'"><div class="dot '+esc(visual)+'">'+stateLabel(visual)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small>'+flow+reflection+'</div><div class="act"><div class="quest-save '+esc(saved.state)+'" aria-live="polite">'+esc(saved.text)+'</div>'+actionButton(it)+'</div></div>'; }
+  function stepRow_(it,ix,quest){ const statuses=typeof questSaveStatus_==='undefined'?{}:questSaveStatus_, pending=typeof tickPending_==='undefined'?{}:tickPending_, saved=statuses[String(it.id)]||{state:'',text:''}, visual=pending[String(it.id)]?'pending':it.state; const flow=it.state==='done'?'':(it.state==='locked'&&it.lockedUntil?'<small>'+esc('Locked until: '+it.lockedUntil)+'</small>':(it.waitingOn?'<small>'+esc(it.waitingOn==='Your turn'?'Your turn':'Waiting on: '+it.waitingOn)+'</small>':'')+(it.next?'<small>'+esc('Next: '+it.next)+'</small>':'')),reflection=it.reflection?'<div class="step-reflection"><b>Your reflection</b>'+esc(it.reflection)+'</div>':'',action=actionButton(it),act=(saved.text||action)?'<div class="act"><div class="quest-save '+esc(saved.state)+'" aria-live="polite">'+esc(saved.text)+'</div>'+action+'</div>':''; return '<div class="step '+esc(visual)+'"><div class="dot '+esc(visual)+'">'+stateLabel(visual)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small>'+flow+reflection+'</div>'+act+'</div>'; }
   /* What each section EARNS (Li Wei, 29 Oct 2026). The sheet keeps its phase names because the
    * access rules and the nightly compute read them; only the title the person reads changes.
    * "Probation" holds the Certification steps and "Qualified ..." is the last stage, so a Certified
