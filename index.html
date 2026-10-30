@@ -1020,7 +1020,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-29.8';
+  const BUILD='2026-10-30.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2669,7 +2669,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(!found)return;
     const wasDone=found.state==='done';
     if(confirmation.pending){
-      found.state='pending'; found.note='Waiting for verification'; found.when=String(confirmation.at||'').slice(0,10);
+      found.state='pending'; found.note='Waiting for verification'; found.when=String(confirmation.at||'').slice(0,10); if(/E-B[12]\.1$/.test(String(found.id)))found.waitingOn='your trainer'; else if(found.waitingOn==='Your turn')delete found.waitingOn;
       found.action=''; found.again=false;
     }else if(confirmation.kind==='Attendance'){
       let n=confirmation.count;
