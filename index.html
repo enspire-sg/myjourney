@@ -64,6 +64,8 @@
     #ipaMsg{display:block;min-height:48px;visibility:hidden}#ipaMsg.info,#ipaMsg.error,#ipaMsg.success{visibility:visible}
     #cMsg,#mMsg{display:block;min-height:48px;visibility:hidden}#cMsg.error,#cMsg.success,#mMsg.error,#mMsg.success{visibility:visible}
     .req-people{display:grid;gap:8px;max-height:42vh;overflow:auto;padding:2px}.req-person{display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:#0b1628;cursor:pointer}.req-person:has(input:checked){border-color:var(--gold);background:rgba(245,193,79,.1)}.req-person input{width:22px;height:22px;flex:0 0 22px;accent-color:var(--gold)}.req-person span{display:grid;gap:2px}.req-person small{color:var(--muted)}
+    .observe-list{display:grid;gap:12px}.observe-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(138px,.7fr);gap:9px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#0b1628}.observe-row b{grid-column:1/-1;font-size:13px}.observe-row .observe-learned{grid-column:1/-1}.observe-row select,.observe-row input{min-width:0}.observe-error{min-height:20px;color:var(--red);font-size:12px;line-height:1.4}
+    @media(max-width:520px){.observe-row{grid-template-columns:1fr}.observe-row b,.observe-row .observe-learned{grid-column:1}}
 .warn{margin-top:11px;padding:11px 13px;border-radius:12px;background:rgba(255,196,77,.12);border:1px solid rgba(255,196,77,.38);color:#ffd98a;line-height:1.5}
     .stagebar{display:flex;gap:4px;margin-top:14px}.stagebar i{flex:1;height:6px;border-radius:99px;background:#22314a}.stagebar i.on{background:linear-gradient(90deg,var(--gold2),var(--gold))}.stagebar i.cur{background:var(--gold);box-shadow:0 0 0 3px rgba(245,193,79,.25)}
     .next{border:1px solid rgba(245,193,79,.35);background:linear-gradient(120deg,rgba(245,193,79,.14),rgba(245,193,79,.03))}.next h2{font-size:22px;margin:6px 0 8px;letter-spacing:-.02em}
@@ -863,6 +865,7 @@ body.bg-modal-open{ overflow: hidden; }
   <h2 id="mTitle" style="margin-top:6px"></h2>
   <p class="muted small" id="mHint"></p>
   <div class="field hidden" id="mTextField"><label for="mText">Your reflection or write-up</label><textarea id="mText" maxlength="5000" placeholder="Write it here..."></textarea></div>
+  <div class="field hidden" id="mObserveField"><label>Three Qualified Entrepreneurs you observed</label><div id="mObserveRows" class="observe-list"></div><div id="mObserveError" class="observe-error" role="status"></div></div>
   <div class="field hidden" id="mFileField"><label for="mFile">Choose a file (photo, PDF, screenshot, up to 8 MB)</label><input id="mFile" type="file" accept="image/*,application/pdf,.doc,.docx"><textarea id="mFileNote" maxlength="1000" placeholder="Optional note for the verifier" style="min-height:70px"></textarea></div>
   <div class="field hidden" id="mReqField"><label id="mReqPeopleLabel">Who did you ask?</label><div id="mReqPeople" class="req-people" role="group" aria-labelledby="mReqPeopleLabel"></div><span class="hint muted small" id="mReqPeopleHint">Pick at least one person.</span></div>
   <div class="message" id="mMsg" role="status"></div>
@@ -1017,7 +1020,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-29.7';
+  const BUILD='2026-10-29.8';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2782,7 +2785,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         g.items=g.items.map(function(x){ return Object.assign({},x,{title:x.fullTitle||x.title}); });
         g.key=null; } });
     return out; }
-  function stepRow_(it,ix,quest){ const saved=questSaveStatus_[String(it.id)]||{state:'',text:''}; const flow=(it.next?'<small>'+esc('Next: '+it.next)+'</small>':'')+(it.waitingOn?'<small>'+esc('Waiting on: '+it.waitingOn)+'</small>':''); return '<div class="step '+esc(it.state)+'"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small>'+flow+'</div><div class="act"><div class="quest-save '+esc(saved.state)+'" data-save-status="'+esc(it.id)+'" aria-live="polite">'+esc(saved.text)+'</div>'+actionButton(it)+'</div></div>'; }
+  function stepRow_(it,ix,quest){ const saved=questSaveStatus_[String(it.id)]||{state:'',text:''}; const flow=it.state==='done'?'':(it.state==='locked'&&it.lockedUntil?'<small>'+esc('Locked until: '+it.lockedUntil)+'</small>':(it.waitingOn?'<small>'+esc(it.waitingOn==='Your turn'?'Your turn':'Waiting on: '+it.waitingOn)+'</small>':'')+(it.next?'<small>'+esc('Next: '+it.next)+'</small>':'')); return '<div class="step '+esc(it.state)+'"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,quest)+titleHtml(it)+'</b><small>'+esc(it.note||(it.kind==='Auto'?'Computed from your records':''))+(it.when?' · '+esc(it.when):'')+'</small>'+flow+'</div><div class="act"><div class="quest-save '+esc(saved.state)+'" data-save-status="'+esc(it.id)+'" aria-live="polite">'+esc(saved.text)+'</div>'+actionButton(it)+'</div></div>'; }
   /* What each section EARNS (Li Wei, 29 Oct 2026). The sheet keeps its phase names because the
    * access rules and the nightly compute read them; only the title the person reads changes.
    * "Probation" holds the Certification steps and "Qualified ..." is the last stage, so a Certified
@@ -3121,11 +3124,35 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(confirmerCache&&confirmerCache[id]) return Promise.resolve(confirmerCache[id]);
     if(confirmerLoad) return confirmerLoad.then(m=>(m&&m[id])||run('getConfirmersForStep',token,id));
     return run('getConfirmersForStep',token,id); }
+  function isObserveStep_(id){ return id==='E-B1.2'||id==='E-B2.2'; }
+  function todaySgt_(){
+    const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Singapore',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()), out={};
+    parts.forEach(p=>{if(p.type!=='literal')out[p.type]=p.value;}); return out.year+'-'+out.month+'-'+out.day; }
+  function observeMinDate_(today){ const d=new Date(today+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()-90); return d.toISOString().slice(0,10); }
+  function validateObserveRows_(){
+    const rows=Array.from($('mObserveRows').querySelectorAll('.observe-row')), today=todaySgt_(), oldest=observeMinDate_(today), seen={}; let error='';
+    const observations=rows.map((row,index)=>{ const personId=row.querySelector('[data-observe-person]').value, date=row.querySelector('[data-observe-date]').value, learned=row.querySelector('[data-observe-learned]').value.trim();
+      if(!error&&!personId)error='Choose a Qualified Entrepreneur for observation '+(index+1)+'.';
+      else if(!error&&seen[personId])error='Choose three different people.';
+      else if(!error&&(!date||date>today))error='Use a date that is not in the future.';
+      else if(!error&&date<oldest)error='Use a date from the last 90 days.';
+      else if(!error&&learned.length<15)error='Write at least 15 characters about what you learned in observation '+(index+1)+'.';
+      else if(!error&&learned.length>400)error='Keep what you learned to 400 characters or fewer.';
+      if(personId)seen[personId]=true; return {personId:personId,date:date,learned:learned}; });
+    $('mObserveError').textContent=error; $('mSubmit').disabled=!!error||rows.length!==3; return error?null:observations; }
+  function renderObserveRows_(people){
+    const today=todaySgt_(), oldest=observeMinDate_(today), options='<option value="">Choose a Qualified Entrepreneur</option>'+(people||[]).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+(p.title?' · '+esc(p.title):'')+'</option>').join('');
+    $('mObserveRows').innerHTML=[1,2,3].map(i=>'<div class="observe-row"><b>Observation '+i+'</b><select data-observe-person aria-label="Qualified Entrepreneur '+i+'">'+options+'</select><input data-observe-date type="date" min="'+oldest+'" max="'+today+'" value="'+today+'" aria-label="Observation date '+i+'"><input class="observe-learned" data-observe-learned maxlength="400" placeholder="What did you learn?" aria-label="What you learned '+i+'"></div>').join('');
+    $('mObserveRows').oninput=validateObserveRows_; $('mObserveRows').onchange=validateObserveRows_; validateObserveRows_(); }
   function openModal(id,mode){ modalStep={id:id,mode:mode}; const it=findStep(id); $('mQuest').textContent=it?it.quest+' · '+it.phase:''; $('mTitle').textContent=it?stepTitle_(it.title):id;
-    $('mHint').textContent=mode==='request'?'Pick who you asked. They will see your request and tap to confirm. The step ticks when '+((it&&it.need)||3)+' of them confirm.':(it&&it.state==='rejected'?'Previous submission: '+it.note:'Your submission goes to Ryan Goh, Amber or Li Wei for verification.');
-    $('mTextField').classList.toggle('hidden',mode!=='write'); $('mFileField').classList.toggle('hidden',mode!=='upload'); $('mReqField').classList.toggle('hidden',mode!=='request');
+    const observing=isObserveStep_(id);
+    $('mHint').textContent=mode==='request'?'Pick who you asked. They will see your request and tap to confirm. The step ticks when '+((it&&it.need)||3)+' of them confirm.':observing?'Add exactly three observations. Your own Agency Head will verify them.':(it&&it.state==='rejected'?'Previous submission: '+it.note:'Your submission goes to a verifier.');
+    $('mTextField').classList.toggle('hidden',mode!=='write'||observing); $('mObserveField').classList.toggle('hidden',!observing); $('mFileField').classList.toggle('hidden',mode!=='upload'); $('mReqField').classList.toggle('hidden',mode!=='request');
     $('mText').value=''; $('mFile').value=''; $('mFileNote').value=''; msg($('mMsg'),'',''); $('modal').classList.add('open');
-    if(mode==='request'){
+    if(observing){ $('mObserveRows').innerHTML='<span class="muted small">Loading Qualified Entrepreneurs…</span>'; $('mObserveError').textContent=''; $('mSubmit').disabled=true;
+      run('getObservablePeople',token).then(people=>{ if(modalStep&&modalStep.id===id)renderObserveRows_(people); })
+        .catch(e=>{ if(modalStep&&modalStep.id===id){ $('mObserveError').textContent='Could not load people. '+e.message; $('mSubmit').disabled=true; } });
+    }else if(mode==='request'){
       $('mReqPeople').innerHTML='<span class="muted small">Loading people…</span>'; $('mSubmit').disabled=true;
       confirmersFor_(id).then(people=>{
         if(!modalStep||modalStep.id!==id||modalStep.mode!=='request')return;
@@ -3138,7 +3165,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   $('mCancel').onclick=()=>$('modal').classList.remove('open');
   $('mSubmit').onclick=async()=>{ if(!modalStep)return; $('mSubmit').disabled=true; msg($('mMsg'),'',''); try{
       let r;
-      if(modalStep.mode==='write')r=await run('submitEvidence',token,modalStep.id,{text:$('mText').value});
+      if(modalStep.mode==='write'&&isObserveStep_(modalStep.id)){ const observations=validateObserveRows_(); if(!observations)throw new Error($('mObserveError').textContent||'Complete all three observations.'); r=await run('submitEvidence',token,modalStep.id,{observations:observations}); }
+      else if(modalStep.mode==='write')r=await run('submitEvidence',token,modalStep.id,{text:$('mText').value});
       else if(modalStep.mode==='request'){
         const asked=Array.from($('mReqPeople').querySelectorAll('input:checked')).map(o=>o.value);
         if(!asked.length)throw new Error('Pick at least one person.');
@@ -3146,12 +3174,16 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       else { const f=$('mFile').files[0]; if(!f)throw new Error('Choose a file first.'); if(f.size>8*1024*1024)throw new Error('File is larger than 8 MB.');
         const b64=await new Promise((res,rej)=>{ const rd=new FileReader(); rd.onload=()=>res(String(rd.result).split(',')[1]); rd.onerror=()=>rej(new Error('Could not read the file.')); rd.readAsDataURL(f); });
         r=await run('submitEvidence',token,modalStep.id,{base64:b64,fileName:f.name,mimeType:f.type,text:$('mFileNote').value}); }
-      data=r; render();
+      const savedStepId=modalStep.id, wasObserve=isObserveStep_(savedStepId); data=r;
+      const refreshed=wasObserve&&findStep(savedStepId), sentTo=refreshed&&refreshed.waitingOn;
+      if(wasObserve)setQuestSaveStatus_(savedStepId,'success','Saved ✓ Sent to '+(sentTo||'your Agency Head')+' to verify');
+      render();
       if(modalStep.mode==='request'){ confirmerCache=null; prefetchConfirmers_(); }
       if(modalStep.mode==='request')msg($('mMsg'),'Saved ✓ Request sent','success');
+      else if(wasObserve)msg($('mMsg'),'Saved ✓ Sent to '+(sentTo||'your Agency Head')+' to verify','success');
       else msg($('mMsg'),'Saved ✓','success');
       setTimeout(()=>$('modal').classList.remove('open'),600);
-    }catch(e){ msg($('mMsg'),'Not saved — tap Submit to retry. '+e.message,'error'); } finally{ $('mSubmit').disabled=false; } };
+    }catch(e){ if(modalStep&&isObserveStep_(modalStep.id))setQuestSaveStatus_(modalStep.id,'error','Not saved · Retry'); msg($('mMsg'),'Not saved — tap Submit to retry. '+e.message,'error'); } finally{ if(!modalStep||!isObserveStep_(modalStep.id))$('mSubmit').disabled=false; else validateObserveRows_(); } };
 
   // ---- view as: a leader (or Li Wei) sees the member view exactly as one person sees it, read-only.
   // One way in: a real person. The stage preview was removed on 4 Oct 2026.
