@@ -202,13 +202,13 @@
   .bookedShiftStatus.saved { color:var(--ok); }
   .bookedShiftStatus.error { color:var(--danger); text-decoration:underline; cursor:pointer; }
   .entrepreneurOnly { margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
-  .marks { display:flex; gap:6px; }
+  .marks { display:flex; gap:8px; }
   button.stepdown { display:block; margin:4px 0 6px; padding:3px 10px; font-size:12px; }
   button.allpresent { display:block; width:100%; margin:8px 0 4px; padding:10px; }
   .person.att .nm { flex:1 1 100%; min-width:0; font-size:16px; font-weight:700; overflow-wrap:anywhere; }
   .person.att .marks { order:3; flex:1 1 100%; }
-  .person.att .marks .mark { flex:1 1 0; padding:8px 4px; }
-  .person.att .mark.remove { order:2; padding:4px 10px; font-size:12px; }
+  .person.att .marks .mark { flex:1 1 0; min-height:44px; padding:9px 6px; }
+  .person.att .mark.remove { order:2; min-height:44px; padding:9px 12px; font-size:13px; }
   .person.att .tag { order:1; }
   .attendanceSaveStatus { order:4; flex:1 1 100%; min-height:22px; line-height:22px;
                           font-size:13px; font-weight:700; color:var(--ok); }
@@ -218,6 +218,7 @@
   .lateMinutesSlot { order:4; flex:1 1 100%; min-height:72px; display:grid;
                      grid-template-columns:repeat(7,minmax(38px,1fr)); gap:4px;
                      align-content:start; }
+  .lateMinutesSlot:empty { display:none; min-height:0; }
   .lateMinutesLabel { grid-column:1/-1; min-height:20px; color:var(--muted);
                       font-size:12px; font-weight:650; }
   .lateMinuteButton { min-width:0; min-height:44px; padding:4px; border:1px solid var(--edge);
@@ -228,8 +229,21 @@
                      color:var(--ink); font-weight:700; }
   .attendanceSaveStatus { order:5; }
   .allPresentWrap { min-height:80px; margin:8px 0 4px; }
+  .allPresentWrap:empty { display:none; min-height:0; margin:0; }
   .allPresentWrap button.allpresent { margin:0 0 4px; }
   .shiftSaveStatus { display:block; width:100%; }
+  .attShiftSection { margin:10px 0; border:1px solid var(--line); border-radius:11px;
+                     background:var(--card); overflow:hidden; }
+  .attShiftSummary { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px;
+                     width:100%; min-height:64px; padding:11px 13px; border:0; border-radius:0;
+                     background:var(--soft); color:var(--ink); text-align:left; }
+  .attShiftSummary[aria-expanded=true] { background:var(--navy); color:#fff; }
+  .attShiftTitle { min-width:0; font-size:15px; font-weight:750; overflow-wrap:anywhere; }
+  .attShiftCount { font-size:13px; font-weight:750; white-space:nowrap; }
+  .attShiftState { grid-column:1/-1; font-size:12px; font-weight:650; color:var(--muted); }
+  .attShiftSummary[aria-expanded=true] .attShiftState { color:#dce6ff; }
+  .attShiftState.attention { color:var(--warn); }
+  .attShiftBody { padding:0 12px 10px; }
   .mark { border:1px solid var(--edge); background:var(--field); color:var(--ink);
           border-radius:999px; padding:5px 11px; font-size:13px; font-weight:500; cursor:pointer; }
   .mark[aria-pressed=true] { border-color:transparent; color:#fff; }
@@ -245,6 +259,15 @@
                         border:1px solid var(--line); border-radius:8px;
                         background:var(--field); color:var(--ink); font-size:14px; }
   .shiftManage button { padding:8px 12px; font-size:13px; }
+  @media (max-width:560px) {
+    .person.att { gap:10px; padding:12px 0; }
+    .person.att .marks { gap:8px; }
+    .person.att .marks .mark { min-height:48px; padding:11px 8px; font-size:14px; }
+    .person.att .mark.remove { min-height:46px; padding:10px 14px; font-size:13px; }
+    .allPresentWrap button.allpresent, .shiftManage button, button.addPerson { min-height:48px; }
+    .shiftManage { gap:10px; }
+    .shiftManage select { min-height:48px; }
+  }
   .shiftHead { font-size:15px; color:var(--ink); margin:14px 0 2px; }
   .bookingRemark { display:block; flex:1 1 100%; margin-top:3px; color:#b86b00;
                    font-size:12px; line-height:1.35; font-weight:600; overflow-wrap:anywhere; }
@@ -785,12 +808,12 @@
 
   <div id="freshness" class="note warn" role="status" aria-live="polite">Opening Booth Shifts…</div>
   <div id="boot" class="spin">Loading…</div>
-  <div class="buildTag" id="buildTag">Shell 2026-10-30.6</div>
+  <div class="buildTag" id="buildTag">Shell 2026-10-30.7</div>
 </div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-30.6';
+  const SHELL_VERSION = '2026-10-30.7';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -3803,8 +3826,49 @@
     return line;
   }
 
+  var attendanceShiftOpen_ = {}, attendanceShiftIdentity__ = '';
+  function attendanceShiftState_(d, s) {
+    var people = s.people || [], marked = people.filter(function (p) { return !!p.outcome && !p.saving; }).length;
+    if (s.notRunning) return {onShift:0, marked:0, complete:false, collapsible:true, status:'Not running'};
+    var missing = [];
+    if (!s.entIC) missing.push('Entrepreneur IC');
+    if (!s.boothIC) missing.push('Booth IC');
+    var outstanding = 0;
+    ['unplaced', 'unallocated', 'outstanding', 'operationalOutstanding'].forEach(function (name) {
+      var value = s[name];
+      if (Array.isArray(value)) outstanding += value.length;
+      else if (typeof value === 'number' && isFinite(value)) outstanding += Math.max(0, value);
+      else if (value === true) outstanding++;
+    });
+    if (s.needsAttention === true) outstanding++;
+    var status = [];
+    if (!people.length) status.push('No one on shift');
+    if (people.length - marked > 0) status.push((people.length - marked) + ' to mark');
+    if (missing.length) status.push('Missing ' + missing.join(' + '));
+    if (outstanding) status.push(outstanding + ' outstanding');
+    var complete = people.length > 0 && marked === people.length && !missing.length && !outstanding;
+    return {onShift:people.length, marked:marked, complete:complete, collapsible:complete,
+            status:complete ? 'Complete' : status.join(' · ')};
+  }
+  function attendanceShiftKey_(identity, a, d, b, s) {
+    return [identity, a.weekStart || a.week || '', d.day, b.location, s.shift].join('|');
+  }
+  function syncAttendanceShiftIdentity_(a) {
+    var identity = [previewAs || '', a.me || '', data && data.name || '', a.weekStart || a.week || ''].join('|');
+    if (identity !== attendanceShiftIdentity__) {
+      attendanceShiftIdentity__ = identity;
+      attendanceShiftOpen_ = {};
+    }
+    return identity;
+  }
+  function attendanceShiftExpanded_(key, state) {
+    return Object.prototype.hasOwnProperty.call(attendanceShiftOpen_, key)
+      ? attendanceShiftOpen_[key] : !state.collapsible;
+  }
+
   function renderAtt(a) {
     if (!a.slim) attData = a;
+    var shiftIdentity = syncAttendanceShiftIdentity_(a);
     renderWeekHome(a);
     $('attCard').style.display = '';
     var sm = a.summary;
@@ -3871,6 +3935,32 @@
           var done = s.people.filter(function (p) { return todo.indexOf(p) < 0; });
           var unmarked = s.people.filter(function (p) { return !p.outcome || p.saving; });
 
+          var state = attendanceShiftState_(d, s);
+          var shiftKey = attendanceShiftKey_(shiftIdentity, a, d, b, s);
+          var expanded = attendanceShiftExpanded_(shiftKey, state);
+          var section = null, shiftBody = wrap;
+          if (a.wide) {
+          section = document.createElement('section'); section.className = 'attShiftSection';
+          var summary = document.createElement('button'); summary.type = 'button'; summary.className = 'attShiftSummary';
+          summary.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+          var title = document.createElement('span'); title.className = 'attShiftTitle';
+          title.textContent = label(b.location) + ' · ' + d.day + ' ' + s.shift;
+          var count = document.createElement('span'); count.className = 'attShiftCount';
+          count.textContent = state.marked + '/' + state.onShift + ' marked';
+          var stateLine = document.createElement('span');
+          stateLine.className = 'attShiftState' + (!state.complete && !s.notRunning ? ' attention' : '');
+          stateLine.textContent = state.status;
+          summary.appendChild(title); summary.appendChild(count); summary.appendChild(stateLine);
+          shiftBody = document.createElement('div'); shiftBody.className = 'attShiftBody';
+          shiftBody.style.display = expanded ? '' : 'none';
+          summary.onclick = function () {
+            expanded = !expanded; attendanceShiftOpen_[shiftKey] = expanded;
+            summary.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            shiftBody.style.display = expanded ? '' : 'none';
+          };
+          section.appendChild(summary); section.appendChild(shiftBody);
+          }
+
           var sh = document.createElement('p');
           sh.className = 'shiftHead';
           sh.appendChild(document.createTextNode(s.shift + (shiftHasBookingRemark_(s) ? ' 📝' : '')));
@@ -3889,9 +3979,9 @@
             markTag.textContent = unmarked.length ? unmarked.length + ' to mark' : 'all marked';
             sh.appendChild(document.createTextNode(' ')); sh.appendChild(markTag);
           }
-          wrap.appendChild(sh);
-          if (s.entIC && s.entIC === a.me) wrap.appendChild(stepDown_(b.location, d.day, s.shift, 'Entrepreneur IC', s.shift));
-          if (s.boothIC && s.boothIC === a.me) wrap.appendChild(stepDown_(b.location, d.day, s.shift, 'Booth IC', s.shift));
+          shiftBody.appendChild(sh);
+          if (s.entIC && s.entIC === a.me) shiftBody.appendChild(stepDown_(b.location, d.day, s.shift, 'Entrepreneur IC', s.shift));
+          if (s.boothIC && s.boothIC === a.me) shiftBody.appendChild(stepDown_(b.location, d.day, s.shift, 'Booth IC', s.shift));
 
           // Almost everyone turns up. One tap for that, then correct the exceptions.
           if (s.canMark) {
@@ -3934,28 +4024,34 @@
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sf.retry(); }
               };
             } else if (sf && sf.state === 'saving') allStatus.textContent = 'Saving\u2026';
-            allWrap.appendChild(all); allWrap.appendChild(allStatus); wrap.appendChild(allWrap);
+            if (unmarked.length > 1 || sf) {
+              allWrap.appendChild(all); allWrap.appendChild(allStatus); shiftBody.appendChild(allWrap);
+            }
           }
 
-          todo.forEach(function (p) { wrap.appendChild(attRow(a, d, b, s, p)); });
+          todo.forEach(function (p) { shiftBody.appendChild(attRow(a, d, b, s, p)); });
 
           if (done.length) {
-            var box = document.createElement('div');
-            box.style.display = 'none';
-            done.forEach(function (p) { box.appendChild(attRow(a, d, b, s, p)); });
-            var peek = document.createElement('div');
-            peek.className = 'peek';
-            function lbl(shown) {
-              return (shown ? 'Hide ' : 'Show ') + done.length + ' marked';
+            if (a.wide && state.complete) {
+              done.forEach(function (p) { shiftBody.appendChild(attRow(a, d, b, s, p)); });
+            } else {
+              var box = document.createElement('div');
+              box.style.display = 'none';
+              done.forEach(function (p) { box.appendChild(attRow(a, d, b, s, p)); });
+              var peek = document.createElement('div');
+              peek.className = 'peek';
+              function lbl(shown) {
+                return (shown ? 'Hide ' : 'Show ') + done.length + ' marked';
+              }
+              peek.textContent = lbl(false);
+              peek.onclick = function () {
+                var shown = box.style.display !== 'none';
+                box.style.display = shown ? 'none' : '';
+                peek.textContent = lbl(!shown);
+              };
+              shiftBody.appendChild(peek);
+              shiftBody.appendChild(box);
             }
-            peek.textContent = lbl(false);
-            peek.onclick = function () {
-              var shown = box.style.display !== 'none';
-              box.style.display = shown ? 'none' : '';
-              peek.textContent = lbl(!shown);
-            };
-            wrap.appendChild(peek);
-            wrap.appendChild(box);
           }
 
           if (s.canManage) {
@@ -3999,9 +4095,10 @@
               manage.style.display = show ? '' : 'none';
               openAdd.setAttribute('aria-expanded', show ? 'true' : 'false');
             };
-            wrap.appendChild(openAdd);
-            wrap.appendChild(manage);
+            shiftBody.appendChild(openAdd);
+            shiftBody.appendChild(manage);
           }
+          if (section) wrap.appendChild(section);
         });
       });
       host.appendChild(wrap);
