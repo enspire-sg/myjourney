@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.8';
+  const BUILD='2026-10-30.9';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2751,7 +2751,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       const confirmation=await run(fn,token,stepId);
       timingOutcome='ok'; timingServer=confirmation&&confirmation.serverMs; timingKind=confirmation&&confirmation.kind||timingKind;
       delete tickPending_[String(stepId)];
-      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()+(confirmation&&confirmation.serverMs!=null?' (server '+(Number(confirmation.serverMs)/1000).toFixed(1)+'s)':'')); render();
+      applyFastTick_(confirmation); setQuestSaveStatus_(stepId,'success','Saved ✓ · '+secs()+(confirmation&&confirmation.serverMs!=null?' (server '+(Number(confirmation.serverMs)/1000).toFixed(1)+'s)':'')); render();
       refreshJourneyAfterFastTick_();
     }catch(e){
       setQuestSaveStatus_(stepId,'info','Checking…'); render();
@@ -2764,7 +2764,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       if(outcome==='saved'){
         timingOutcome='ok'; delete tickPending_[String(stepId)];
         try{ writeJourneyBundleCache_(bundle); applyJourneyBundle_(bundle,false,true); }catch(e3){}
-        setQuestSaveStatus_(stepId,'success','Saved ✓ '+title+' · '+secs()+' (confirmed on re-check)');
+        setQuestSaveStatus_(stepId,'success','Saved ✓ · '+secs()+' (confirmed on re-check)');
       }else if(outcome==='notsaved'){
         delete tickPending_[String(stepId)];
         setQuestSaveStatus_(stepId,'error','Not saved · Retry ('+String(e&&e.message||'no reply').slice(0,70)+')');
