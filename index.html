@@ -771,7 +771,8 @@ body.bg-modal-open{ overflow: hidden; }
          links. "Your next step" keeps its own gold treatment - it is the one card meant to stand
          out, and a second colour on it would fight that. -->
     <section class="card tinted sec0">
-      <div class="row"><div class="eyebrow" id="agency"></div><div class="spacer"></div><span class="chip gold" id="stage"></span><span class="chip" id="stageTitle" style="margin-left:6px"></span></div>
+      <div class="row"><div class="eyebrow" id="agency"></div><div class="spacer"></div><span class="chip gold" id="stage"></span></div>
+      <div><span class="chip" id="stageTitle" style="margin-top:10px"></span></div>
       <h1 id="name"></h1>
       <p class="muted small" id="stageSince"></p>
       <div class="stagebar" id="stagebar"></div>
@@ -1020,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.1';
+  const BUILD='2026-10-30.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
