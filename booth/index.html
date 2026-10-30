@@ -785,12 +785,12 @@
 
   <div id="freshness" class="note warn" role="status" aria-live="polite">Opening Booth Shifts…</div>
   <div id="boot" class="spin">Loading…</div>
-  <div class="buildTag" id="buildTag">Shell 2026-10-30.5</div>
+  <div class="buildTag" id="buildTag">Shell 2026-10-30.6</div>
 </div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-30.5';
+  const SHELL_VERSION = '2026-10-30.6';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -4137,7 +4137,7 @@
     if (saved) {
       try {
         renderAtt(saved.payload); showingSaved = true;
-        $('attLoadTime').textContent = 'Updating… · Showing saved copy – updating…';
+        $('attLoadTime').textContent = 'Showing saved copy · Refreshing…';
       } catch (cacheError) { showingSaved = false; }
     }
     if (!showingSaved) $('attLoadTime').textContent = 'Loading shifts…';
@@ -4210,14 +4210,14 @@
       one.textContent = d.close.marked + '/' + d.close.expected + ' shifts marked \u00b7 '
         + d.close.unmarked + ' unmarked \u00b7 ' + d.close.late + ' late \u00b7 ' + d.close.noShow + ' no-show\n'
         + d.close.openActions + ' action' + (d.close.openActions === 1 ? '' : 's') + ' open \u00b7 '
-        + d.summary.people + ' people \u00b7 ' + d.summary.finesUnpaid + ' fines unpaid \u00b7 '
+        + d.summary.people + (Number(d.summary.people) === 1 ? ' person needs follow-up \u00b7 ' : ' people need follow-up \u00b7 ') + d.summary.finesUnpaid + ' fines unpaid \u00b7 '
         + d.summary.reflectionsOwed + ' reflections owed \u00b7 ' + d.summary.sentHomePending + ' sent home pending';
       close.appendChild(one);
     }
 
     var summary = document.createElement('div');
     summary.className = 'discSummary';
-    summary.textContent = d.summary.people + ' people · ' + d.summary.finesUnpaid + ' fines unpaid · '
+    summary.textContent = d.summary.people + (Number(d.summary.people) === 1 ? ' person needs follow-up · ' : ' people need follow-up · ') + d.summary.finesUnpaid + ' fines unpaid · '
       + d.summary.reflectionsOwed + ' reflections owed · ' + d.summary.sentHomePending + ' sent home pending';
     if (!d.close) host.appendChild(summary);
     if (d.moneyOwed) {
