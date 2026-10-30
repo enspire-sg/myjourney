@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.11';
+  const BUILD='2026-10-30.12';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3440,7 +3440,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     $('pMeta').textContent=[p.agency||'no agency', p.days!=null?p.days+' days in stage':'', p.email, p.mobile, p.joined?'joined '+p.joined:''].filter(String).join(' · ');
     $('pTiles').innerHTML='<div class="tile"><b>'+fmt(j.numbers.pvMonth)+'</b><span>PV this month</span></div><div class="tile"><b>'+fmt(j.numbers.rsWeeks)+'</b><span>Rising Star weeks so far</span></div><div class="tile"><b>'+fmt(j.numbers.shiftsMonth)+'</b><span>Booth shifts</span></div>';
     const opts=(person.stages||[]).filter(s=>s!==p.stage); $('pNewStage').innerHTML='<option value="">Choose the new stage</option>'+opts.map(s=>'<option>'+esc(s)+'</option>').join(''); $('pReason').value=''; msg($('pMsg'),'',''); $('pMentor').value=p.mentor||'';
-    $('pSteps').innerHTML=j.quests.map(q=>'<div class="phase"><h3>'+esc(q.label)+' · '+q.done+'/'+q.total+'</h3>'+q.phases.filter(ph=>!ph.locked).map(ph=>ph.items.map((it,ix)=>'<div class="step"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,q.quest)+titleHtml(it)+'</b><small>'+esc(it.note||'')+(it.when?' · '+esc(it.when):'')+'</small></div></div>').join('')).join('')+'</div>').join('');
+    $('pSteps').innerHTML=j.quests.map(q=>'<div class="phase"><h3>'+esc(q.label)+' · '+q.done+'/'+q.total+'</h3>'+q.phases.filter(ph=>!ph.locked).map(ph=>ph.items.map((it,ix)=>'<div class="step"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,q.quest)+titleHtml(it)+'</b>'+(it.note?'<small>'+esc(it.note)+'</small>':'')+(it.when?'<small class="step-date">'+esc(it.when)+'</small>':'')+'</div></div>').join('')).join('')+'</div>').join('');
     $('pSubs').innerHTML=person.submissions.length?person.submissions.map(s=>'<div class="step"><div class="t"><b>'+esc(s.stepId)+' · '+esc(s.status)+'</b><small>'+esc(s.at)+(s.verifier?' · '+esc(s.verifier):'')+(s.reason?' · '+esc(s.reason):'')+'</small>'+(s.evidence?'<small>'+evidenceHtml(s.evidence)+'</small>':'')+'</div></div>').join(''):'<p class="muted small">None yet.</p>';
     $('pLog').innerHTML=person.log.length?person.log.map(l=>'<div class="step"><div class="t"><b>'+esc(l.from||'—')+' → '+esc(l.to)+'</b><small>'+esc(l.at)+' · '+esc(l.by)+(l.reason?' · '+esc(l.reason):'')+'</small></div></div>').join(''):'<p class="muted small">No changes recorded.</p>';
     $('pApplications').innerHTML=appCards(person.applications,p.id); wireProofButtons();
