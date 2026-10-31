@@ -1,0 +1,10 @@
+{
+  "name": "OWC Leader Dashboard",
+  "short_name": "OWC Dashboard",
+  "description": "Private Enspire One Week Challenge leader dashboard",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#edf3f8",
+  "theme_color": "#0d3559"
+}
