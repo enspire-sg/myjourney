@@ -808,12 +808,12 @@
 
   <div id="freshness" class="note warn" role="status" aria-live="polite">Opening Booth Shifts…</div>
   <div id="boot" class="spin">Loading…</div>
-  <div class="buildTag" id="buildTag">Shell 2026-10-30.7</div>
+  <div class="buildTag" id="buildTag">Shell 2026-10-30.8</div>
 </div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-30.7';
+  const SHELL_VERSION = '2026-10-30.8';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1663,6 +1663,10 @@
       reason.type = 'text'; reason.className = 'actionConfirmReason';
       reason.placeholder = 'Why are you removing this person?';
       if (options.id) reason.id = options.id + '-reason';
+      reason.value = options.initialReason || '';
+      reason.oninput = function () {
+        if (options.onReasonInput) options.onReasonInput(reason.value);
+      };
       panel.appendChild(reason);
     }
     var error = document.createElement('div');
@@ -2779,6 +2783,7 @@
   var weekGridDay = '';
   var weekGridAction = '';
   var weekGridCell = '';
+  var weekGridRemoveDrafts_ = {};
 
   function lateNoticeText(notice) {
     if (notice.approval === 'Pending') return 'Waiting for approval: expected about ' + notice.expected + ', ' + notice.reason;
@@ -2904,6 +2909,26 @@
     head.textContent = 'Selected: ' + person.name;
     if (person.suspended) head.appendChild(suspensionFlag_());
     panel.appendChild(head);
+    function openRemoval_() {
+      panel.innerHTML = '';
+      panel.appendChild(actionConfirmPanel(
+        'Remove ' + person.name + ' from ' + day.date + ' ' + shift.shift + ' at ' + booth.label + '?',
+        'Yes, remove',
+        function (reason, failed) {
+          writeRun_('setPersonOut', [token, day.day, shift.shift, person.rawName || person.name, true, reason, a.weekStart],
+              'Removed ' + person.name,
+              function (fresh) { delete weekGridRemoveDrafts_[key]; weekGridAction = ''; renderAll(fresh); }, failed);
+        },
+        function () { delete weekGridRemoveDrafts_[key]; weekGridAction = ''; renderWeekGrid(a); },
+        {reasonRequired:true,
+         id:'grid-remove-' + [day.day, shift.shift, person.name].join('-').replace(/[^a-z0-9-]/gi, '-'),
+         initialReason:weekGridRemoveDrafts_[key] || '',
+         onReasonInput:function (value) { weekGridRemoveDrafts_[key] = value; }}));
+    }
+    if (Object.prototype.hasOwnProperty.call(weekGridRemoveDrafts_, key)) {
+      openRemoval_();
+      return panel;
+    }
     panel.appendChild(lateNoticeControls(booth.name, day.day, shift.shift,
       person.rawName || person.name, person.lateNotice, a.weekStart, function () {
         weekGridAction = ''; loadWeekGrid();
@@ -2950,17 +2975,8 @@
     var remove = document.createElement('button');
     remove.className = 'ghost weekGridActionChoice'; remove.textContent = 'Remove from this shift';
     remove.onclick = function () {
-      panel.innerHTML = '';
-      panel.appendChild(actionConfirmPanel(
-        'Remove ' + person.name + ' from ' + day.date + ' ' + shift.shift + ' at ' + booth.label + '?',
-        'Yes, remove',
-        function (reason, failed) {
-          writeRun_('setPersonOut', [token, day.day, shift.shift, person.rawName || person.name, true, reason, a.weekStart],
-              'Removed ' + person.name,
-              function (fresh) { weekGridAction = ''; renderAll(fresh); }, failed);
-        },
-        function () { weekGridAction = ''; renderWeekGrid(a); },
-        {reasonRequired:true, id:'grid-remove-' + [day.day, shift.shift, person.name].join('-').replace(/[^a-z0-9-]/gi, '-')}));
+      weekGridRemoveDrafts_ = {}; weekGridRemoveDrafts_[key] = '';
+      openRemoval_();
     };
     panel.appendChild(remove); panel.appendChild(message);
     return panel;
@@ -3233,12 +3249,12 @@
     $('weekGridPrev').onclick = function () {
       if (!allDays.length) return;
       weekGridDay = allDays[(dayIndex + allDays.length - 1) % allDays.length].day;
-      weekGridCell = ''; weekGridAction = ''; renderWeekGrid(a);
+      weekGridCell = ''; weekGridAction = ''; weekGridRemoveDrafts_ = {}; renderWeekGrid(a);
     };
     $('weekGridNext').onclick = function () {
       if (!allDays.length) return;
       weekGridDay = allDays[(dayIndex + 1) % allDays.length].day;
-      weekGridCell = ''; weekGridAction = ''; renderWeekGrid(a);
+      weekGridCell = ''; weekGridAction = ''; weekGridRemoveDrafts_ = {}; renderWeekGrid(a);
     };
 
     var host = $('weekGrid'); host.innerHTML = '';
@@ -3287,7 +3303,7 @@
               var hit = event && event.target;
               if (hit && hit !== cell && hit.closest && hit.closest('button,select,input,textarea,a')) return;
               weekGridCell = weekGridCell === cellKey ? '' : cellKey;
-              weekGridAction = ''; renderWeekGrid(a);
+              weekGridAction = ''; weekGridRemoveDrafts_ = {}; renderWeekGrid(a);
             };
             cell.onkeydown = function (event) {
               var key = event && event.key;
@@ -3323,6 +3339,7 @@
                 name.onclick = function (event) {
                   if (event && event.stopPropagation) event.stopPropagation();
                   weekGridCell = cellKey;       // one tap: open this cell AND this person's popup
+                  weekGridRemoveDrafts_ = {};
                   weekGridAction = weekGridAction === personKey ? '' : personKey; renderWeekGrid(a);
                 };
               }
