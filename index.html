@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-31.1';
+  const BUILD='2026-10-31.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2055,7 +2055,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   let learnerData=null, learnerTab='list', learnerKey=null, learnerOpenId='', learnerPublicToken='', learnerPublicMode=false, learnerShareUrl='';
   const learnerNricShown={};
   function learnerCourses_(){ try{return Array.isArray(window.BELLS_COURSE_NAMES)?window.BELLS_COURSE_NAMES:[];}catch(e){return [];} }
-  function learnerCourseLabel_(name){ return String(name||'').replace(/\s*\((?:Bundle|Seniors\s*\/\s*Retirees)\)\s*$/i,'').trim(); }
+  function learnerCourseLabel_(name){ const value=String(name||'').trim(); if(value==='TikTok with AI (Bundle)')return 'TikTok with AI Bundle (TTAI + MPC)'; return value.replace(/\s*\(Seniors\s*\/\s*Retirees\)\s*$/i,'').trim(); }
   function ensureLearnerCourseOption_(course){
     const select=$('learnerProgram'), value=String(course||''), label=learnerCourseLabel_(value);
     let option=[...select.options].find(o=>o.value===value);
