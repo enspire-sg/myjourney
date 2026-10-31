@@ -1021,7 +1021,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-30.16';
+  const BUILD='2026-10-31.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1170,6 +1170,7 @@ body.bg-modal-open{ overflow: hidden; }
       applyLauncher_(bundle.launcherUrl);
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
       data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
+      warmBoothHandoff_().catch(()=>{});
       if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
   async function load(options){
@@ -3115,6 +3116,17 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>openModal(b.dataset.step,b.dataset.mode));
   }
 
+  let boothHandoffPrefetch_=null,boothHandoffPrefetchedAt_=0;
+  function warmBoothHandoff_(){
+    const own=ownData&&ownData.links&&ownData.links.booth;
+    if(!token||!own||own.indexOf('script.google.com')<0||viewAs)return Promise.resolve(null);
+    if(boothHandoffPrefetch_&&Date.now()-boothHandoffPrefetchedAt_<90000)return boothHandoffPrefetch_;
+    boothHandoffPrefetchedAt_=Date.now();
+    boothHandoffPrefetch_=run('issueBoothHandoff',token).catch(e=>{
+      boothHandoffPrefetch_=null;boothHandoffPrefetchedAt_=0;throw e;
+    });
+    return boothHandoffPrefetch_;
+  }
   async function openBooth_(){
     const own=ownData&&ownData.links&&ownData.links.booth;
     if(own&&own.indexOf('script.google.com')<0&&own.indexOf('enspire-sg.github.io/myjourney/booth')<0){ window.open(own,'_blank','noopener'); return; }
@@ -3127,7 +3139,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     boothQuickBtn.disabled=true;
     boothQuickBtn.textContent='Opening…';
     try{
-      const result=await run('issueBoothHandoff',token);
+      const result=await warmBoothHandoff_();
       window.location.assign(base+'#handoff='+encodeURIComponent(result.assertion)+'&person='+encodeURIComponent(personId));
     }catch(e){
       boothQuickBtn.disabled=false;
