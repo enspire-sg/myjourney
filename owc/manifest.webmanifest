@@ -1,0 +1,10 @@
+{
+  "name": "Enspire One Week Challenge",
+  "short_name": "OWC",
+  "description": "One Week Challenge participant app",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef3f8",
+  "theme_color": "#0e2f52"
+}
