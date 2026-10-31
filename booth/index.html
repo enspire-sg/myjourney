@@ -240,6 +240,9 @@
   .attShiftSummary[aria-expanded=true] { background:var(--navy); color:#fff; }
   .attShiftTitle { min-width:0; font-size:15px; font-weight:750; overflow-wrap:anywhere; }
   .attShiftCount { font-size:13px; font-weight:750; white-space:nowrap; }
+  .attShiftChevron { grid-row:1/3; grid-column:3; align-self:center; min-width:28px;
+                      color:var(--muted); font-size:18px; text-align:center; }
+  .attShiftSummary[aria-expanded=true] .attShiftChevron { color:#fff; }
   .attShiftState { grid-column:1/-1; font-size:12px; font-weight:650; color:var(--muted); }
   .attShiftSummary[aria-expanded=true] .attShiftState { color:#dce6ff; }
   .attShiftState.attention { color:var(--warn); }
@@ -314,6 +317,11 @@
   div.gap select { padding:7px 9px; border:1px solid var(--line); border-radius:8px;
                 background:var(--field); color:var(--ink); font-size:14px; width:min(210px,52vw); }
   .peek { font-size:12px; color:var(--link); cursor:pointer; padding:4px 0; font-weight:600; }
+  .peopleToggle { width:100%; min-height:44px; display:flex; align-items:center;
+                  justify-content:space-between; margin-top:6px; padding:9px 11px;
+                  border:1px solid var(--line); border-radius:9px; background:var(--field);
+                  color:var(--ink); font-size:14px; font-weight:700; text-align:left; }
+  .peopleToggle:disabled { opacity:.8; cursor:default; }
   .offbox { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:4px 0 2px; }
   .offbox input { flex:1; min-width:140px; padding:7px 9px; border:1px solid var(--line);
                   border-radius:8px; background:var(--field); color:var(--ink); font-size:13px; }
@@ -808,12 +816,12 @@
 
   <div id="freshness" class="note warn" role="status" aria-live="polite">Opening Booth Shifts…</div>
   <div id="boot" class="spin">Loading…</div>
-  <div class="buildTag" id="buildTag">Shell 2026-10-30.8</div>
+  <div class="buildTag" id="buildTag">Shell 2026-10-31.1</div>
 </div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-30.8';
+  const SHELL_VERSION = '2026-10-31.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -928,10 +936,9 @@
       return { id: d.id, btn: b };
     });
     $('tabs').style.display = '';
-    var want = 'attendance';
-    try { want = localStorage.getItem(TABKEY) || 'attendance'; } catch (e) {}
-    if (!defs.some(function (d) { return d.id === want; })) want = 'attendance';
-    openTab(want, false);
+    // Every fresh app launch opens the booth/shift cards. Tabs still work normally afterwards,
+    // but a previous visit to Manage booths must not hide today's people on the next launch.
+    openTab('attendance', false);
   }
 
   function show(which) {
@@ -2082,17 +2089,27 @@
                 people.appendChild(personRow(d.day, sft.shift, n, '', sft.running, g.loc));
               });
             });
-            if (people.children.length) {
-              var peek = document.createElement('span');
-              peek.className = 'peek';
-              peek.textContent = 'Who is on';
+            var peopleCount = people.children.length;
+            var peek = document.createElement('button');
+            peek.type = 'button';
+            peek.className = 'peopleToggle';
+            peek.setAttribute('aria-expanded', 'false');
+            function peopleLabel_(open) {
+              if (!peopleCount) return 'Nobody yet';
+              return peopleCount + (peopleCount === 1 ? ' person' : ' people')
+                + (open ? ' · Hide names ▲' : ' · Show names ▼');
+            }
+            peek.textContent = peopleLabel_(false);
+            peek.disabled = !peopleCount;
+            if (peopleCount) {
               peek.onclick = function () {
                 var open = people.style.display !== 'none';
                 people.style.display = open ? 'none' : '';
-                peek.textContent = open ? 'Who is on' : 'Hide';
+                peek.setAttribute('aria-expanded', open ? 'false' : 'true');
+                peek.textContent = peopleLabel_(!open);
               };
-              row.appendChild(peek);
             }
+            row.appendChild(peek);
             wrap.appendChild(row);
             wrap.appendChild(people);
             // Add people to this shift without having to be its IC first.
@@ -3880,13 +3897,14 @@
   }
   function attendanceShiftExpanded_(key, state) {
     return Object.prototype.hasOwnProperty.call(attendanceShiftOpen_, key)
-      ? attendanceShiftOpen_[key] : !state.collapsible;
+      ? attendanceShiftOpen_[key] : false;
   }
 
   function renderAtt(a) {
     if (!a.slim) attData = a;
     var shiftIdentity = syncAttendanceShiftIdentity_(a);
     renderWeekHome(a);
+    $('weekHome').style.display = a.wide ? 'none' : '';
     $('attCard').style.display = '';
     var sm = a.summary;
     $('attSub').textContent = a.wide
@@ -3913,9 +3931,11 @@
     // actually happened - never a future day, which cannot be marked at all.
     if (a.days.map(function (d) { return d.day; }).indexOf(attDay) < 0) {
       var past = a.days.filter(function (d) { return !d.future; });
-      var mine = past.filter(function (d) { return d.day === a.today; })[0];
+      var preferred = a.defaultDay || a.today;
+      var mine = a.days.filter(function (d) { return d.day === preferred; })[0];
+      var next = a.days.filter(function (d) { return d.future; })[0];
       var owing = past.filter(function (d) { return toMark(d); })[0];
-      attDay = (mine || owing || past[past.length - 1] || a.days[0]).day;
+      attDay = (mine || next || owing || past[past.length - 1] || a.days[0]).day;
     }
 
     a.days.forEach(function (d) {
@@ -3967,12 +3987,15 @@
           var stateLine = document.createElement('span');
           stateLine.className = 'attShiftState' + (!state.complete && !s.notRunning ? ' attention' : '');
           stateLine.textContent = state.status;
-          summary.appendChild(title); summary.appendChild(count); summary.appendChild(stateLine);
+          var chevron = document.createElement('span'); chevron.className = 'attShiftChevron';
+          chevron.setAttribute('aria-hidden', 'true'); chevron.textContent = expanded ? '▲' : '▼';
+          summary.appendChild(title); summary.appendChild(count); summary.appendChild(stateLine); summary.appendChild(chevron);
           shiftBody = document.createElement('div'); shiftBody.className = 'attShiftBody';
           shiftBody.style.display = expanded ? '' : 'none';
           summary.onclick = function () {
             expanded = !expanded; attendanceShiftOpen_[shiftKey] = expanded;
             summary.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            chevron.textContent = expanded ? '▲' : '▼';
             shiftBody.style.display = expanded ? '' : 'none';
           };
           section.appendChild(summary); section.appendChild(shiftBody);
