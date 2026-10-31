@@ -137,7 +137,7 @@
               <div class="field"><label for="optContact">Contact number</label><input id="optContact" name="entry.1664917408" type="tel" inputmode="tel" pattern="(?:\+?65)?[0-9]{8}" autocomplete="tel" placeholder="8 digits or +65 followed by 8 digits" required></div>
               <input name="entry.2058379231" data-optin="participantId" type="hidden">
               <div class="field"><label for="optStartDate">Orientation date</label><input id="optStartDate" name="entry.979916317" type="date" required><p id="optinDateNote" class="optin-date-note" aria-live="polite">Enter your contact number to check your arranged date.</p></div>
-              <div class="field wide"><label for="optReason">After Orientation, why do you want to join Enspire?</label><textarea id="optReason" name="entry.916179602" required></textarea></div>
+              <div class="field wide"><label for="optReason">After Orientation, why do you want to join Enspire?</label><textarea id="optReason" name="entry.916179602" maxlength="2000" required></textarea></div>
             </div>
             <p id="optinDetailsStatus" class="gate-status">All fields are required.</p>
             <div class="optin-nav"><button id="optinDetailsNext" class="gate-submit" type="button">Continue to challenge rules</button></div>
@@ -450,7 +450,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     <textarea id="notes" hidden></textarea>
 
   </main>
-  <p class="privacy" style="text-align:center">Static shell · Build <span id="shellBuild">2026-10-31.6</span></p>
+  <p class="privacy" style="text-align:center">Static shell · Build <span id="shellBuild">2026-10-31.7</span></p>
 
   <div id="challengeSyncbar" class="syncbar" hidden><div class="sync-inner"><div id="syncStatus" class="sync-status">Confirmed submissions update progress and the leader dashboard automatically.</div><button id="syncButton" type="button" hidden>Sync</button></div></div>
 
@@ -527,7 +527,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-10-31.6';
+    const BUILD='2026-10-31.7';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1268,9 +1268,10 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       optin.submit.disabled=true;optinMessage('Checking your email…',false);
       server.run.withSuccessHandler(result=>{
         if(result&&result.alreadyRegistered){optin.submit.disabled=false;optinMessage('This email is already registered. Use Sign in instead.',true);return}
-        optinSnapshot={email:optin.email.value.trim().toLowerCase(),name:optin.name.value.trim(),contact:optin.contact.value.trim(),startDate:optin.startDate.value};
-        document.querySelector('[data-optin="participantId"]').value=state.participantId;
-        if(previewBlock(()=>{optin.submit.disabled=false;optinMessage('Preview - the opt-in stops here. Nothing was submitted; switch the stage above to carry on.',false)}))return;awaitingOptin=true;optinMessage('Submitting your opt-in…',false);optinVerifyDeadline=Date.now()+130000;optin.form.submit();scheduleOptinVerification(2500);
+        optinSnapshot={email:optin.email.value.trim().toLowerCase(),name:optin.name.value.trim(),contact:optin.contact.value.trim(),startDate:optin.startDate.value,reason:optin.reason.value.trim()};
+        const consents=[...optin.form.querySelectorAll('.agree-check input')].map(input=>input.checked);
+        optinMessage('Submitting your opt-in…',false);
+        server.run.withSuccessHandler(()=>{localStorage.setItem(accessKey(),'1');optin.submit.disabled=false;optin.restore.disabled=false;showEmailLogin(optin.email.value);loginMessage('Opt-in confirmed. A confirmation email was sent. Sign in with your registered email.',false)}).withFailureHandler(err=>{optin.submit.disabled=false;optin.restore.disabled=false;optinMessage(err.message||String(err),true)}).submitOwcOptin({participantId:state.participantId,email:optinSnapshot.email,name:optinSnapshot.name,contact:optinSnapshot.contact,startDate:optinSnapshot.startDate,reason:optinSnapshot.reason,consents:consents});
       }).withFailureHandler(err=>{optin.submit.disabled=false;optinMessage(err.message||String(err),true)}).checkOwcOptinEmailAvailability(optin.email.value);
     });
     const previewSelect=document.getElementById('previewStage');
