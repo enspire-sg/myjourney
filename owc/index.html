@@ -450,7 +450,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     <textarea id="notes" hidden></textarea>
 
   </main>
-  <p class="privacy" style="text-align:center">Static shell · Build <span id="shellBuild">2026-10-31.7</span></p>
+  <p class="privacy" style="text-align:center">Static shell · Build <span id="shellBuild">2026-11-01.1</span></p>
 
   <div id="challengeSyncbar" class="syncbar" hidden><div class="sync-inner"><div id="syncStatus" class="sync-status">Confirmed submissions update progress and the leader dashboard automatically.</div><button id="syncButton" type="button" hidden>Sync</button></div></div>
 
@@ -527,7 +527,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-10-31.7';
+    const BUILD='2026-11-01.1';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -624,9 +624,11 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     let activeLotrDay=null,awaitingLotr=false;
     const TIMER_NODES=[...document.querySelectorAll('[data-timer]')];
     function singaporeDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Singapore',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
+    const OWC_SCHEDULE_DATE_ALIASES={'2026-11-02':'2026-10-31'};
+    function scheduleDate(date){return OWC_SCHEDULE_DATE_ALIASES[String(date||'')]||String(date||'')}
     function addDays(date,days){const d=new Date(String(date||'')+'T00:00:00Z');if(!Number.isFinite(d.getTime()))return '';d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
-    function followingSaturday(date){const d=new Date(String(date||'')+'T00:00:00Z');if(!Number.isFinite(d.getTime()))return '';let add=(6-d.getUTCDay()+7)%7;if(add===0)add=7;d.setUTCDate(d.getUTCDate()+add);return d.toISOString().slice(0,10)}
-    function initialSunday(date){const d=new Date(String(date||'')+'T00:00:00Z');if(!Number.isFinite(d.getTime()))return '';const add=(7-d.getUTCDay())%7;d.setUTCDate(d.getUTCDate()+add);return d.toISOString().slice(0,10)}
+    function followingSaturday(date){const d=new Date(scheduleDate(date)+'T00:00:00Z');if(!Number.isFinite(d.getTime()))return '';let add=(6-d.getUTCDay()+7)%7;if(add===0)add=7;d.setUTCDate(d.getUTCDate()+add);return d.toISOString().slice(0,10)}
+    function initialSunday(date){const d=new Date(scheduleDate(date)+'T00:00:00Z');if(!Number.isFinite(d.getTime()))return '';const add=(7-d.getUTCDay())%7;d.setUTCDate(d.getUTCDate()+add);return d.toISOString().slice(0,10)}
     function targetFor(type){const start=els.startDate.value;if(type==='shift')return new Date((start||singaporeDate())+'T23:59:59+08:00');if(!start)return null;if(type==='lotrInitial')return new Date(initialSunday(start)+'T23:59:59+08:00');return lotrTarget(7)}
     function lotrTarget(day){const start=els.startDate.value;if(!start)return null;const date=addDays(initialSunday(start),day<=1?0:day-1);return new Date(date+'T23:59:59+08:00')}
     function formatTarget(target){return new Intl.DateTimeFormat('en-SG',{weekday:'long',day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Singapore'}).format(target)+' at 11:59pm'}
