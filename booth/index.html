@@ -821,7 +821,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-10-31.2';
+  const SHELL_VERSION = '2026-11-02.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -2017,6 +2017,19 @@
 
       if (!allocAll) {
         var gaps = gapsFor(d);
+        // One card per booth+shift. A shift can miss both an Entrepreneur IC and a Booth IC;
+        // listing it once per missing role showed the same shift and the same people twice.
+        var merged = [], byKey = {};
+        gaps.forEach(function (g) {
+          var k = g.loc + '|' + g.shift;
+          if (!byKey[k]) {
+            byKey[k] = { loc: g.loc, shift: g.shift, count: g.count, shifts: g.shifts,
+                         placementShift: g.placementShift, roles: [], candidates: [] };
+            merged.push(byKey[k]);
+          }
+          byKey[k].roles.push({ role: g.role, candidates: g.candidates });
+          g.candidates.forEach(function (n) { if (byKey[k].candidates.indexOf(n) < 0) byKey[k].candidates.push(n); });
+        });
         if (!gaps.length) {
           var ok = document.createElement('p');
           ok.className = 'filled';
@@ -2028,9 +2041,9 @@
         // Two buckets, because there are only two things you can do: choose somebody who is
         // already there, or move somebody in. Saying "nobody eligible here" on six separate
         // rows is the same sentence six times.
-        [['Pick an IC', gaps.filter(function (g) { return g.candidates.length; }), ''],
+        [['Pick an IC', merged.filter(function (g) { return g.candidates.length; }), ''],
          ['Nobody eligible is on these booths',
-          gaps.filter(function (g) { return !g.candidates.length; }),
+          merged.filter(function (g) { return !g.candidates.length; }),
           'Move an Entrepreneur or Team Lead onto the shift, or leave it unrun.']
         ].forEach(function (group) {
           if (!group[1].length) return;
@@ -2053,10 +2066,15 @@
               + g.shift + ' · ' + g.count + ' on shift</small>';
             row.appendChild(where);
 
-            if (g.candidates.length) {
+            g.roles.forEach(function (r) {
+              if (!r.candidates.length) return;
+              var rl = document.createElement('small');
+              rl.textContent = r.role;
+              rl.style.display = 'block';
+              row.appendChild(rl);
               var sel = document.createElement('select');
               sel.innerHTML = '<option value="">— pick —</option>';
-              g.candidates.forEach(function (n) {
+              r.candidates.forEach(function (n) {
                 var o = document.createElement('option');
                 o.value = n;
                 o.textContent = n;
@@ -2071,14 +2089,14 @@
                 if (!sel.value) return;
                 sel.disabled = true; gsave.disabled = true;
                 var gapIC = sel.value;
-                backToBackWriteRun_('setIC', [token, g.loc, d.day, g.placementShift || g.shift, g.role, gapIC, allocWeek],
-                    g.role + ' ' + gapIC + ' for ' + d.day + ' ' + g.shift + ' at ' + label(g.loc),
+                backToBackWriteRun_('setIC', [token, g.loc, d.day, g.placementShift || g.shift, r.role, gapIC, allocWeek],
+                    r.role + ' ' + gapIC + ' for ' + d.day + ' ' + g.shift + ' at ' + label(g.loc),
                     function (a) { sel.disabled = false; renderAll(a); },
                     function () { sel.disabled = false; gsave.disabled = false; });
               };
               row.appendChild(sel);
               row.appendChild(gsave);
-            }
+            });
 
             var people = document.createElement('div');
             people.style.display = 'none';
