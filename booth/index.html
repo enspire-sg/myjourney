@@ -821,7 +821,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-02.2';
+  const SHELL_VERSION = '2026-11-02.3';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1959,11 +1959,13 @@
       live.forEach(function (s) {
         if (!(s.entIC || b.entIC)) {
           out.push({ loc: b.location, shift: s.shift, role: 'Entrepreneur IC', chosen: s.entIC || b.entIC,
-                     candidates: s.entCandidates || b.entCandidates || [], count: onShift(s), shifts: [s] });
+                     candidates: s.entCandidates || b.entCandidates || [], count: onShift(s), shifts: [s],
+                     haveEnt: s.entIC || b.entIC || '', haveBooth: s.boothIC || '' });
         }
         if (s.boothIC) return;
         out.push({ loc: b.location, shift: s.shift, role: 'Booth IC', chosen: s.boothIC,
-                   candidates: s.candidates, count: onShift(s), shifts: [s] });
+                   candidates: s.candidates, count: onShift(s), shifts: [s],
+                   haveEnt: s.entIC || b.entIC || '', haveBooth: s.boothIC || '' });
       });
     });
     return out;
@@ -2024,7 +2026,8 @@
           var k = g.loc + '|' + g.shift;
           if (!byKey[k]) {
             byKey[k] = { loc: g.loc, shift: g.shift, count: g.count, shifts: g.shifts,
-                         placementShift: g.placementShift, roles: [], candidates: [] };
+                         placementShift: g.placementShift, roles: [], candidates: [],
+                         haveEnt: g.haveEnt, haveBooth: g.haveBooth };
             merged.push(byKey[k]);
           }
           byKey[k].roles.push({ role: g.role, candidates: g.candidates });
@@ -2066,6 +2069,13 @@
               + g.shift + ' · ' + g.count + ' on shift</small>';
             row.appendChild(where);
 
+            [['Entrepreneur IC', g.haveEnt], ['Booth IC', g.haveBooth]].forEach(function (f) {
+              if (!f[1]) return;
+              var fl = document.createElement('small');
+              fl.textContent = f[0] + ': ' + f[1] + ' \u2713';
+              fl.style.cssText = 'flex-basis:100%;font-weight:650';
+              row.appendChild(fl);
+            });
             g.roles.forEach(function (r) {
               if (!r.candidates.length) return;
               var box = document.createElement('div');
