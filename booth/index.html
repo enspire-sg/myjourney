@@ -821,7 +821,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-02.3';
+  const SHELL_VERSION = '2026-11-02.4';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -2072,7 +2072,7 @@
             [['Entrepreneur IC', g.haveEnt], ['Booth IC', g.haveBooth]].forEach(function (f) {
               if (!f[1]) return;
               var fl = document.createElement('small');
-              fl.textContent = f[0] + ': ' + f[1] + ' \u2713';
+              fl.textContent = f[0] + ': ' + (f[1].person || f[1]) + ' \u2713';
               fl.style.cssText = 'flex-basis:100%;font-weight:650';
               row.appendChild(fl);
             });
