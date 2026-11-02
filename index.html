@@ -1022,7 +1022,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-02.1';
+  const BUILD='2026-11-02.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1189,8 +1189,15 @@ body.bg-modal-open{ overflow: hidden; }
        * must not throw a person who has already scrolled, or opened a guide, back to the top. */
       const keepView=background||!!cached;
       const keepY=window.scrollY||0;
+      /* View As open (or already viewing someone): the fresh bundle is the reader's OWN journey. Applying
+       * it closed the View As card and dropped the person being viewed with no tap (Li Wei's screen
+       * recording, 2 Nov 2026). Keep the new own data for later and leave the screen alone. */
+      const viewAsOpen=!!viewAs||!$('asCard').classList.contains('hidden');
+      if(viewAsOpen&&keepView){ ownData=bundle.journey; ownActionData=bundle.actions||ownActionData; }
+      else{
       applyJourneyBundle_(bundle,false,keepView);
       if(keepView)requestAnimationFrame(function(){ window.scrollTo(0,keepY); });
+      }
       setFreshness_(saved&&saved.savedAt||Date.now(),false);
 
     } catch(e){
