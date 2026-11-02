@@ -793,6 +793,7 @@ body.bg-modal-open{ overflow: hidden; }
 
     <section id="tierCard" class="card tier-shell hidden">
       <div class="tier-kicker" id="tierKicker">Your tier this month</div>
+      <p id="tierUnavailable" class="hidden"></p>
       <div id="tierPct" class="tier-hero-value">-</div>
       <p id="tierWhy" class="tier-hero-label"></p>
       <div id="tierDetails">
@@ -831,7 +832,7 @@ body.bg-modal-open{ overflow: hidden; }
         <p class="tier-quarter-note" id="tierQuarterNote"></p>
         <p class="tier-charge" id="tierCharge"></p>
       </div>
-      <div class="tier-foot"><p class="small tier-stamp" id="tierStamp"></p><button class="btn tier-appeal hidden" type="button" id="tierAppealBtn">Submit an appeal &rarr;</button></div>
+      <div class="tier-foot" id="tierFoot"><p class="small tier-stamp" id="tierStamp"></p><button class="btn tier-appeal hidden" type="button" id="tierAppealBtn">Submit an appeal &rarr;</button></div>
     </section>
 
     <section class="card hidden" id="appealCard">
@@ -1021,7 +1022,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-10-31.3';
+  const BUILD='2026-11-02.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2896,8 +2897,20 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   }
   function renderTier_(){
     const t=selectedTier_();
-    if(!t){ $('tierCard').classList.add('hidden'); return; }
+    const unavailable=!!(t&&t.available===false);
+    // Normal navigation has no tier entry at all before joining. A stale ?open=tier link (and a
+    // historical month before the join month) gets one plain state, never a locked ladder.
+    if(!t||(unavailable&&monthIdx===0&&deepOpen_()!=='tier')){ $('tierCard').classList.add('hidden'); return; }
     $('tierCard').classList.remove('hidden');
+    $('tierUnavailable').classList.toggle('hidden',!unavailable);
+    if(unavailable){
+      $('tierKicker').textContent='';
+      $('tierUnavailable').textContent=t.message||'Available once you join';
+      ['tierPct','tierWhy','tierDetails','monthActivity','tierQuarterDetails','tierFoot'].forEach(id=>$(id).classList.add('hidden'));
+      return;
+    }
+    $('tierUnavailable').textContent='';
+    ['tierPct','tierWhy','monthActivity','tierFoot'].forEach(id=>$(id).classList.remove('hidden'));
     if(t.pending){
       $('tierPct').textContent='-';
       $('tierWhy').textContent=t.unavailable?'Tier is unavailable right now. Your monthly activity is still shown below.':'Your tier appears once your first PV is recorded.';
