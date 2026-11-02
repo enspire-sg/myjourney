@@ -821,7 +821,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-02.1';
+  const SHELL_VERSION = '2026-11-02.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -2068,10 +2068,12 @@
 
             g.roles.forEach(function (r) {
               if (!r.candidates.length) return;
+              var box = document.createElement('div');
+              box.style.cssText = 'flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px';
               var rl = document.createElement('small');
               rl.textContent = r.role;
-              rl.style.display = 'block';
-              row.appendChild(rl);
+              rl.style.cssText = 'flex-basis:100%;font-weight:650;color:var(--ink,inherit)';
+              box.appendChild(rl);
               var sel = document.createElement('select');
               sel.innerHTML = '<option value="">— pick —</option>';
               r.candidates.forEach(function (n) {
@@ -2094,8 +2096,9 @@
                     function (a) { sel.disabled = false; renderAll(a); },
                     function () { sel.disabled = false; gsave.disabled = false; });
               };
-              row.appendChild(sel);
-              row.appendChild(gsave);
+              box.appendChild(sel);
+              box.appendChild(gsave);
+              row.appendChild(box);
             });
 
             var people = document.createElement('div');
