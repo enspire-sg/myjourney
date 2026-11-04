@@ -228,6 +228,14 @@
   .lateMinutesText { grid-column:1/-1; min-height:44px; display:flex; align-items:center;
                      color:var(--ink); font-weight:700; }
   .attendanceSaveStatus { order:5; }
+  .attendanceLateNotice { order:6; flex:1 1 100%; }
+  .lateValidInline { order:6; flex:1 1 100%; min-height:190px; padding:10px;
+                     border:1px solid var(--line); border-radius:10px; background:var(--soft); }
+  .lateValidInline strong { display:block; margin-bottom:7px; }
+  .lateValidInline input { width:100%; min-height:44px; margin:0 0 7px; }
+  .lateValidInline .lateValidActions { display:flex; gap:7px; flex-wrap:wrap; }
+  .lateValidInline .lateValidActions button { flex:1 1 140px; min-height:44px; }
+  .lateValidInline .actionConfirmError { min-height:22px; }
   .allPresentWrap { min-height:80px; margin:8px 0 4px; }
   .allPresentWrap:empty { display:none; min-height:0; margin:0; }
   .allPresentWrap button.allpresent { margin:0 0 4px; }
@@ -821,7 +829,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-02.4';
+  const SHELL_VERSION = '2026-11-04.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -3440,7 +3448,7 @@
      on ONE day. So: a day at a time, only the people still unmarked, and one tap for the
      normal case. Everything else is still reachable, one tap away. */
   var attDay = '';
-  var attData = null, attQueues = {}, attFeedback = {}, shiftFeedback = {};
+  var attData = null, attQueues = {}, attFeedback = {}, shiftFeedback = {}, lateValidDrafts_ = {};
 
   function attFeedbackKey_(loc, day, shift, person) {
     return [loc, day, shift, person].join('|');
@@ -3556,6 +3564,58 @@
       }, 'markAttendance', [token, b.location, d.day, s.shift, p.name, outcome, ''], meta);
   }
 
+  function lateValidKey_(b, d, s, p) {
+    return [b.location, d.day, s.shift, p.name].join('|');
+  }
+  function openLateValidInline_(a, d, b, s, p) {
+    var key = lateValidKey_(b, d, s, p);
+    if (!lateValidDrafts_[key]) lateValidDrafts_[key] = {expected:'', reason:''};
+    renderAtt(a);
+  }
+  function lateValidInlineControls_(a, d, b, s, p) {
+    var key = lateValidKey_(b, d, s, p), draft = lateValidDrafts_[key] || {expected:'', reason:''};
+    lateValidDrafts_[key] = draft;
+    var form = document.createElement('div'); form.className = 'lateValidInline';
+    var question = document.createElement('strong'); question.textContent = 'Valid reason?';
+    var help = document.createElement('div'); help.className = 'sub';
+    help.textContent = 'Add the real reason and expected arrival time. This changes the mark to Late (Valid).';
+    var expected = document.createElement('input'); expected.type = 'time'; expected.value = draft.expected;
+    expected.setAttribute('aria-label', 'Expected arrival time for ' + p.name);
+    var reason = document.createElement('input'); reason.type = 'text'; reason.value = draft.reason;
+    reason.placeholder = 'Valid reason, at least two words'; reason.setAttribute('aria-label', 'Valid late reason for ' + p.name);
+    expected.oninput = function () { draft.expected = expected.value; };
+    reason.oninput = function () { draft.reason = reason.value; };
+    var actions = document.createElement('div'); actions.className = 'lateValidActions';
+    var save = document.createElement('button'); save.className = 'ghost'; save.textContent = 'Save Late (Valid)';
+    var normal = document.createElement('button'); normal.className = 'ghost'; normal.textContent = 'Normal Late';
+    var message = document.createElement('div'); message.className = 'actionConfirmError';
+    save.onclick = function () {
+      draft.expected = expected.value.trim(); draft.reason = reason.value.trim();
+      if (!draft.expected || draft.reason.length < 8 || draft.reason.split(/\s+/).length < 2) {
+        message.textContent = 'Add the expected time and a short, real reason (at least two words).'; return;
+      }
+      var meta = {location:b.location, day:d.day, shift:s.shift, person:p.name, outcome:'Late (Valid)'};
+      meta.retry = function () { openLateValidInline_(a, d, b, s, p); };
+      setAttFeedback_(meta, 'saving'); renderAtt(attData);
+      writeRun_('saveLateNotice', [token, b.location, d.day, s.shift, p.name,
+        draft.expected, draft.reason, a.weekStart || ''], 'Late (Valid) for ' + p.name,
+        function () {
+          delete lateValidDrafts_[key]; setAttFeedback_(meta, 'saved'); loadAttendance();
+        }, function (error) {
+          setAttFeedback_(meta, 'error');
+          $('err').textContent = (error && error.message) ? error.message : 'The valid reason was not saved.';
+          renderAtt(attData); return false;
+        });
+    };
+    normal.onclick = function () {
+      delete lateValidDrafts_[key]; queueAttendanceMark_(a, d, b, s, p, 'Late');
+    };
+    actions.appendChild(save); actions.appendChild(normal);
+    form.appendChild(question); form.appendChild(help); form.appendChild(expected); form.appendChild(reason);
+    form.appendChild(actions); form.appendChild(message);
+    return form;
+  }
+
   function queueLateMinutes_(a, d, b, s, p, minutes) {
     var meta = {location:b.location, day:d.day, shift:s.shift, person:p.name,
                 outcome:'Late, ' + minutes + ' min'};
@@ -3642,6 +3702,9 @@
       btn.textContent = (o === 'Late (excused)' ? 'Late (Valid)' : o);
       btn.disabled = !s.canMark || !attendanceFresh_;
       btn.onclick = function () {
+        if (o === 'Late' && !p.lateNotice && p.canFileLate) {
+          openLateValidInline_(a, d, b, s, p); return;
+        }
         queueAttendanceMark_(a, d, b, s, p, o);
       };
       marks.appendChild(btn);
@@ -3691,9 +3754,19 @@
       var wait = document.createElement('span'); wait.className = 'tag manual';
       wait.textContent = 'Waiting for approval'; row.appendChild(wait);
     }
-    if (attendanceFresh_ && (p.lateNotice || p.canFileLate)) {
-      row.appendChild(lateNoticeControls(b.location, d.day, s.shift, p.name, p.lateNotice, '',
-        function () { loadAttendance(); }));
+    var lateDraftKey = lateValidKey_(b, d, s, p);
+    if (attendanceFresh_ && lateValidDrafts_[lateDraftKey]) {
+      row.appendChild(lateValidInlineControls_(a, d, b, s, p));
+    } else if (attendanceFresh_ && p.outcome === 'Late' && !p.lateNotice && p.canFileLate) {
+      var addValid = document.createElement('button'); addValid.className = 'ghost attendanceLateNotice';
+      addValid.textContent = 'Add valid reason';
+      addValid.onclick = function () { openLateValidInline_(a, d, b, s, p); };
+      row.appendChild(addValid);
+    } else if (attendanceFresh_ && (p.lateNotice || p.canFileLate)) {
+      var lateControls = lateNoticeControls(b.location, d.day, s.shift, p.name, p.lateNotice, '',
+        function () { loadAttendance(); });
+      lateControls.className = 'attendanceLateNotice';
+      row.appendChild(lateControls);
     }
     if (p.saving) {
       var saving = document.createElement('span');
