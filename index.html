@@ -1022,7 +1022,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-02.2';
+  const BUILD='2026-11-04.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3503,8 +3503,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       catch(e){ msg($('pMsg'),e.message,'error'); }
       finally{ $('pSetAppraisal').disabled=false; } }; }
   function evidenceHtml(ev){ if(!ev)return '<span class="muted">No evidence text</span>'; const parts=String(ev).split('\n'); const first=parts[0]; if(/^https?:\/\//.test(first))return '<a href="'+esc(first)+'" target="_blank" rel="noopener" style="color:var(--gold)">Open the file ↗</a>'+(parts.length>1?'<div class="muted small" style="margin-top:4px">'+esc(parts.slice(1).join(' '))+'</div>':''); return '<div style="white-space:pre-wrap;line-height:1.5">'+esc(ev)+'</div>'; }
+  function approverLineHtml_(r){ const names=(r.approvers||[]).map(String),count=Number(r.approverCount==null?names.length:r.approverCount),head=/^E-B[12]\.2$/.test(String(r.stepId||'')),prefix=head?'Agency head only: ':'Can be approved by: '; let shown=names; if(count>6)shown=names.slice(0,5).concat('+'+(count-5)+' more'); const full=names.length?prefix+names.join(', '):prefix+'No eligible approver found'; return '<div class="muted small" style="min-height:2.8em;line-height:1.4;margin-top:5px" title="'+esc(full)+'">'+esc(prefix+shown.join(', '))+'</div>'; }
   function renderQueue(){ const q=team.queue||[]; if(!q.length){ $('queue').innerHTML='<p class="muted" style="margin-top:12px">Nothing waiting. 🎉</p>'; return; }
-    $('queue').innerHTML=q.map(r=>'<div class="step" style="flex-direction:column;gap:8px"><div class="row"><b>'+esc(r.name)+'</b><span class="chip">'+esc(r.stage)+'</span><span class="muted small">'+esc(r.at)+'</span></div><div class="small"><span class="muted">'+esc(r.quest+' · '+r.phase)+'</span><br><b>'+esc(stepTitle_(r.step))+'</b></div><div class="small">'+evidenceHtml(r.evidence)+'</div><div class="row"><button class="btn primary mini" data-approve="'+esc(r.id)+'">Approve</button><button class="btn secondary mini" data-reject="'+esc(r.id)+'">Reject</button></div></div>').join('');
+    $('queue').innerHTML=q.map(r=>'<div class="step" style="flex-direction:column;gap:8px"><div class="row"><b>'+esc(r.name)+'</b><span class="chip">'+esc(r.stage)+'</span><span class="muted small">'+esc(r.at)+'</span></div><div class="small"><span class="muted">'+esc(r.quest+' · '+r.phase)+'</span><br><b>'+esc(stepTitle_(r.step))+'</b>'+approverLineHtml_(r)+'</div><div class="small">'+evidenceHtml(r.evidence)+'</div><div class="row"><button class="btn primary mini" data-approve="'+esc(r.id)+'">Approve</button><button class="btn secondary mini" data-reject="'+esc(r.id)+'">Reject</button></div></div>').join('');
     document.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>decide(b.dataset.approve,'Approved'));
     document.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>{ const reason=prompt('Reason the person will see:'); if(reason&&reason.trim())decide(b.dataset.reject,'Rejected',reason.trim()); }); }
   async function decide(id,decision,reason){ try{ team=await run('decideSubmission',token,id,decision,reason||''); renderTeam(); }catch(e){ alert(e.message); } }
