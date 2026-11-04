@@ -829,7 +829,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-04.1';
+  const SHELL_VERSION = '2026-11-04.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -3589,13 +3589,13 @@
     var save = document.createElement('button'); save.className = 'ghost'; save.textContent = 'Save Late (Valid)';
     var normal = document.createElement('button'); normal.className = 'ghost'; normal.textContent = 'Normal Late';
     var message = document.createElement('div'); message.className = 'actionConfirmError';
-    save.onclick = function () {
+    function submit() {
       draft.expected = expected.value.trim(); draft.reason = reason.value.trim();
       if (!draft.expected || draft.reason.length < 8 || draft.reason.split(/\s+/).length < 2) {
         message.textContent = 'Add the expected time and a short, real reason (at least two words).'; return;
       }
       var meta = {location:b.location, day:d.day, shift:s.shift, person:p.name, outcome:'Late (Valid)'};
-      meta.retry = function () { openLateValidInline_(a, d, b, s, p); };
+      meta.retry = submit;
       setAttFeedback_(meta, 'saving'); renderAtt(attData);
       writeRun_('saveLateNotice', [token, b.location, d.day, s.shift, p.name,
         draft.expected, draft.reason, a.weekStart || ''], 'Late (Valid) for ' + p.name,
@@ -3606,7 +3606,8 @@
           $('err').textContent = (error && error.message) ? error.message : 'The valid reason was not saved.';
           renderAtt(attData); return false;
         });
-    };
+    }
+    save.onclick = submit;
     normal.onclick = function () {
       delete lateValidDrafts_[key]; queueAttendanceMark_(a, d, b, s, p, 'Late');
     };
