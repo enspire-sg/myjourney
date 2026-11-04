@@ -172,6 +172,16 @@
 #bells select:focus{ border-color: var(--bg-gold); box-shadow: 0 0 0 3px rgba(244,197,66,.28); }
 #bells .bg-helper{ color: #b8cce0; font-size: .76rem; margin-top: 6px; }
 #bells .bg-result{ padding: 22px; }
+#bells .bg-tiktok-guide{ margin: 16px 0; padding: 18px; border: 2px solid #d7a928; border-radius: 16px; background: #fff9df; color: #142033; }
+#bells .bg-tiktok-guide h2{ margin: 0 0 8px; font-size: 1.35rem; color: var(--bg-navy); }
+#bells .bg-tiktok-guide ol{ margin: 12px 0; padding-left: 22px; }
+#bells .bg-tiktok-guide li{ margin: 9px 0; }
+#bells .bg-tiktok-guide p{ margin: 9px 0 0; }
+#bells .bg-tiktok-warning{ margin: 0 0 18px; padding: 14px 16px; border: 2px solid #c74435; border-radius: 14px; background: #fff0ed; color: #6d1b14; line-height: 1.45; }
+#bells .bg-tiktok-warning a{ color: inherit; font-weight: 900; }
+.learner-tiktok-confirm{ padding: 14px; border: 1px solid rgba(245,193,79,.55); border-radius: 14px; background: rgba(245,193,79,.09); }
+.learner-tiktok-confirm label{ display: flex; align-items: flex-start; gap: 10px; font-weight: 700; text-transform: none; letter-spacing: 0; line-height: 1.45; }
+.learner-tiktok-confirm input{ width: auto; margin-top: 3px; flex: 0 0 auto; }
 #bells .bg-result-head{ display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
 #bells .bg-eyebrow{ color: var(--bg-blue); font-size: .75rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 #bells #bgCourseName{ margin: 5px 0 7px; font-size: clamp(1.25rem, 3vw, 1.85rem); line-height: 1.18; letter-spacing: -.035em; }
@@ -319,6 +329,7 @@ body.bg-modal-open{ overflow: hidden; }
 
     <section class="card" id="learnerListCard">
       <div class="row"><div><h2 id="learnerListTitle">My learners</h2><p class="muted small">Private records for you to copy into the BELLS TMS sign-up form yourself.</p></div><div class="spacer"></div><button class="btn ghost mini" id="learnerRefresh" type="button">Refresh</button></div>
+      <div class="message" id="learnerListMsg" role="status" style="display:block;min-height:48px;visibility:hidden"></div>
       <div id="learnerList" style="margin-top:12px"><p class="muted small">Loading&hellip;</p></div>
     </section>
 
@@ -329,6 +340,7 @@ body.bg-modal-open{ overflow: hidden; }
         <input id="learnerWebsite" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="learner-grid">
           <div class="field wide"><label for="learnerProgram">Course</label><select id="learnerProgram" required><option value="">Choose a course&hellip;</option></select></div>
+          <div class="field wide learner-tiktok-confirm hidden" id="learnerTikTokConfirmWrap"><label for="learnerTikTokConfirmed"><input id="learnerTikTokConfirmed" type="checkbox">I checked all 5 points and this learner is suitable. I know unsuitable enrolments lose their PV.</label><p class="muted small" style="margin:8px 0 0">Read the full checks in Bells Easy Guide. Any “no” or doubt means do not enrol; offer FRF instead.</p></div>
           <div class="field wide"><label for="learnerName">Full name as in NRIC</label><input id="learnerName" autocomplete="name" maxlength="120" required></div>
           <div class="field"><label for="learnerNric">NRIC / FIN</label><input id="learnerNric" autocomplete="off" maxlength="9" required></div>
           <div class="field"><label for="learnerDob">Date of birth</label><input id="learnerDob" type="date" required></div>
@@ -655,6 +667,20 @@ body.bg-modal-open{ overflow: hidden; }
         <button class="btn ghost mini" id="bellsBack" type="button">&#8592; My journey</button>
       </header>
 
+      <section class="bg-tiktok-guide" id="bgTikTokGuide" aria-labelledby="bgTikTokGuideHeading">
+        <h2 id="bgTikTokGuideHeading">Is TikTok right for this learner?</h2>
+        <p>Test the learner by asking them to do each task. Do not just ask whether they can do it.</p>
+        <ol>
+          <li><b>Laptop</b> (TikTok Module 2 needs one): ask them to open Word or PowerPoint, save a file and upload it. They must be comfortable with Word and PowerPoint and be able to save and upload files.</li>
+          <li><b>Email:</b> ask them to create a new email account by themselves.</li>
+          <li><b>Phone:</b> ask them to switch between apps, copy a line from WhatsApp and paste it into a note, and download an app from the Play Store / App Store.</li>
+          <li><b>English:</b> the course is 100% in English. Speak to them in English. If they switch back to their mother tongue or are uncomfortable, their English is not good enough.</li>
+          <li><b>PWM:</b> they intend to go into retail or are already in retail, and can explain why PWM has the $4K funding covered in the quizzes, training and handbook.</li>
+        </ol>
+        <p><b>Any “no” or any doubt = do NOT enrol. Offer FRF instead.</b></p>
+        <p><b>Any unqualified learner who is enrolled will have their PV manually removed from the system.</b></p>
+      </section>
+
       <section class="bg-panel" aria-live="polite">
       <div class="bg-controls">
         <div class="bg-field">
@@ -692,6 +718,8 @@ body.bg-modal-open{ overflow: hidden; }
             <strong id="bgFee"></strong>
           </div>
         </div>
+
+        <div id="bgTikTokWarning" class="bg-tiktok-warning" style="display:none"><b>Check before enrolling:</b> any “no” or doubt on the 5 TikTok suitability checks means do NOT enrol. Offer FRF instead. Unsuitable enrolments lose their PV. <a href="#bgTikTokGuide">Read the full checks above.</a></div>
 
         <div id="bgBundleBreakdown" class="bg-bundle-breakdown" style="display:none">
           <h3>Course price breakdown</h3>
@@ -1024,7 +1052,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-04.2';
+  const BUILD='2026-11-04.3';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2064,19 +2092,26 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   // ---- learner registration, overview and public self-fill -------------------------------
   let learnerData=null, learnerTab='list', learnerKey=null, learnerOpenId='', learnerPublicToken='', learnerPublicMode=false, learnerShareUrl='';
   const learnerNricShown={};
+  function isTikTokCourse_(name){ const value=String(name||'').trim(); const code=(window.TMS_CODE_BY_COURSE&&window.TMS_CODE_BY_COURSE[value])||''; return /tiktok/i.test(value+' '+code); }
   function learnerCourses_(){ try{ const names=Array.isArray(window.BELLS_COURSE_NAMES)?window.BELLS_COURSE_NAMES.slice():[]; const bundleIndex=names.indexOf('TikTok with AI (Bundle)'); if(bundleIndex>=0&&names.indexOf('TikTok with AI (TTAI)')<0)names.splice(bundleIndex,0,'TikTok with AI (TTAI)'); return names; }catch(e){return [];} }
   function learnerCourseLabel_(name){ const value=String(name||'').trim(); if(value==='TikTok with AI (Bundle)')return 'TTAI + MPC Bundle'; return value.replace(/\s*\(Seniors\s*\/\s*Retirees\)\s*$/i,'').trim(); }
   function ensureLearnerCourseOption_(course){
     const select=$('learnerProgram'), value=String(course||''), label=learnerCourseLabel_(value);
     let option=[...select.options].find(o=>o.value===value);
     if(!option){ option=document.createElement('option'); option.value=value; select.appendChild(option); }
-    option.textContent=label; select.value=value;
+    option.textContent=label; select.value=value; syncLearnerTikTokConfirm_();
   }
   function fillLearnerCourses_(){
     ['learnerProgram'].forEach(id=>{ const el=$(id), current=el.value;
       el.innerHTML='<option value="">Choose a course&hellip;</option>'+learnerCourses_().map(n=>'<option value="'+esc(n)+'">'+esc(learnerCourseLabel_(n))+'</option>').join('');
       if(learnerCourses_().indexOf(current)>=0)el.value=current; });
+    syncLearnerTikTokConfirm_();
   }
+  function syncLearnerTikTokConfirm_(){
+    const needed=isTikTokCourse_($('learnerProgram').value), wrap=$('learnerTikTokConfirmWrap'), tick=$('learnerTikTokConfirmed');
+    wrap.classList.toggle('hidden',!needed); tick.required=needed; if(!needed)tick.checked=false;
+  }
+  $('learnerProgram').addEventListener('change',syncLearnerTikTokConfirm_);
   function learnerStatusClass_(status){ return /completed|entered/i.test(String(status||''))?' enrolled':''; }
   async function copyText_(value,button){
     if(!value)return false;
@@ -2160,12 +2195,12 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     try{const base='https:'+'/'+ '/www.onemap.gov.sg/api/common/elastic/search',url=base+'?searchVal='+encodeURIComponent(postal)+'&returnGeom=N&getAddrDetails=Y&pageNum=1',response=await fetch(url);if(!response.ok)throw new Error('Address lookup is unavailable.');const result=await response.json(),match=(result.results||[]).find(x=>String(x.POSTAL||'')===postal)||(result.results||[])[0];if(!match)throw new Error('No address was found for that postal code. Check it and try again.');$('learnerAddress').value=String(match.ADDRESS||[match.BLK_NO,match.ROAD_NAME,match.BUILDING].filter(Boolean).join(' ')).trim();msg($('learnerAddressMsg'),'Address generated.','success');}catch(err){msg($('learnerAddressMsg'),err.message||'Could not generate the address.','error');}finally{btn.disabled=false;btn.textContent='Generate address';}
   };
   function learnerPayloadFromForm_(){
-    return {program:$('learnerProgram').value,name:$('learnerName').value,nric:$('learnerNric').value,dob:$('learnerDob').value,mobile:$('learnerMobile').value,email:$('learnerEmail').value,gender:$('learnerGender').value,citizenship:$('learnerCitizenship').value,race:$('learnerRace').value,postal:$('learnerPostal').value,unit:$('learnerUnit').value,noUnit:$('learnerNoUnit').checked,address:$('learnerAddress').value,education:$('learnerEducation').value,website:$('learnerWebsite').value};
+    return {program:$('learnerProgram').value,tiktokSuitabilityConfirmed:$('learnerTikTokConfirmed').checked,name:$('learnerName').value,nric:$('learnerNric').value,dob:$('learnerDob').value,mobile:$('learnerMobile').value,email:$('learnerEmail').value,gender:$('learnerGender').value,citizenship:$('learnerCitizenship').value,race:$('learnerRace').value,postal:$('learnerPostal').value,unit:$('learnerUnit').value,noUnit:$('learnerNoUnit').checked,address:$('learnerAddress').value,education:$('learnerEducation').value,website:$('learnerWebsite').value};
   }
   $('learnerForm').onsubmit=async e=>{
-    e.preventDefault();if(viewAs)return;if(!$('learnerForm').reportValidity())return;const button=$('learnerSubmit');button.disabled=true;msg($('learnerMsg'),learnerPublicMode?'Submitting details…':'Saving record…','info');
+    e.preventDefault();if(viewAs)return;syncLearnerTikTokConfirm_();if(isTikTokCourse_($('learnerProgram').value)&&!$('learnerTikTokConfirmed').checked){msg($('learnerMsg'),'Not saved — tick the TikTok suitability confirmation after testing all 5 points.','error');$('learnerTikTokConfirmed').focus();return;}if(!$('learnerForm').reportValidity())return;const button=$('learnerSubmit');button.disabled=true;msg($('learnerMsg'),learnerPublicMode?'Submitting details…':'Saving record…','info');
     try{if(learnerPublicMode){await run('submitLearnerInvitation',learnerPublicToken,learnerPayloadFromForm_());$('learnerForm').reset();$('learnerRegisterCard').classList.add('hidden');$('learnerPublicSuccess').classList.remove('hidden');$('learnerHeading').textContent='Submitted';$('learnerPreviewNote').textContent='Your details were sent.';msg($('learnerMsg'),'','');}
-      else{learnerData=await run('registerLearner',token,learnerPayloadFromForm_());$('learnerForm').reset();syncLearnerUnit_();fillLearnerCourses_();learnerTab='list';renderLearners_();msg($('learnerMsg'),'','');}}
+      else{learnerData=await run('registerLearner',token,learnerPayloadFromForm_());$('learnerForm').reset();syncLearnerUnit_();fillLearnerCourses_();syncLearnerTikTokConfirm_();learnerTab='list';renderLearners_();msg($('learnerListMsg'),'Saved ✓ Learner record.','success');$('learnerListMsg').style.visibility='visible';}}
     catch(err){msg($('learnerMsg'),err.message,'error');}finally{button.disabled=false;}
   };
   $('learnerShareCopy').onclick=async()=>{const copied=await copyText_(learnerShareUrl,$('learnerShareCopy'));msg($('learnerShareMsg'),copied?'Copied ✓':'Not copied — press and hold the link above to copy.',copied?'success':'error');};
@@ -3726,7 +3761,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       brochureTitle: document.getElementById('bgBrochureTitle'),
       brochureOpen: document.getElementById('bgBrochureOpen'),
       brochureClose: document.getElementById('bgBrochureClose'),
-      brochureFrame: document.getElementById('bgBrochureFrame')
+      brochureFrame: document.getElementById('bgBrochureFrame'),
+      tiktokWarning: document.getElementById('bgTikTokWarning')
     };
 
     function value(row, index) {
@@ -3828,6 +3864,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       els.empty.style.display = 'none';
       const profile = els.profile.value;
       els.courseName.textContent = course.name;
+      const tiktokCode = TMS_CODE_BY_COURSE[course.name] || '';
+      els.tiktokWarning.style.display = /tiktok/i.test(course.name + ' ' + tiktokCode) ? 'block' : 'none';
       els.category.textContent = course.category;
       els.delivery.textContent = course.delivery;
       els.delivery.className = `bg-tag${course.delivery.toLowerCase() === 'online' ? ' bg-online' : ''}`;
