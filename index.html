@@ -162,6 +162,11 @@
       display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px;
       padding: 20px; background: var(--bg-navy);
     }
+#bells .bg-category-filters{ grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px; min-height: 44px; align-items: center; }
+#bells .bg-filter-chip{ min-height: 40px; padding: 7px 13px; border: 1px solid #9fb1c7; border-radius: 999px; background: #fff; color: var(--bg-navy-2); font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
+#bells .bg-filter-chip[aria-pressed="true"]{ background: #0b1b2e; border-color: #0b1b2e; color: #fff; }
+#bells .bg-filter-chip:focus-visible{ outline: 3px solid rgba(244,197,66,.75); outline-offset: 2px; }
+@media(max-width:560px){#bells .bg-filter-chip{min-height:44px}}
 #bells .bg-field{ min-width: 0; }
 #bells label{ display: block; margin: 0 0 7px; color: #dbeafe; font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 #bells select{
@@ -184,7 +189,9 @@
 .learner-tiktok-confirm input{ width: auto; margin-top: 3px; flex: 0 0 auto; }
 #bells .bg-result-head{ display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
 #bells .bg-eyebrow{ color: var(--bg-blue); font-size: .75rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
-#bells #bgCourseName{ margin: 5px 0 7px; font-size: clamp(1.25rem, 3vw, 1.85rem); line-height: 1.18; letter-spacing: -.035em; }
+#bells .bg-course-heading{ display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 5px 0 7px; }
+#bells #bgCourseName{ margin: 0; font-size: clamp(1.25rem, 3vw, 1.85rem); line-height: 1.18; letter-spacing: -.035em; }
+#bells .bg-tech-tag{ display: inline-block; border-radius: 8px; background: #c74435; color: #fff; padding: 3px 8px; font-size: 12px; line-height: 1.35; font-weight: 900; }
 #bells .bg-tags{ display: flex; flex-wrap: wrap; gap: 7px; }
 #bells .bg-tag{ border-radius: 999px; background: #edf3f8; color: var(--bg-navy); padding: 5px 9px; font-size: .76rem; font-weight: 800; }
 #bells .bg-tag.bg-online{ background: #e8f6ed; color: #22623a; }
@@ -211,6 +218,7 @@
     }
 #bells .bg-result-head > div:first-child{ min-width: 0; }
 #bells .bg-price small{ display: block; font-size: .72rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+#bells .bg-price .bg-as-of{ margin-bottom: 5px; color: #5b6676; font-size: 12px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 #bells .bg-price strong{ display: block; margin-top: 2px; font-size: 1.85rem; line-height: 1.1; letter-spacing: -.04em; }
 #bells .bg-facts{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--bg-line); border-radius: 16px; overflow: hidden; }
 #bells .bg-fact{ min-width: 0; padding: 14px 15px; background: var(--bg-paper); border-right: 1px solid var(--bg-line); border-bottom: 1px solid var(--bg-line); }
@@ -683,6 +691,12 @@ body.bg-modal-open{ overflow: hidden; }
 
       <section class="bg-panel" aria-live="polite">
       <div class="bg-controls">
+        <div id="bgCategoryFilters" class="bg-category-filters" role="group" aria-label="Filter courses by category">
+          <button class="bg-filter-chip" type="button" data-bg-filter="all" aria-pressed="true">All</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="baking" aria-pressed="false">Baking</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="tech" aria-pressed="false">Tech</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="bundles" aria-pressed="false">Bundles</button>
+        </div>
         <div class="bg-field">
           <label for="bgCourseSelect">Course</label>
           <select id="bgCourseSelect" aria-label="Select course"></select>
@@ -703,7 +717,7 @@ body.bg-modal-open{ overflow: hidden; }
         <div class="bg-result-head">
           <div>
             <div class="bg-eyebrow">Selected course</div>
-            <h2 id="bgCourseName"></h2>
+            <div class="bg-course-heading"><h2 id="bgCourseName"></h2><span id="bgTechTag" class="bg-tech-tag" style="display:none">Tech: test learner first</span></div>
             <div class="bg-tags">
               <span id="bgCategory" class="bg-tag"></span>
               <span id="bgDelivery" class="bg-tag"></span>
@@ -714,6 +728,7 @@ body.bg-modal-open{ overflow: hidden; }
             </div>
           </div>
           <div class="bg-price">
+            <small id="bgCatalogueAsOf" class="bg-as-of"></small>
             <small id="bgPriceLabel">SG Age 21–39 / PR Age 21 &amp; above</small>
             <strong id="bgFee"></strong>
           </div>
@@ -1052,7 +1067,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-05.3';
+  const BUILD='2026-11-05.4';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3732,10 +3747,12 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     };
     const TMS_BASE = 'https:' + '/' + '/tms.bells.sg';
     const money = new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', currencyDisplay: 'narrowSymbol' });
+    const CATALOGUE_AS_OF = /* CATALOGUE_AS_OF_START */ '2026-11-05' /* CATALOGUE_AS_OF_END */;
     const INITIAL_DATA = /* CATALOGUE_START */ [{"name":"Cakes & Cookies (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"8 DAYS (48 HRS)","fees":{"full":1264.4,"age2139":684.4,"age40":452.4},"pv":200.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2019503177 + TGS-2019503181"},{"name":"Cafe Style Bread & Tarts (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"9 DAYS (54 HRS)","fees":{"full":1449.7,"age2139":784.7,"age40":518.7},"pv":220.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023019954 + TGS-2019503567"},{"name":"Premium Cakes","category":"Baking","delivery":"Classroom","duration":"5 DAYS (30 HRS)","fees":{"full":1199.0,"age2139":649.0,"age40":429.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023036448"},{"name":"Handphone Apps with Photography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"4 DAYS (32 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061249 + TGS-2021007824"},{"name":"Mobile Photography & Videography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"5 DAYS (38 HRS)","fees":{"full":1035.5,"age2139":560.5,"age40":370.5},"pv":110.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021007824 + TGS-2021009032"},{"name":"Certificate in AI Essentials","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Upgrade yourself with Gen AI (Seniors/Retirees)","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Certificate in AI Essentials (Zoom)","category":"Tech","delivery":"Online","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"3D Printing","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1237.15,"age2139":669.65,"age40":442.655},"pv":120.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061253"},{"name":"Vibe Coding for Web & App Development","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2020503366"},{"name":"Claude AI (Zoom)","category":"Tech","delivery":"Online","duration":"2 DAYS (16 HRS)","fees":{"full":806.6,"age2139":436.6,"age40":288.6},"pv":90.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059941"},{"name":"AI Agents & Automation","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061246"},{"name":"Communication & Coaching","category":"PWM","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1177.2,"age2139":637.2,"age40":421.2},"pv":130.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046246"},{"name":"TikTok with AI (Bundle)","category":"PWM · Bundle","delivery":"Classroom","duration":"6 DAYS (46 HRS)","fees":{"full":2114.6,"age2139":1144.6,"age40":756.5999999999999},"pv":200.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046178 + TGS-2024046177"}] /* CATALOGUE_END */;
     window.BELLS_COURSE_NAMES = INITIAL_DATA.map(c=>c.name);
     let allCourses = INITIAL_DATA.slice();
     let visibleCourses = allCourses.slice();
+    let activeCategory = 'all';
 
     const els = {
       course: document.getElementById('bgCourseSelect'),
@@ -3744,7 +3761,10 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       result: document.getElementById('bgResult'),
       empty: document.getElementById('bgEmpty'),
       matchCount: document.getElementById('bgMatchCount'),
+      categoryFilters: document.getElementById('bgCategoryFilters'),
       courseName: document.getElementById('bgCourseName'),
+      techTag: document.getElementById('bgTechTag'),
+      catalogueAsOf: document.getElementById('bgCatalogueAsOf'),
       category: document.getElementById('bgCategory'),
       delivery: document.getElementById('bgDelivery'),
       deliveryFact: document.getElementById('bgDeliveryFact'),
@@ -3804,13 +3824,29 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         return;
       }
       els.loading.style.display = 'none';
-      visibleCourses = [...allCourses];
-      fillCourseOptions(allCourses[0].name);
+      applyCategoryFilter('all', allCourses[0].name);
     }
 
     function showLoadError() {
       els.loading.innerHTML = '<div class="bg-error">Course data could not be loaded. Please refresh or contact the sheet owner.</div>';
       els.matchCount.textContent = '0 courses available';
+    }
+
+    function categoryMatches(course, filter) {
+      const category = String(course.category || '');
+      if (filter === 'baking') return category.startsWith('Baking');
+      if (filter === 'tech') return category.startsWith('Tech');
+      if (filter === 'bundles') return category.includes('Bundle');
+      return true;
+    }
+
+    function applyCategoryFilter(filter, preferredName) {
+      activeCategory = ['all', 'baking', 'tech', 'bundles'].includes(filter) ? filter : 'all';
+      visibleCourses = allCourses.filter(course => categoryMatches(course, activeCategory));
+      Array.from(els.categoryFilters.querySelectorAll('[data-bg-filter]')).forEach(chip => {
+        chip.setAttribute('aria-pressed', String(chip.dataset.bgFilter === activeCategory));
+      });
+      fillCourseOptions(preferredName);
     }
 
     function fillCourseOptions(preferredName) {
@@ -3819,11 +3855,13 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       visibleCourses.forEach(course => {
         const option = document.createElement('option');
         const tmsCode = TMS_CODE_BY_COURSE[course.name];
+        const techSuffix = (window.isTechSuitabilityCourse_ && window.isTechSuitabilityCourse_(course.name, tmsCode || '')) ? ' · Tech check' : '';
         option.value = course.name;
-        option.textContent = tmsCode ? `${course.name} — ${tmsCode}` : course.name;
+        option.textContent = (tmsCode ? `${course.name} — ${tmsCode}` : course.name) + techSuffix;
         els.course.appendChild(option);
       });
       if (visibleCourses.some(course => course.name === previous)) els.course.value = previous;
+      else if (visibleCourses.length) els.course.value = visibleCourses[0].name;
       els.matchCount.textContent = `${visibleCourses.length} course${visibleCourses.length === 1 ? '' : 's'} available`;
       render();
     }
@@ -3856,6 +3894,12 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       return true;
     }
 
+    function formatCatalogueDate(isoDate) {
+      const parts = String(isoDate || '').split('-').map(Number);
+      if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return String(isoDate || '');
+      return new Intl.DateTimeFormat('en-SG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Singapore' }).format(new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])));
+    }
+
     function render() {
       const course = selectedCourse();
       if (!course) {
@@ -3868,7 +3912,10 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       const profile = els.profile.value;
       els.courseName.textContent = course.name;
       const courseCode = TMS_CODE_BY_COURSE[course.name] || '';
-      els.tiktokWarning.style.display = (window.isTechSuitabilityCourse_ && window.isTechSuitabilityCourse_(course.name, courseCode)) ? 'block' : 'none';
+      const needsTechCheck = !!(window.isTechSuitabilityCourse_ && window.isTechSuitabilityCourse_(course.name, courseCode));
+      els.techTag.style.display = needsTechCheck ? 'inline-block' : 'none';
+      els.tiktokWarning.style.display = needsTechCheck ? 'block' : 'none';
+      els.catalogueAsOf.textContent = 'Prices as of ' + formatCatalogueDate(CATALOGUE_AS_OF);
       els.category.textContent = course.category;
       els.delivery.textContent = course.delivery;
       els.delivery.className = `bg-tag${course.delivery.toLowerCase() === 'online' ? ' bg-online' : ''}`;
@@ -3923,6 +3970,10 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
 
     els.course.addEventListener('change', render);
     els.profile.addEventListener('change', render);
+    els.categoryFilters.addEventListener('click', event => {
+      const chip = event.target.closest('[data-bg-filter]');
+      if (chip) applyCategoryFilter(chip.dataset.bgFilter, els.course.value);
+    });
     els.brochureButton.addEventListener('click', openBrochure);
     els.brochureClose.addEventListener('click', closeBrochure);
     els.brochureModal.addEventListener('click', event => {
@@ -3933,7 +3984,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     });
     if (INITIAL_DATA.length) {
       els.loading.style.display = 'none';
-      fillCourseOptions(INITIAL_DATA[0].name);
+      applyCategoryFilter('all', INITIAL_DATA[0].name);
     } else {
       showLoadError();
     }
