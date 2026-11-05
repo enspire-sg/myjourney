@@ -340,7 +340,7 @@ body.bg-modal-open{ overflow: hidden; }
         <input id="learnerWebsite" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="learner-grid">
           <div class="field wide"><label for="learnerProgram">Course</label><select id="learnerProgram" required><option value="">Choose a course&hellip;</option></select></div>
-          <div class="field wide learner-tiktok-confirm hidden" id="learnerTikTokConfirmWrap"><label for="learnerTikTokConfirmed"><input id="learnerTikTokConfirmed" type="checkbox">I checked all 5 points and this learner is suitable. I know unsuitable enrolments lose their PV.</label><p class="muted small" style="margin:8px 0 0">Read the full checks in Bells Easy Guide. Any “no” or doubt means do not enrol; offer FRF instead.</p></div>
+          <div class="field wide learner-tiktok-confirm hidden" id="learnerTikTokConfirmWrap"><label for="learnerTikTokConfirmed"><input id="learnerTikTokConfirmed" type="checkbox">I checked all 4 points and this learner is suitable. I know unsuitable enrolments lose their PV.</label><p class="muted small" style="margin:8px 0 0">Read the full checks in Bells Easy Guide. Any “no” or doubt means do not enrol; offer Handphone course instead.</p></div>
           <div class="field wide"><label for="learnerName">Full name as in NRIC</label><input id="learnerName" autocomplete="name" maxlength="120" required></div>
           <div class="field"><label for="learnerNric">NRIC / FIN</label><input id="learnerNric" autocomplete="off" maxlength="9" required></div>
           <div class="field"><label for="learnerDob">Date of birth</label><input id="learnerDob" type="date" required></div>
@@ -668,17 +668,17 @@ body.bg-modal-open{ overflow: hidden; }
       </header>
 
       <section class="bg-tiktok-guide" id="bgTikTokGuide" aria-labelledby="bgTikTokGuideHeading">
-        <h2 id="bgTikTokGuideHeading">Is TikTok right for this learner?</h2>
+        <h2 id="bgTikTokGuideHeading">Is your learner suitable to go for Tech courses?</h2>
         <p>Test the learner by asking them to do each task. Do not just ask whether they can do it.</p>
         <ol>
-          <li><b>Laptop</b> (TikTok Module 2 needs one): ask them to open Word or PowerPoint, save a file and upload it. They must be comfortable with Word and PowerPoint and be able to save and upload files.</li>
-          <li><b>Email:</b> ask them to create a new email account by themselves.</li>
+          <li><b>Computer knowledge:</b> they must know how to use Microsoft Word and PowerPoint, save and upload files, and create an email account by themselves.</li>
           <li><b>Phone:</b> ask them to switch between apps, copy a line from WhatsApp and paste it into a note, and download an app from the Play Store / App Store.</li>
           <li><b>English:</b> the course is 100% in English. Speak to them in English. If they switch back to their mother tongue or are uncomfortable, their English is not good enough.</li>
           <li><b>PWM:</b> they intend to go into retail or are already in retail, and can explain why PWM has the $4K funding. This is covered in the quizzes, training and handbook.</li>
         </ol>
-        <p><b>Any “no” or any doubt = do NOT enrol. Offer FRF instead.</b></p>
+        <p><b>Any “no” or any doubt = do NOT enrol. Offer Handphone course instead.</b></p>
         <p><b>Any unqualified learner who is enrolled will have their PV manually removed from the system.</b></p>
+        <p class="muted small">Applies to all Tech courses: SUP, UPW, TTAI, 3D Printing, AAI, DDA (Data Analytics).</p>
       </section>
 
       <section class="bg-panel" aria-live="polite">
@@ -719,7 +719,7 @@ body.bg-modal-open{ overflow: hidden; }
           </div>
         </div>
 
-        <div id="bgTikTokWarning" class="bg-tiktok-warning" style="display:none"><b>Check before enrolling:</b> any “no” or doubt on the 5 TikTok suitability checks means do NOT enrol. Offer FRF instead. Unsuitable enrolments lose their PV. <a href="#bgTikTokGuide">Read the full checks above.</a></div>
+        <div id="bgTikTokWarning" class="bg-tiktok-warning" style="display:none"><b>Check before enrolling:</b> any “no” or doubt on the 4 suitability checks means do NOT enrol. Offer Handphone course instead. Unsuitable enrolments lose their PV. <a href="#bgTikTokGuide">Read the full checks above.</a></div>
 
         <div id="bgBundleBreakdown" class="bg-bundle-breakdown" style="display:none">
           <h3>Course price breakdown</h3>
@@ -1052,7 +1052,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-04.3';
+  const BUILD='2026-11-05.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2092,7 +2092,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   // ---- learner registration, overview and public self-fill -------------------------------
   let learnerData=null, learnerTab='list', learnerKey=null, learnerOpenId='', learnerPublicToken='', learnerPublicMode=false, learnerShareUrl='';
   const learnerNricShown={};
-  function isTikTokCourse_(name){ const value=String(name||'').trim(); const code=(window.TMS_CODE_BY_COURSE&&window.TMS_CODE_BY_COURSE[value])||''; return /tiktok/i.test(value+' '+code); }
+  const TECH_SUITABILITY_COURSE_RE=/^(?:Certificate in AI Essentials(?: \(Zoom\))?|Upgrade yourself with Gen AI \(Seniors\/Retirees\)|TikTok with AI \((?:Bundle|TTAI)\)|3D Printing|AI Agents & Automation|Vibe Coding for Web & App Development|Claude AI \(Zoom\))$|data analytic|\bDDA\b/i;
+  function isTechSuitabilityCourse_(name,code){ return TECH_SUITABILITY_COURSE_RE.test(String(name||'').trim())||TECH_SUITABILITY_COURSE_RE.test(String(code||'').trim()); }
+  function selectedLearnerCourseNeedsSuitability_(name){ const value=String(name||'').trim(),code=(window.TMS_CODE_BY_COURSE&&window.TMS_CODE_BY_COURSE[value])||''; return isTechSuitabilityCourse_(value,code); }
   function learnerCourses_(){ try{ const names=Array.isArray(window.BELLS_COURSE_NAMES)?window.BELLS_COURSE_NAMES.slice():[]; const bundleIndex=names.indexOf('TikTok with AI (Bundle)'); if(bundleIndex>=0&&names.indexOf('TikTok with AI (TTAI)')<0)names.splice(bundleIndex,0,'TikTok with AI (TTAI)'); return names; }catch(e){return [];} }
   function learnerCourseLabel_(name){ const value=String(name||'').trim(); if(value==='TikTok with AI (Bundle)')return 'TTAI + MPC Bundle'; return value.replace(/\s*\(Seniors\s*\/\s*Retirees\)\s*$/i,'').trim(); }
   function ensureLearnerCourseOption_(course){
@@ -2108,7 +2110,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     syncLearnerTikTokConfirm_();
   }
   function syncLearnerTikTokConfirm_(){
-    const needed=isTikTokCourse_($('learnerProgram').value), wrap=$('learnerTikTokConfirmWrap'), tick=$('learnerTikTokConfirmed');
+    const needed=selectedLearnerCourseNeedsSuitability_($('learnerProgram').value), wrap=$('learnerTikTokConfirmWrap'), tick=$('learnerTikTokConfirmed');
     wrap.classList.toggle('hidden',!needed); tick.required=needed; if(!needed)tick.checked=false;
   }
   $('learnerProgram').addEventListener('change',syncLearnerTikTokConfirm_);
@@ -2198,7 +2200,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     return {program:$('learnerProgram').value,tiktokSuitabilityConfirmed:$('learnerTikTokConfirmed').checked,name:$('learnerName').value,nric:$('learnerNric').value,dob:$('learnerDob').value,mobile:$('learnerMobile').value,email:$('learnerEmail').value,gender:$('learnerGender').value,citizenship:$('learnerCitizenship').value,race:$('learnerRace').value,postal:$('learnerPostal').value,unit:$('learnerUnit').value,noUnit:$('learnerNoUnit').checked,address:$('learnerAddress').value,education:$('learnerEducation').value,website:$('learnerWebsite').value};
   }
   $('learnerForm').onsubmit=async e=>{
-    e.preventDefault();if(viewAs)return;syncLearnerTikTokConfirm_();if(isTikTokCourse_($('learnerProgram').value)&&!$('learnerTikTokConfirmed').checked){msg($('learnerMsg'),'Not saved — tick the TikTok suitability confirmation after testing all 5 points.','error');$('learnerTikTokConfirmed').focus();return;}if(!$('learnerForm').reportValidity())return;const button=$('learnerSubmit');button.disabled=true;msg($('learnerMsg'),learnerPublicMode?'Submitting details…':'Saving record…','info');
+    e.preventDefault();if(viewAs)return;syncLearnerTikTokConfirm_();if(selectedLearnerCourseNeedsSuitability_($('learnerProgram').value)&&!$('learnerTikTokConfirmed').checked){msg($('learnerMsg'),'Not saved — tick the suitability confirmation after testing all 4 points.','error');$('learnerTikTokConfirmed').focus();return;}if(!$('learnerForm').reportValidity())return;const button=$('learnerSubmit');button.disabled=true;msg($('learnerMsg'),learnerPublicMode?'Submitting details…':'Saving record…','info');
     try{if(learnerPublicMode){await run('submitLearnerInvitation',learnerPublicToken,learnerPayloadFromForm_());$('learnerForm').reset();$('learnerRegisterCard').classList.add('hidden');$('learnerPublicSuccess').classList.remove('hidden');$('learnerHeading').textContent='Submitted';$('learnerPreviewNote').textContent='Your details were sent.';msg($('learnerMsg'),'','');}
       else{learnerData=await run('registerLearner',token,learnerPayloadFromForm_());$('learnerForm').reset();syncLearnerUnit_();fillLearnerCourses_();syncLearnerTikTokConfirm_();learnerTab='list';renderLearners_();msg($('learnerListMsg'),'Saved ✓ Learner record.','success');$('learnerListMsg').style.visibility='visible';}}
     catch(err){msg($('learnerMsg'),err.message,'error');}finally{button.disabled=false;}
@@ -3864,8 +3866,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       els.empty.style.display = 'none';
       const profile = els.profile.value;
       els.courseName.textContent = course.name;
-      const tiktokCode = TMS_CODE_BY_COURSE[course.name] || '';
-      els.tiktokWarning.style.display = /tiktok/i.test(course.name + ' ' + tiktokCode) ? 'block' : 'none';
+      const courseCode = TMS_CODE_BY_COURSE[course.name] || '';
+      els.tiktokWarning.style.display = isTechSuitabilityCourse_(course.name, courseCode) ? 'block' : 'none';
       els.category.textContent = course.category;
       els.delivery.textContent = course.delivery;
       els.delivery.className = `bg-tag${course.delivery.toLowerCase() === 'online' ? ' bg-online' : ''}`;
