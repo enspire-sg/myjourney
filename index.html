@@ -678,7 +678,7 @@ body.bg-modal-open{ overflow: hidden; }
         </ol>
         <p><b>Any “no” or any doubt = do NOT enrol. Offer Handphone course instead.</b></p>
         <p><b>Any unqualified learner who is enrolled will have their PV manually removed from the system.</b></p>
-        <p class="muted small">Applies to all Tech courses: SUP, UPW, TTAI, 3D Printing, AAI, DDA (Data Analytics).</p>
+        <p class="muted small">Applies to all Tech courses: SUP, UPW, TTAI, 3D Printing, AAI.</p>
       </section>
 
       <section class="bg-panel" aria-live="polite">
@@ -1052,7 +1052,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-05.1';
+  const BUILD='2026-11-05.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
