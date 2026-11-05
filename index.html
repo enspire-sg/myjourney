@@ -27,7 +27,7 @@
     /* Held at the narrow width even when the shell widens for the Bells guide, so the buttons are
        in the same place on every page. The shell's two paddings come off, or the row would sit
        14px wider at each end than the cards under it. */
-    .brand{display:grid;gap:10px;margin:4px auto 18px;width:min(100%,calc(var(--shell) - var(--shell-pad) * 2))}.brand-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand-l{display:flex;align-items:center;gap:12px}.brand-quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px}.brand-quick .btn{width:100%;min-height:46px}.brand-nav{justify-content:flex-start}.mark{display:grid;place-items:center;width:40px;height:40px;border:1px solid rgba(245,193,79,.45);border-radius:13px;background:linear-gradient(145deg,rgba(245,193,79,.22),rgba(245,193,79,.04));color:var(--gold);font-weight:900}.brand strong{display:block;letter-spacing:.16em;font-size:12px}.brand span{color:var(--muted);font-size:12px}.freshness-slot{width:min(100%,calc(var(--shell) - var(--shell-pad) * 2));min-height:18px;margin:-12px auto 4px;color:var(--muted);font-size:11px;line-height:18px}.freshness-slot.not-refreshed{color:#ffd98a}.boot-skeleton{display:grid;gap:12px;margin-top:18px}.boot-skeleton i{display:block;height:12px;border-radius:99px;background:linear-gradient(90deg,#1a2940 20%,#2b3e5d 50%,#1a2940 80%);background-size:200% 100%;animation:boot-shimmer 1.2s linear infinite}.boot-skeleton i:nth-child(2){width:72%}.boot-skeleton i:nth-child(3){width:46%}@keyframes boot-shimmer{to{background-position:-200% 0}}
+    .brand{display:grid;gap:10px;margin:4px auto 18px;width:min(100%,calc(var(--shell) - var(--shell-pad) * 2));padding-top:env(safe-area-inset-top, 0px);padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}.brand-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand-l{display:flex;align-items:center;gap:12px}.brand-quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px}.brand-quick .btn{width:100%;min-height:46px}.brand-nav{justify-content:flex-start}.mark{display:grid;place-items:center;width:40px;height:40px;border:1px solid rgba(245,193,79,.45);border-radius:13px;background:linear-gradient(145deg,rgba(245,193,79,.22),rgba(245,193,79,.04));color:var(--gold);font-weight:900}.brand strong{display:block;letter-spacing:.16em;font-size:12px}.brand span{color:var(--muted);font-size:12px}.freshness-slot{width:min(100%,calc(var(--shell) - var(--shell-pad) * 2));min-height:18px;margin:-12px auto 4px;color:var(--muted);font-size:11px;line-height:18px}.freshness-slot.not-refreshed{color:#ffd98a}.boot-skeleton{display:grid;gap:12px;margin-top:18px}.boot-skeleton i{display:block;height:12px;border-radius:99px;background:linear-gradient(90deg,#1a2940 20%,#2b3e5d 50%,#1a2940 80%);background-size:200% 100%;animation:boot-shimmer 1.2s linear infinite}.boot-skeleton i:nth-child(2){width:72%}.boot-skeleton i:nth-child(3){width:46%}@keyframes boot-shimmer{to{background-position:-200% 0}}
     .card{border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(22,36,58,.96),rgba(13,24,41,.96));box-shadow:var(--shadow);padding:22px 20px;margin-top:14px}
     .stay-signed-in-prompt{display:flex;align-items:center;gap:14px;margin-top:14px;padding:12px 14px;border:1px solid rgba(245,193,79,.38);border-radius:15px;background:rgba(245,193,79,.08)}.stay-signed-in-copy{flex:1;min-width:0;font-size:13px;line-height:1.45}.stay-signed-in-copy b{color:var(--ink)}.stay-signed-in-copy span{color:var(--muted)}.stay-signed-in-actions{display:flex;gap:8px;flex:0 0 auto}.stay-signed-in-actions .btn{min-width:88px}
     .auth-opt{display:inline-block;margin:14px 0 10px;padding:4px 10px;border:1px solid var(--gold);border-radius:999px;color:var(--gold);font-size:11px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}.auth-opt-note{margin:0 0 12px}
@@ -145,7 +145,7 @@
 #bells .bg-shell{ width: min(980px, 100%); margin: 0 auto; padding: 24px 16px 48px; }
 #bells .bg-brand{
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 18px; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
     }
 #bells .bg-brand-mark{ display: flex; align-items: center; gap: 12px; }
 #bells .bg-logo{
@@ -177,7 +177,7 @@
 #bells select:focus{ border-color: var(--bg-gold); box-shadow: 0 0 0 3px rgba(244,197,66,.28); }
 #bells .bg-helper{ color: #b8cce0; font-size: .76rem; margin-top: 6px; }
 #bells .bg-result{ padding: 22px; }
-#bells .bg-tiktok-guide{ margin: 16px 0; padding: 18px; border: 2px solid #d7a928; border-radius: 16px; background: #fff9df; color: #142033; }
+#bells .bg-tiktok-guide{ margin: 0 0 18px; padding: 18px; border: 2px solid #d7a928; border-radius: 16px; background: #fff9df; color: #142033; }
 #bells .bg-tiktok-guide h2{ margin: 0 0 8px; font-size: 1.35rem; color: var(--bg-navy); }
 #bells .bg-tiktok-guide ol{ margin: 12px 0; padding-left: 22px; }
 #bells .bg-tiktok-guide li{ margin: 9px 0; }
@@ -220,6 +220,7 @@
 #bells .bg-price small{ display: block; font-size: .72rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
 #bells .bg-price .bg-as-of{ margin-bottom: 5px; color: #5b6676; font-size: 12px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 #bells .bg-price strong{ display: block; margin-top: 2px; font-size: 1.85rem; line-height: 1.1; letter-spacing: -.04em; }
+#bells .bg-laptop-note{ margin-top: 10px; padding: 8px 10px; border: 1px solid #8fb3da; border-radius: 10px; background: #e8f1fb; color: #142033; font-size: 13px; line-height: 1.35; text-align: left; }
 #bells .bg-facts{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--bg-line); border-radius: 16px; overflow: hidden; }
 #bells .bg-fact{ min-width: 0; padding: 14px 15px; background: var(--bg-paper); border-right: 1px solid var(--bg-line); border-bottom: 1px solid var(--bg-line); }
 #bells .bg-fact:nth-child(3n){ border-right: 0; }
@@ -268,7 +269,7 @@ body.bg-modal-open{ overflow: hidden; }
 
     @media (max-width: 720px) {
 #bells .bg-shell{ padding: 14px 10px 30px; }
-#bells .bg-brand{ padding: 0 4px; }
+#bells .bg-brand{ padding: env(safe-area-inset-top, 0px) max(4px, env(safe-area-inset-right, 0px)) 0 max(4px, env(safe-area-inset-left, 0px)); }
 #bells .bg-controls{ grid-template-columns: 1fr; padding: 16px; }
 #bells .bg-result{ padding: 17px; }
 #bells .bg-result-head{ display: block; }
@@ -286,7 +287,7 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-fact:last-child{ border-bottom: 0; }
 #bells .bg-modal{ padding: 0; }
 #bells .bg-modal-card{ width: 100%; height: 100dvh; border-radius: 0; }
-#bells .bg-modal-bar{ padding-top: max(11px, env(safe-area-inset-top)); }
+#bells .bg-modal-bar{ padding-top: max(11px, env(safe-area-inset-top, 0px)); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
     }
   
     .appcard{padding:12px 0;border-top:1px solid rgba(42,59,86,.6)}.appcard .ah{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.appcard .ah b{font-size:14px}.appcard .ah small{color:var(--muted);font-size:11px}.qa{margin-top:10px}.qa .q{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;line-height:1.35}.qa .a{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
@@ -306,7 +307,7 @@ body.bg-modal-open{ overflow: hidden; }
     @supports not (scrollbar-gutter: stable){html{overflow-y:scroll}}
   </style>
 </head>
-<body style="padding-top:env(safe-area-inset-top)">
+<body>
 <main class="shell">
   <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><a class="btn ghost mini hidden" id="appsBtn" target="_top" rel="noopener">Enspire Apps</a><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button></div></div>
   <div id="freshnessSlot" class="freshness-slot" role="status" aria-live="polite"><span id="freshness"></span></div>
@@ -675,20 +676,6 @@ body.bg-modal-open{ overflow: hidden; }
         <button class="btn ghost mini" id="bellsBack" type="button">&#8592; My journey</button>
       </header>
 
-      <section class="bg-tiktok-guide" id="bgTikTokGuide" aria-labelledby="bgTikTokGuideHeading">
-        <h2 id="bgTikTokGuideHeading">Is your learner suitable to go for Tech courses?</h2>
-        <p>Test the learner by asking them to do each task. Do not just ask whether they can do it.</p>
-        <ol>
-          <li><b>Computer knowledge:</b> they must know how to use Microsoft Word and PowerPoint, save and upload files, and create an email account by themselves.</li>
-          <li><b>Phone:</b> ask them to switch between apps, copy a line from WhatsApp and paste it into a note, and download an app from the Play Store / App Store.</li>
-          <li><b>English:</b> the course is 100% in English. Speak to them in English. If they switch back to their mother tongue or are uncomfortable, their English is not good enough.</li>
-          <li><b>PWM:</b> they intend to go into retail or are already in retail, and can explain why PWM has the $4K funding. This is covered in the quizzes, training and handbook.</li>
-        </ol>
-        <p><b>Any “no” or any doubt = do NOT enrol. Offer Handphone course instead.</b></p>
-        <p><b>Any unqualified learner who is enrolled will have their PV manually removed from the system.</b></p>
-        <p class="muted small">Applies to all Tech courses: SUP, UPW, TTAI, 3D Printing, AAI.</p>
-      </section>
-
       <section class="bg-panel" aria-live="polite">
       <div class="bg-controls">
         <div id="bgCategoryFilters" class="bg-category-filters" role="group" aria-label="Filter courses by category">
@@ -731,8 +718,23 @@ body.bg-modal-open{ overflow: hidden; }
             <small id="bgCatalogueAsOf" class="bg-as-of"></small>
             <small id="bgPriceLabel">SG Age 21–39 / PR Age 21 &amp; above</small>
             <strong id="bgFee"></strong>
+            <div id="bgLaptopNote" class="bg-laptop-note" style="display:none"><b>Bring a laptop.</b> No laptop? They can borrow one.</div>
           </div>
         </div>
+
+        <section class="bg-tiktok-guide" id="bgTikTokGuide" aria-labelledby="bgTikTokGuideHeading" style="display:none">
+          <h2 id="bgTikTokGuideHeading">Is your learner suitable to go for Tech courses?</h2>
+          <p>Test the learner by asking them to do each task. Do not just ask whether they can do it.</p>
+          <ol>
+            <li><b>Computer knowledge:</b> they must know how to use Microsoft Word and PowerPoint, save and upload files, and create an email account by themselves.</li>
+            <li><b>Phone:</b> ask them to switch between apps, copy a line from WhatsApp and paste it into a note, and download an app from the Play Store / App Store.</li>
+            <li><b>English:</b> the course is 100% in English. Speak to them in English. If they switch back to their mother tongue or are uncomfortable, their English is not good enough.</li>
+            <li><b>PWM:</b> they intend to go into retail or are already in retail, and can explain why PWM has the $4K funding. This is covered in the quizzes, training and handbook.</li>
+          </ol>
+          <p><b>Any “no” or any doubt = do NOT enrol. Offer Handphone course instead.</b></p>
+          <p><b>Any unqualified learner who is enrolled will have their PV manually removed from the system.</b></p>
+          <p class="muted small">Applies to all Tech courses: SUP, UPW, TTAI, 3D Printing, AAI.</p>
+        </section>
 
         <div id="bgTikTokWarning" class="bg-tiktok-warning" style="display:none"><b>Check before enrolling:</b> any “no” or doubt on the 4 suitability checks means do NOT enrol. Offer Handphone course instead. Unsuitable enrolments lose their PV. <a href="#bgTikTokGuide">Read the full checks above.</a></div>
 
@@ -1067,7 +1069,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-05.4';
+  const BUILD='2026-11-05.5';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3785,6 +3787,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       brochureOpen: document.getElementById('bgBrochureOpen'),
       brochureClose: document.getElementById('bgBrochureClose'),
       brochureFrame: document.getElementById('bgBrochureFrame'),
+      tiktokGuide: document.getElementById('bgTikTokGuide'),
+      laptopNote: document.getElementById('bgLaptopNote'),
       tiktokWarning: document.getElementById('bgTikTokWarning')
     };
 
@@ -3905,6 +3909,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       if (!course) {
         els.result.style.display = 'none';
         els.empty.style.display = 'block';
+        els.tiktokGuide.style.display = 'none';
+        els.laptopNote.style.display = 'none';
+        els.tiktokWarning.style.display = 'none';
         return;
       }
       els.result.style.display = 'block';
@@ -3914,7 +3921,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       const courseCode = TMS_CODE_BY_COURSE[course.name] || '';
       const needsTechCheck = !!(window.isTechSuitabilityCourse_ && window.isTechSuitabilityCourse_(course.name, courseCode));
       els.techTag.style.display = needsTechCheck ? 'inline-block' : 'none';
-      els.tiktokWarning.style.display = needsTechCheck ? 'block' : 'none';
+      els.tiktokGuide.style.display = needsTechCheck ? 'block' : 'none';
+      els.laptopNote.style.display = needsTechCheck ? 'block' : 'none';
+      els.tiktokWarning.style.display = 'none';
       els.catalogueAsOf.textContent = 'Prices as of ' + formatCatalogueDate(CATALOGUE_AS_OF);
       els.category.textContent = course.category;
       els.delivery.textContent = course.delivery;
