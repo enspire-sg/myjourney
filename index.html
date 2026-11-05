@@ -1052,7 +1052,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-05.2';
+  const BUILD='2026-11-05.3';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2094,6 +2094,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   const learnerNricShown={};
   const TECH_SUITABILITY_COURSE_RE=/^(?:Certificate in AI Essentials(?: \(Zoom\))?|Upgrade yourself with Gen AI \(Seniors\/Retirees\)|TikTok with AI \((?:Bundle|TTAI)\)|3D Printing|AI Agents & Automation|Vibe Coding for Web & App Development|Claude AI \(Zoom\))$|data analytic|\bDDA\b/i;
   function isTechSuitabilityCourse_(name,code){ return TECH_SUITABILITY_COURSE_RE.test(String(name||'').trim())||TECH_SUITABILITY_COURSE_RE.test(String(code||'').trim()); }
+  window.isTechSuitabilityCourse_=isTechSuitabilityCourse_;
   function selectedLearnerCourseNeedsSuitability_(name){ const value=String(name||'').trim(),code=(window.TMS_CODE_BY_COURSE&&window.TMS_CODE_BY_COURSE[value])||''; return isTechSuitabilityCourse_(value,code); }
   function learnerCourses_(){ try{ const names=Array.isArray(window.BELLS_COURSE_NAMES)?window.BELLS_COURSE_NAMES.slice():[]; const bundleIndex=names.indexOf('TikTok with AI (Bundle)'); if(bundleIndex>=0&&names.indexOf('TikTok with AI (TTAI)')<0)names.splice(bundleIndex,0,'TikTok with AI (TTAI)'); return names; }catch(e){return [];} }
   function learnerCourseLabel_(name){ const value=String(name||'').trim(); if(value==='TikTok with AI (Bundle)')return 'TTAI + MPC Bundle'; return value.replace(/\s*\(Seniors\s*\/\s*Retirees\)\s*$/i,'').trim(); }
@@ -3867,7 +3868,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       const profile = els.profile.value;
       els.courseName.textContent = course.name;
       const courseCode = TMS_CODE_BY_COURSE[course.name] || '';
-      els.tiktokWarning.style.display = isTechSuitabilityCourse_(course.name, courseCode) ? 'block' : 'none';
+      els.tiktokWarning.style.display = (window.isTechSuitabilityCourse_ && window.isTechSuitabilityCourse_(course.name, courseCode)) ? 'block' : 'none';
       els.category.textContent = course.category;
       els.delivery.textContent = course.delivery;
       els.delivery.className = `bg-tag${course.delivery.toLowerCase() === 'online' ? ' bg-online' : ''}`;
