@@ -305,11 +305,15 @@ body.bg-modal-open{ overflow: hidden; }
     /* Fallback for engines without scrollbar-gutter: always show the track, so the
        layout width is the same whether or not the page is tall enough to scroll. */
     @supports not (scrollbar-gutter: stable){html{overflow-y:scroll}}
+  
+    /* Team Performance: the period label reserves width so repeated arrow taps never move. */
+    #teamPerformance{--tp-group:#253556}.tp-head{display:flex;align-items:flex-start;gap:12px}.tp-toggle{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}.tp-toggle .srcchip{min-width:76px}.tp-period{display:grid;grid-template-columns:42px minmax(190px,1fr) 42px;align-items:center;gap:8px;width:min(100%,390px);margin:14px auto 0}.tp-period-label{min-width:min(230px,58vw);text-align:center;font-size:14px;font-weight:800}.tp-period .btn{min-width:42px;padding-left:10px;padding-right:10px}.tp-total-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.tp-metric{min-width:0}.tp-metric span{display:block;color:var(--muted);font-size:12px}.tp-metric b{display:block;margin-top:3px;font-size:clamp(16px,4vw,24px);font-variant-numeric:tabular-nums;white-space:nowrap}.tp-trend-up{color:var(--green)}.tp-trend-down{color:var(--red)}.tp-table-wrap{overflow-x:auto}.tp-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}.tp-table th,.tp-table td{padding:9px 7px;border-bottom:1px solid rgba(159,176,208,.16);text-align:right;white-space:nowrap}.tp-table th{color:var(--muted);font-size:12px}.tp-table th:first-child,.tp-table td:first-child{text-align:left}.tp-group td{background:var(--tp-group);color:var(--ink);font-weight:850}.tp-person{border:0;background:transparent;color:var(--blue);font:inherit;font-weight:750;padding:0;cursor:pointer;text-align:left}.tp-low{background:rgba(245,193,79,.09)}.tp-summary{line-height:1.6}.tp-summary b{color:var(--ink)}.tp-foot{color:var(--muted);font-size:11px;line-height:1.5;margin:10px 0 0}.tp-back{border:0;background:transparent;color:var(--blue);padding:0;font:inherit;cursor:pointer}.tp-loading{min-height:120px;display:grid;place-items:center;color:var(--muted)}
+    @media(max-width:560px){.tp-total-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tp-metric b{font-size:18px}.tp-table{table-layout:fixed}.tp-table th,.tp-table td{padding:8px 2px;font-size:11px;overflow:hidden;text-overflow:ellipsis}.tp-table th:first-child{width:37%}.tp-table th:nth-child(2){width:18%}.tp-table th:nth-child(3){width:11%}.tp-table th:nth-child(4){width:19%}.tp-table th:nth-child(5){width:15%}.tp-person{font-size:11px}.tp-toggle .srcchip{min-width:68px}.tp-period{grid-template-columns:40px minmax(180px,1fr) 40px}}
   </style>
 </head>
 <body>
 <main class="shell">
-  <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><a class="btn ghost mini hidden" id="appsBtn" target="_top" rel="noopener">Enspire Apps</a><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button></div></div>
+  <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><a class="btn ghost mini hidden" id="appsBtn" target="_top" rel="noopener">Enspire Apps</a><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button><button class="btn ghost mini hidden" id="teamPerfBtn" type="button">Team performance</button></div></div>
   <div id="freshnessSlot" class="freshness-slot" role="status" aria-live="polite"><span id="freshness"></span></div>
 
   <!-- useful links: a top-level page, not another card in the already-long Journey feed -->
@@ -384,6 +388,19 @@ body.bg-modal-open{ overflow: hidden; }
       <div class="eyebrow">Completed</div><h2 style="margin-top:6px">Submitted successfully</h2>
       <p class="muted">Please let your Course Consultant know that you have submitted so that we can proceed on to the next step!</p>
     </section>
+  </section>
+
+
+  <!-- Read-only Team Performance. All signed-in people may open it; the server sends only canonical scope. -->
+  <section id="teamPerformance" class="hidden">
+    <section class="card">
+      <div id="tpTeamHead" class="tp-head"><div><div class="eyebrow">Performance</div><h1 style="font-size:28px;margin-bottom:0">Team Performance</h1></div><div class="spacer"></div><button class="btn ghost mini" id="tpBack" type="button">&larr; My journey</button></div>
+      <div id="tpPersonHead" class="hidden"><button class="tp-back" id="tpBackTeam" type="button">&larr; Back to team</button><h1 id="tpPersonName" style="font-size:28px;margin:7px 0 0"></h1></div>
+      <div class="tp-toggle" id="tpToggle" role="group" aria-label="Team Performance period"><button class="srcchip" type="button" data-tp-mode="week">Week</button><button class="srcchip" type="button" data-tp-mode="month">Month</button><button class="srcchip" type="button" data-tp-mode="quarter">Quarter</button></div>
+      <div class="tp-period"><button class="btn ghost mini" id="tpPrev" type="button" aria-label="Previous period">&#9664;</button><span class="tp-period-label" id="tpPeriodLabel">Loading&hellip;</span><button class="btn ghost mini" id="tpNext" type="button" aria-label="Next period">&#9654;</button></div>
+    </section>
+    <div id="tpBody"><section class="card tp-loading">Loading team performance&hellip;</section></div>
+    <div class="message" id="tpMsg" role="status"></div>
   </section>
 
   <!-- Native IPA Performance app. Saves locally first, then the existing five-minute sync
@@ -967,10 +984,10 @@ body.bg-modal-open{ overflow: hidden; }
   /* The panels are mutually exclusive, so exactly one function decides which is up.
    * Before this, each switch hid its own list of the others and the lists disagreed - opening
    * Resources and then Team showed both at once. Add a panel here and nowhere else. */
-  const PANELS=['journey','team','resources','bells','devices','pipeline','learners','ipaPerformance'];
+  const PANELS=['journey','team','resources','bells','devices','pipeline','learners','ipaPerformance','teamPerformance'];
   /* Which header button belongs to which panel. Journey and Devices have none, so on those
    * nothing is marked - there is nothing to mark. */
-  const PANEL_TAB={resources:'resBtn',team:'teamBtn',pipeline:'pipeBtn',ipaPerformance:'ipaQuickBtn'};
+  const PANEL_TAB={resources:'resBtn',team:'teamBtn',pipeline:'pipeBtn',ipaPerformance:'ipaQuickBtn',teamPerformance:'teamPerfBtn'};
   function showPanel(id){
     PANELS.forEach(p=>{ const el=$(p); if(el)el.classList.toggle('hidden',p!==id); });
     Object.keys(PANEL_TAB).forEach(p=>{ const b=$(PANEL_TAB[p]); if(!b)return;
@@ -1069,7 +1086,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-05.5';
+  const BUILD='2026-11-07.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1140,7 +1157,21 @@ body.bg-modal-open{ overflow: hidden; }
     catch(e){ msg($('loginMsg'),e.message,'error'); } finally{ $('verifyCode').disabled=false; } };
   $('code').addEventListener('keydown',e=>{ if(e.key==='Enter')$('verifyCode').click(); });
   $('email').addEventListener('keydown',e=>{ if(e.key==='Enter')$('sendCode').click(); });
-  $('signOut').onclick=async()=>{ try{ await run('signOut',token);}catch(e){} clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null; actionData=null; ownActionData=null; viewAs=null; planningAccess=null; resData=null; resourceListWarmStarted=false; team=null; planningData=null; learnerData=null; $('asCard').classList.add('hidden'); showPanel(''); ['quickActions','signOut','viewAsBtn','resBtn','teamBtn','pipeBtn','appsBtn'].forEach(id=>$(id).classList.add('hidden')); showLogin_(); };
+  $('signOut').onclick=async()=>{ try{ await run('signOut',token);}catch(e){} clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null; actionData=null; ownActionData=null; viewAs=null; planningAccess=null; resData=null; resourceListWarmStarted=false; team=null; planningData=null; learnerData=null; $('asCard').classList.add('hidden'); showPanel(''); ['quickActions','signOut','viewAsBtn','resBtn','teamBtn','pipeBtn','teamPerfBtn','appsBtn'].forEach(id=>$(id).classList.add('hidden')); showLogin_(); };
+
+
+  // ---- Team Performance (read-only; server response is already scope-filtered)
+  let tpMode='week',tpAnchor='',tpPersonId='',tpPayload=null;
+  function tpMoney_(value){return '$'+Math.round(Number(value)||0).toLocaleString('en-SG');}
+  function tpValue_(value,logged){return logged?Math.round(Number(value)||0).toLocaleString('en-SG'):'&ndash;';}
+  function tpShiftAnchor_(anchor,mode,amount){const p=String(anchor||'').split('-').map(Number),d=new Date(Date.UTC(p[0],p[1]-1,p[2]));if(mode==='week')d.setUTCDate(d.getUTCDate()+amount*7);else if(mode==='month')d.setUTCMonth(d.getUTCMonth()+amount);else d.setUTCMonth(d.getUTCMonth()+amount*3);return d.toISOString().slice(0,10);}
+  function tpMetric_(label,value){return '<div class="tp-metric"><span>'+label+'</span><b>'+value+'</b></div>';}
+  function tpRows_(people){let html='<div class="tp-table-wrap"><table class="tp-table"><thead><tr><th>Name</th><th>SUV</th><th>PV</th><th>Convos</th><th>Opps</th></tr></thead><tbody>';TEAM_PERF_AGENCIES.forEach(agency=>{const rows=(people||[]).filter(x=>x.agency===agency);if(!rows.length)return;html+='<tr class="tp-group"><td colspan="5">'+esc(agency)+'</td></tr>';rows.forEach(x=>{html+='<tr class="'+(x.low?'tp-low':'')+'"><td><button class="tp-person" type="button" data-tp-person="'+esc(x.personId)+'">'+esc(x.name)+(x.low?' &#9888;':'')+'</button></td><td>'+tpMoney_(x.suv)+'</td><td>'+fmt(x.pv)+'</td><td>'+tpValue_(x.convos,x.convosLogged)+'</td><td>'+tpValue_(x.opps,x.oppsLogged)+'</td></tr>';});});return html+'</tbody></table></div>';}
+  const TEAM_PERF_AGENCIES=['Aquila','Synergy'];
+  function renderTeamPerformance_(){const p=tpPayload;if(!p)return;$('tpPeriodLabel').textContent=p.period.label;$('tpTeamHead').classList.toggle('hidden',p.view!=='team');$('tpPersonHead').classList.toggle('hidden',p.view!=='person');document.querySelectorAll('[data-tp-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tpMode===tpMode)));if(p.view==='team'){const trend=p.totals.suvTrend==='up'?'<span class="tp-trend-up">▲</span>':p.totals.suvTrend==='down'?'<span class="tp-trend-down">▼</span>':'<span>–</span>';$('tpBody').innerHTML='<section class="card"><b>All visible people</b><div class="tp-total-grid">'+tpMetric_('SUV',tpMoney_(p.totals.suv)+' '+trend)+tpMetric_('PV',fmt(p.totals.pv))+tpMetric_('Convos',tpValue_(p.totals.convos,p.totals.convosLogged))+tpMetric_('New opps',tpValue_(p.totals.opps,p.totals.oppsLogged))+'</div></section><section class="card">'+tpRows_(p.people)+'<p class="tp-foot">&ndash; = not logged · '+esc(p.lowRule)+' · Tap a name for '+esc(tpMode==='week'?'week by week':tpMode==='month'?'month by month':'quarter by quarter')+'.<br>SUV uses the ledger value: Bells rows only; non-Bells rows are $0. '+esc(p.ledgerNote)+'</p></section>';document.querySelectorAll('[data-tp-person]').forEach(b=>b.onclick=()=>{tpPersonId=b.dataset.tpPerson;tpAnchor='';loadTeamPerformance_();});}else{$('tpPersonName').textContent=p.person.name;const s=p.summary,heading=tpMode==='week'?'Week by week':tpMode==='month'?'Month by month':'Quarter by quarter';let rows='<div class="tp-table-wrap"><table class="tp-table"><thead><tr><th>'+esc(tpMode==='week'?'Week':tpMode==='month'?'Month':'Quarter')+'</th><th>SUV</th><th>PV</th><th>Convos</th><th>Opps</th></tr></thead><tbody>';p.series.forEach(x=>{const v=x.values;rows+='<tr><td>'+esc(x.period.label)+'</td><td>'+tpMoney_(v.suv)+'</td><td>'+fmt(v.pv)+'</td><td>'+tpValue_(v.convos,v.convosLogged)+'</td><td>'+tpValue_(v.opps,v.oppsLogged)+'</td></tr>';});rows+='</tbody></table></div>';$('tpBody').innerHTML='<section class="card tp-summary"><b>'+esc(s.month.label)+':</b> '+tpMoney_(s.month.values.suv)+' SUV · '+fmt(s.month.values.pv)+' PV<br><span class="muted">'+esc(s.lastMonth.label)+': '+tpMoney_(s.lastMonth.values.suv)+' · '+fmt(s.lastMonth.values.pv)+' PV &nbsp;|&nbsp; '+esc(s.quarter.label)+': '+tpMoney_(s.quarter.values.suv)+' · '+fmt(s.quarter.values.pv)+' PV</span></section><section class="card"><b>'+heading+'</b>'+rows+'<p class="tp-foot">SUV = course fee excl. GST. PV = points, all statuses. &ndash; = not logged. SUV is from Bells ledger rows; non-Bells rows are $0. '+esc(p.ledgerNote)+'</p></section>';}}
+  async function loadTeamPerformance_(){msg($('tpMsg'),'','');$('tpBody').innerHTML='<section class="card tp-loading">Loading team performance&hellip;</section>';try{tpPayload=await run('getTeamPerformance',token,tpMode,tpAnchor,tpPersonId);tpAnchor=tpPayload.period.start;renderTeamPerformance_();}catch(e){$('tpBody').innerHTML='';msg($('tpMsg'),e.message,'error');}}
+  function openTeamPerformance_(){showPanel('teamPerformance');tpPersonId='';tpAnchor='';loadTeamPerformance_();}
+  $('teamPerfBtn').onclick=openTeamPerformance_;$('tpBack').onclick=()=>showPanel('journey');$('tpBackTeam').onclick=()=>{tpPersonId='';tpAnchor='';loadTeamPerformance_();};$('tpPrev').onclick=()=>{tpAnchor=tpShiftAnchor_(tpAnchor,tpMode,-1);loadTeamPerformance_();};$('tpNext').onclick=()=>{tpAnchor=tpShiftAnchor_(tpAnchor,tpMode,1);loadTeamPerformance_();};document.querySelectorAll('[data-tp-mode]').forEach(b=>b.onclick=()=>{tpMode=b.dataset.tpMode;tpAnchor='';loadTeamPerformance_();});
 
   // ---- journey
   /* The Team Leader pre-requisite form refuses a bare link: it opens only for a signed Diamond pass
@@ -1217,7 +1248,7 @@ body.bg-modal-open{ overflow: hidden; }
       applicationsAccess=bundle.applicationsAccess;
       applyLauncher_(bundle.launcherUrl);
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
-      data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
+      data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       warmBoothHandoff_().catch(()=>{});
       if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
