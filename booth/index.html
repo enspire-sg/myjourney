@@ -829,7 +829,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-04.2';
+  const SHELL_VERSION = '2026-11-06.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -4440,9 +4440,13 @@
     if (!d.summary || !d.filterCounts) recomputeDisc_(d); // old cached payloads remain renderable
     $('discCard').style.display = '';
     $('discTitle').textContent = d.monthLabel;
+    var canResolveAny = (d.people || []).some(function (p) {
+      return (p.incidents || []).some(function (x) { return x.canResolve; });
+    });
     $('discSub').textContent = d.canTick
       ? 'Monthly record · resets on 1st. Tick actions when done.'
-      : 'Monthly record · resets on 1st.';
+      : (canResolveAny ? 'Monthly record · resets on 1st. Tick the ones you marked.'
+        : 'Monthly record · resets on 1st.');
     var host = $('disc');
     host.innerHTML = '';
     var close = $('discClose');
@@ -4565,7 +4569,7 @@
         changed.textContent = p.changes + ' schedule change' + (p.changes === 1 ? '' : 's') + ' after lock';
         wrap.appendChild(changed);
       }
-      if (d.canTick && p.openItems) {
+      if (p.canResolveAllOpen && p.openItems) {
         var bulk = document.createElement('button'); bulk.className = 'discBulk';
         bulk.textContent = discBulkConfirm === p.person ? 'Confirm?' : 'Mark all paid/done';
         bulk.onclick = function () {
@@ -4574,7 +4578,7 @@
           writeRun_('setDisciplineStateBulk', [token, p.person, d.month],
             'All fines and follow-ups for ' + p.person,
             function (r) { renderDisc(r); },
-            function (e) { bulk.disabled = false; $('discSub').textContent = e.message; });
+            function (e) { bulk.disabled = false; $('discSub').textContent = 'Not saved · ' + e.message; });
         };
         wrap.appendChild(bulk);
       }
@@ -4588,7 +4592,7 @@
         date.textContent = x.when + (x.shift ? ' · ' + x.shift : '');
         if (x.penaltyWeek) date.textContent += ' · penalty week ' + x.penaltyWeek;
         nm.appendChild(consequence); nm.appendChild(document.createElement('br')); nm.appendChild(date); row.appendChild(nm);
-        if (d.canTick) {
+        if (x.canResolve) {
           var marks = document.createElement('span'); marks.className = 'marks';
           [['finePaid','needsFine','Fine paid'],['reflection','needsReflection','Reflection'],
            ['sentHome','needsSentHome','Sent home']].forEach(function (f) {
@@ -4600,7 +4604,7 @@
               var discWhat = f[2] + (x[f[0]] ? ' marked' : ' unmarked') + ' for ' + p.person;
               writeRun_('setDisciplineState', [token, p.person, x.date, x.shift, x.type, f[0], !before], discWhat,
                 function (r) { renderDisc(r); }, function (e) {
-                  x[f[0]] = before; recomputeDisc_(d); renderDisc(d); $('discSub').textContent = e.message;
+                  x[f[0]] = before; recomputeDisc_(d); renderDisc(d); $('discSub').textContent = 'Not saved · ' + e.message;
                 });
             };
             marks.appendChild(b);
