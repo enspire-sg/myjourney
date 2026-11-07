@@ -125,6 +125,11 @@
   .note { font-size:13px; border-radius:9px; padding:10px 12px; margin:10px 0; }
   .note.warn { background:var(--warnbg); color:var(--warn); }
   .note.ok { background:var(--okbg); color:var(--ok); }
+  .boothWeekSwitch { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0;
+                     width:100%; min-height:44px; }
+  .boothWeekSwitch button { width:100%; min-width:0; min-height:44px; padding:8px 6px;
+                            white-space:nowrap; font-size:13px; }
+  .boothWeekSwitch button[aria-pressed="true"] { background:var(--navy); color:#fff; border-color:var(--navy); }
   .bar { position:sticky; bottom:0; background:var(--barbg); padding:12px 0;
          border-top:1px solid var(--line); display:flex; align-items:center; gap:12px; }
   .bar .tally { font-size:13px; color:var(--muted); }
@@ -808,7 +813,12 @@
     </div>
     <div class="card" id="boothCard" data-g="month" style="display:none">
       <details>
-      <summary><span class="sumh">Booths this week</span><span class="tag" id="boothCount"></span></summary>
+      <summary><span class="sumh">Booths</span><span class="tag" id="boothCount"></span></summary>
+      <div class="boothWeekSwitch" aria-label="Choose booth week">
+        <button class="ghost" id="boothWeekThis" type="button" aria-pressed="false">This week</button>
+        <button class="ghost" id="boothWeekNext" type="button" aria-pressed="false">Next week</button>
+      </div>
+      <div class="note ok" id="boothCopyNote" style="display:none">Copied from this week automatically. Change only what's different.</div>
       <p class="sub">Set where and when each booth runs. If blank, one unnamed booth is used.</p>
       <div id="booths"></div>
       <label for="bName">Add or update a booth</label>
@@ -829,7 +839,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-06.1';
+  const SHELL_VERSION = '2026-11-07.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1493,6 +1503,25 @@
 
   /* ---- booths ---- */
   var savedBooths = [];
+  var allocationWeeks_ = { current:'', next:'' };
+  function shortWeekDate_(weekKey) {
+    var parts = String(weekKey || '').split('-');
+    if (parts.length !== 3) return '';
+    var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    return date.toLocaleDateString('en-SG', {day:'numeric', month:'short'});
+  }
+  function setAllocationWeek_(weekStart) {
+    allocWeek = weekStart;
+    ['wkPick', 'weekGridPick'].forEach(function (id) {
+      var select = $(id);
+      if (select && Array.prototype.some.call(select.options || [], function (o) { return o.value === weekStart; })) {
+        select.value = weekStart;
+      }
+    });
+    $('boothWeekThis').setAttribute('aria-pressed', weekStart === allocationWeeks_.current ? 'true' : 'false');
+    $('boothWeekNext').setAttribute('aria-pressed', weekStart === allocationWeeks_.next ? 'true' : 'false');
+    loadAllocation();
+  }
   function savedBooth(name) {
     var q = String(name || '').trim().toLowerCase();
     for (var i = 0; i < savedBooths.length; i++) {
@@ -1512,8 +1541,18 @@
   var bConfirm = '';
   function renderBooths(a) {
     savedBooths = a.locations || [];
+    allocationWeeks_.current = a.currentWeek;
+    allocationWeeks_.next = a.nextWeek;
     bConfirm = '';
     $('boothCard').style.display = '';
+    $('boothWeekNext').textContent = 'Next week · ' + shortWeekDate_(a.nextWeek);
+    $('boothWeekThis').setAttribute('aria-pressed', a.weekStart === a.currentWeek ? 'true' : 'false');
+    $('boothWeekNext').setAttribute('aria-pressed', a.weekStart === a.nextWeek ? 'true' : 'false');
+    $('boothWeekThis').onclick = function () { if (allocWeek !== a.currentWeek) setAllocationWeek_(a.currentWeek); };
+    $('boothWeekNext').onclick = function () { if (allocWeek !== a.nextWeek) setAllocationWeek_(a.nextWeek); };
+    var copyNote = $('boothCopyNote');
+    copyNote.style.display = a.weekStart === a.nextWeek && a.locationsCopied ? '' : 'none';
+    copyNote.textContent = 'Copied from this week automatically. Change only what\'s different.';
     var host = $('booths');
     host.innerHTML = '';
     if (!a.locations.length) {
@@ -2441,6 +2480,8 @@
 
   function renderWeeks(a) {
     allocWeek = a.weekStart;
+    allocationWeeks_.current = a.currentWeek;
+    allocationWeeks_.next = a.nextWeek;
     var sel = $('wkPick');
     sel.innerHTML = '';
     a.weeks.forEach(function (w) {
@@ -2451,7 +2492,7 @@
       if (w.value === a.weekStart) o.selected = true;
       sel.appendChild(o);
     });
-    sel.onchange = function () { allocWeek = sel.value; loadAllocation(); };
+    sel.onchange = function () { setAllocationWeek_(sel.value); };
     var status = a.weekStart === a.bookingWeek ? 'open'
       : (a.weekStart === a.currentWeek ? 'current week'
          : (a.weekStart < a.currentWeek ? 'past week' : 'upcoming'));
@@ -3285,7 +3326,7 @@
       if (w.value === a.weekStart) option.selected = true;
       select.appendChild(option);
     });
-    select.onchange = function () { allocWeek = select.value; loadAllocation(); };
+    select.onchange = function () { setAllocationWeek_(select.value); };
 
     var legend = $('weekGridLegend'); legend.innerHTML = '';
     [{state:'marked', label:'\u2713 Marked'}, {state:'notMarked', label:'Plain name = not marked yet'}].forEach(function (item) {
