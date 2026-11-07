@@ -1086,7 +1086,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-07.2';
+  const BUILD='2026-11-07.3';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1828,8 +1828,13 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     resourceListWarmStarted=true;
     const key=resourceOwnerKey_(), cached=readCachedResourceList_(key);
     if(cached){cached._key=key;resData=cached;}
-    fetchResourceList_(key).then(function(fresh){applyFreshResourceList_(key,fresh);}).catch(function(){/* the tab can retry visibly */});
+    fetchResourceList_(key).then(function(fresh){applyFreshResourceList_(key,fresh); warmHotResources_();}).catch(function(){/* the tab can retry visibly */});
   }
+  /* Guides with screenshots that people open in a hurry (PSEA claim steps): fetch their text and images
+   * a few seconds after sign-in, while idle, so they are already on the phone when tapped. Add a section
+   * name here to include it. Images are small and kept in storage, so later opens cost nothing. */
+  const HOT_RESOURCE_SECTIONS=['Bells: TMS & admin'];
+  function warmHotResources_(){ setTimeout(function(){ try{ HOT_RESOURCE_SECTIONS.forEach(function(n){ prefetchResourceSection_(n); }); }catch(e){} },3000); }
   $('resBtn').onclick=async()=>{
     showPanel('resources');
     const key=resourceOwnerKey_();
