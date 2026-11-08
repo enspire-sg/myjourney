@@ -621,12 +621,7 @@ body.bg-modal-open{ overflow: hidden; }
     <section class="card hidden" id="panelCertify">
       <h2>Vouch for someone</h2><p class="muted small" id="certifyHint">Only requests addressed to you are shown.</p>
       <div id="requests"></div>
-      <div class="hidden" id="cAdminForm">
-        <div class="field"><label for="cPerson">Person</label><select id="cPerson"></select></div>
-        <div class="field"><label for="cStep">Step</label><select id="cStep"></select></div>
-        <div class="field"><textarea id="cNote" maxlength="500" placeholder="Optional note" style="min-height:64px"></textarea></div>
-        <div class="field"><button class="btn primary block" id="cTap" type="button">Confirm</button></div>
-      </div>
+
       <div class="message" id="cMsg" role="status"></div>
     </section>
     <section class="card hidden" id="panelLeaders">
@@ -1086,7 +1081,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-07.6';
+  const BUILD='2026-11-08.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3484,7 +3479,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(want==='person') return canSeePeople ? 'person' : (tabIds[0]||'verify');
     return tabIds.indexOf(want)>=0 ? want : (tabIds[0]||'verify'); }
   function applyTeamReadOnly_(){
-    setReadOnlyPreview_('team','[data-approve],[data-reject],[data-tapp],[data-decline],[data-pass-interview],#cPerson,#cStep,#cNote,#cTap,#pNewStage,#pReason,#pSetStage,#pMentor,#pSaveMentor,#pAppraisal,#pAppraisalReason,#pSetAppraisal');
+    setReadOnlyPreview_('team','[data-approve],[data-reject],[data-tapp],[data-decline],[data-pass-interview],#pNewStage,#pReason,#pSetStage,#pMentor,#pSaveMentor,#pAppraisal,#pAppraisalReason,#pSetAppraisal');
   }
   function renderTeam(){ const d=team.duties||{}; $('teamScope').textContent=(team.me?team.me.name+' · '+team.me.scope:'')+(viewAs?' · Read-only preview':'');
     const tabs=[]; if(d.leader)tabs.push(['leaders','People',0]); if(d.planning)tabs.push(['planning','Q4 Planning',0]); if(d.applications)tabs.push(['applications','Application Answers',0]); if(d.verify)tabs.push(['verify','Approve evidence',(team.queue||[]).length]); if(d.certify)tabs.push(['certify','Vouch for someone',(team.requests||[]).filter(r=>!r.mine).length]);
@@ -3612,16 +3607,11 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     document.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>decide(b.dataset.approve,'Approved','',b));
     document.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>{ const reason=prompt('Reason the person will see:'); if(reason&&reason.trim())decide(b.dataset.reject,'Rejected',reason.trim(),b); }); }
   async function decide(id,decision,reason,btn){ const r=(team.queue||[]).find(x=>String(x.id)===String(id)),what=(decision==='Approved'?'Approved ':'Rejected ')+(r?r.name+' · '+stepTitle_(r.step):'evidence'); msg($('qMsg'),'',''); if(btn)btn.disabled=true; actionFeedback_(id,'Saving…'); try{ team=await run('decideSubmission',token,id,decision,reason||''); renderTeam(); msg($('qMsg'),'Saved ✓ '+what,'success'); }catch(e){ const retry=()=>decide(id,decision,reason,btn); if(!actionFeedback_(id,'Not saved. '+e.message,retry))globalRetry_($('qMsg'),'Not saved. '+e.message,retry); if(btn)btn.disabled=false; } }
-  function renderCertify(){ const reqs=(team.requests||[]), admin=!!(team.duties&&team.duties.admin);
-    $('certifyHint').textContent=admin?'Admins can also pick any person and step.':'Only requests addressed to you are shown.';
-    $('cAdminForm').classList.toggle('hidden',!admin);
+  function renderCertify(){ const reqs=(team.requests||[]);
+    $('certifyHint').textContent='Only requests addressed to you are shown.';
     $('requests').innerHTML=reqs.length?groupByPerson_(reqs).map(g=>{ const labels=compactStepLabels_(g.items); return '<section class="person-action-group"><h3>'+esc(g.name)+' <span class="chip">'+esc(g.stage)+'</span><span class="chip">'+g.items.length+' '+(g.items.length===1?'request':'requests')+'</span></h3>'+(labels.common?'<div class="muted small">'+esc(labels.common)+'</div>':'')+g.items.map(r=>'<div class="step" style="flex-direction:column;gap:6px"><div class="row"><span class="muted small">'+esc(askedLine_(r))+'</span>'+waitingLabel_(r)+'</div>'+requestStatusHtml_(r)+'<div class="small"><span class="muted">'+esc(r.quest+' · '+r.phase)+'</span><br><b>'+esc(labels.labels[String(r.id)])+'</b></div><div>'+(r.mine?'<span class="chip">You confirmed '+esc(String(r.mine).slice(0,10))+'</span>':r.own?'<span class="chip">Your own request</span>':'<div class="row"><button class="btn primary mini" data-tapp="'+esc(r.personId)+'" data-taps="'+esc(r.stepId)+'">Confirm</button><button class="btn secondary mini" data-decline="'+esc(r.personId)+'" data-declines="'+esc(r.stepId)+'">Decline</button></div>')+'</div>'+saveFeedbackHtml_(r)+'</div>').join('')+'</section>'; }).join(''):'<p class="muted small" style="margin:12px 0">No open requests for you.</p>';
     document.querySelectorAll('[data-tapp]').forEach(b=>b.onclick=()=>{ const r=reqs.find(x=>x.personId===b.dataset.tapp&&x.stepId===b.dataset.taps); tap(b.dataset.tapp,b.dataset.taps,'',r&&r.name,r&&r.step,b); });
-    document.querySelectorAll('[data-decline]').forEach(b=>b.onclick=()=>{ const r=reqs.find(x=>x.personId===b.dataset.decline&&x.stepId===b.dataset.declines); decline(b.dataset.decline,b.dataset.declines,r&&r.name,r&&r.step,b); });
-    if(!admin)return;
-    $('cPerson').innerHTML='<option value="">Choose a person</option>'+(team.roster||[]).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+' · '+esc(p.stage)+'</option>').join('');
-    $('cStep').innerHTML='<option value="">Choose a step</option>'+(team.tapSteps||[]).map(s=>'<option value="'+esc(s.id)+'">'+esc(s.quest+' · '+stepTitle_(s.title))+' ('+s.need+')</option>').join('');
-    $('cTap').onclick=()=>{ const p=$('cPerson').value,s=$('cStep').value; if(!p||!s){ msg($('cMsg'),'Choose a person and a step.','error'); return; } const po=$('cPerson').options[$('cPerson').selectedIndex],so=$('cStep').options[$('cStep').selectedIndex]; tap(p,s,$('cNote').value,po&&po.textContent,so&&so.textContent,$('cTap')); }; }
+    document.querySelectorAll('[data-decline]').forEach(b=>b.onclick=()=>{ const r=reqs.find(x=>x.personId===b.dataset.decline&&x.stepId===b.dataset.declines); decline(b.dataset.decline,b.dataset.declines,r&&r.name,r&&r.step,b); }); }
   async function tap(pid,sid,note,name,step,btn){ const who=name||'this person',what=stepTitle_(step||sid),r=(team.requests||[]).find(x=>x.personId===pid&&x.stepId===sid),id=r&&r.id; if(!confirm('Confirm '+who+' — '+what+'?'))return; msg($('cMsg'),'',''); if(btn)btn.disabled=true; if(id)actionFeedback_(id,'Saving…'); try{ team=await run('tapStep',token,pid,sid,note); renderTeam(); msg($('cMsg'),'Saved ✓ Vouched for '+who+' — '+what+'.','success'); }catch(e){ const retry=()=>tap(pid,sid,note,name,step,btn); if(!id||!actionFeedback_(id,'Not saved. '+e.message,retry))globalRetry_($('cMsg'),'Not saved. '+e.message,retry); if(btn)btn.disabled=false; } }
   async function decline(pid,sid,name,step,btn){ let reason=prompt('Why are you declining? The person will see this.'); if(reason===null||!reason.trim())return; reason=reason.trim(); const who=name||'this person',what=stepTitle_(step||sid); msg($('cMsg'),'',''); if(btn)btn.disabled=true; try{ team=await run('declineRequest',token,pid,sid,reason); renderTeam(); msg($('cMsg'),'Saved ✓ Declined '+who+' · '+what,'success'); }catch(e){ msg($('cMsg'),'Not saved — tap Decline to retry. '+e.message,'error'); if(btn)btn.disabled=false; } }
 
