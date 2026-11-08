@@ -818,7 +818,6 @@
         <button class="ghost" id="boothWeekThis" type="button" aria-pressed="false">This week</button>
         <button class="ghost" id="boothWeekNext" type="button" aria-pressed="false">Next week</button>
       </div>
-      <div class="note ok" id="boothCopyNote" style="display:none">Copied from this week automatically. Change only what's different.</div>
       <p class="sub">Set where and when each booth runs. If blank, one unnamed booth is used.</p>
       <div id="booths"></div>
       <label for="bName">Add or update a booth</label>
@@ -839,7 +838,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-07.1';
+  const SHELL_VERSION = '2026-11-08.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1550,9 +1549,6 @@
     $('boothWeekNext').setAttribute('aria-pressed', a.weekStart === a.nextWeek ? 'true' : 'false');
     $('boothWeekThis').onclick = function () { if (allocWeek !== a.currentWeek) setAllocationWeek_(a.currentWeek); };
     $('boothWeekNext').onclick = function () { if (allocWeek !== a.nextWeek) setAllocationWeek_(a.nextWeek); };
-    var copyNote = $('boothCopyNote');
-    copyNote.style.display = a.weekStart === a.nextWeek && a.locationsCopied ? '' : 'none';
-    copyNote.textContent = 'Copied from this week automatically. Change only what\'s different.';
     var host = $('booths');
     host.innerHTML = '';
     if (!a.locations.length) {
