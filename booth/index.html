@@ -125,6 +125,8 @@
   .note { font-size:13px; border-radius:9px; padding:10px 12px; margin:10px 0; }
   .note.warn { background:var(--warnbg); color:var(--warn); }
   .note.ok { background:var(--okbg); color:var(--ok); }
+  .note.info { background:var(--infobg); color:var(--infoink); }
+  .nextOpenSlot { min-height:68px; box-sizing:border-box; line-height:1.45; }
   .boothWeekSwitch { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0;
                      width:100%; min-height:44px; }
   .boothWeekSwitch button { width:100%; min-width:0; min-height:44px; padding:8px 6px;
@@ -627,6 +629,7 @@
       <p class="sub" id="weekSub"></p>
       <div class="count" id="count"><span class="big" id="countBig"></span><span class="lbl" id="countLbl"></span></div>
       <div id="deadline"></div>
+      <div class="note info nextOpenSlot" id="nextOpenBooking" style="visibility:hidden" aria-hidden="true"></div>
       <div id="saved"></div>
     </div>
     <div class="card">
@@ -693,6 +696,7 @@
           <div class="count homecount" id="homeCount"><span class="big" id="homeCountBig"></span>
             <span class="lbl" id="homeCountLbl" style="display:none"></span></div>
           <p class="deadline" id="homeDeadline" style="display:none"></p>
+          <div class="note info nextOpenSlot" id="homeNextOpen" style="visibility:hidden" aria-hidden="true"></div>
           <button class="ghost" id="bookNext">Book Now</button></div>
       </div>
     </div>
@@ -838,7 +842,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-09.1';
+  const SHELL_VERSION = '2026-11-09.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1088,6 +1092,20 @@
 
   /* One place decides what locked looks like, so the timer hitting zero and a locked page
      load cannot drift apart. The server refuses a late save regardless. */
+  function renderNextOpen_() {
+    var n = data && data.nextOpen;
+    var showNext = !!(data && data.locked && !data.preview && !data.unlock
+                      && !data.bookingPenalty && n);
+    var text = showNext ? 'Bookings for ' + n.weekText + ' open ' + n.opensText
+      + '. They close ' + n.closesText + '.' : '';
+    ['nextOpenBooking', 'homeNextOpen'].forEach(function (id) {
+      var slot = $(id);
+      slot.textContent = text;
+      slot.style.visibility = showNext ? 'visible' : 'hidden';
+      slot.setAttribute('aria-hidden', showNext ? 'false' : 'true');
+    });
+  }
+
   function applyLock() {
     var on = !!data.locked || !!data.preview;
     $('save').disabled = on;
@@ -1124,6 +1142,7 @@
         + ' Closes automatically.'));
       box.appendChild(k);
     }
+    renderNextOpen_();
   }
 
   function tally() {
