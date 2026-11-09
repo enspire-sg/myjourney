@@ -93,7 +93,8 @@
   .ladderFold { margin:6px 0 10px; }
   .ladderFold summary { cursor:pointer; color:var(--link); font-size:13px; font-weight:600; padding:6px 0; }
   .personalShift .shiftFlag { color:var(--warn); font-size:12px; font-weight:700; margin:2px 0 0; }
-  .emailReceipt { min-height:22px; margin:0 0 6px; color:var(--ok); font-size:13px; font-weight:700; }
+  .emailReceipt { min-height:40px; margin:0 0 6px; color:var(--ok); font-size:13px; font-weight:700; }
+  .emailReceipt.bad { color:var(--warn); }
   @media (max-width:560px) { .homegrid { grid-template-columns:1fr; } }
   h2 { font-size:18px; line-height:1.25; margin:0 0 4px; font-weight:750; color:var(--head); }
   .sub { color:var(--muted); font-size:13px; font-weight:400; margin:0 0 10px; }
@@ -842,7 +843,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-09.3';
+  const SHELL_VERSION = '2026-11-09.4';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1386,10 +1387,23 @@
         self.disabled = false;
         $('saved').innerHTML = '<div class="note ok">Saved \u2713 Booking — ' + r.saved
           + ' shifts. You can change this until the deadline.</div>';
-        $('bookingEmailNotice').textContent = r.emailSent
-          ? 'Confirmation email sent to ' + r.email : '';
+        showEmailNotice_(r);
       }, function (e) { $('err').textContent = e.message; self.disabled = false; });
   };
+
+  // Shown after every booking save, in the reserved slot so nothing moves. Green when the
+  // confirmation went out; orange (with a warning sign, never colour alone) when it did not.
+  function showEmailNotice_(r) {
+    var n = $('bookingEmailNotice');
+    if (r && r.emailSent) {
+      n.className = 'emailReceipt';
+      n.textContent = '\u2709 Confirmation emailed to ' + (r.email || 'you');
+    } else {
+      n.className = 'emailReceipt bad';
+      n.textContent = '\u26A0 But the confirmation email did not send. Your booking is safe. '
+        + 'Screenshot this page for your records.';
+    }
+  }
 
   function pill(host, text) {
     var b = document.createElement('div');
@@ -2510,8 +2524,7 @@
           self.disabled = false;
           $('lWhy').value = '';
           $('lGrid').innerHTML = '<div class="note ok">Saved \u2713 Booking for ' + bookingWho + '.</div>';
-          $('bookingEmailNotice').textContent = a.emailSent
-            ? 'Confirmation email sent to ' + a.email : '';
+          showEmailNotice_(a);
           $('lWho').value = '';
           latePicks = {};
           renderAll(a);
