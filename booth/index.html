@@ -838,7 +838,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-08.1';
+  const SHELL_VERSION = '2026-11-09.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -4567,7 +4567,8 @@
           if (n % 10 === 1) suffix = 'st'; else if (n % 10 === 2) suffix = 'nd'; else if (n % 10 === 3) suffix = 'rd';
         }
         var item = document.createElement('li');
-        item.textContent = n + suffix + (i === group.rules.length - 1 ? '+' : '') + ': ' + r.consequence;
+        item.textContent = n + suffix + (i === group.rules.length - 1 ? '+' : '') + ': ' + r.consequence +
+          (r.appliesTo ? ' (' + r.appliesTo + ')' : '');
         list.appendChild(item);
       });
       box.appendChild(list); ladder.appendChild(box);
