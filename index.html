@@ -1099,7 +1099,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-10.3';
+  const BUILD='2026-11-10.4';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2222,7 +2222,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     syncLearnerTikTokConfirm_();
   }
   function syncLearnerTikTokConfirm_(){
-    const needed=selectedLearnerCourseNeedsSuitability_($('learnerProgram').value), wrap=$('learnerTikTokConfirmWrap'), tick=$('learnerTikTokConfirmed');
+    const needed=!learnerPublicMode&&selectedLearnerCourseNeedsSuitability_($('learnerProgram').value), wrap=$('learnerTikTokConfirmWrap'), tick=$('learnerTikTokConfirmed');
     wrap.classList.toggle('hidden',!needed); tick.required=needed; if(!needed)tick.checked=false;
   }
   $('learnerProgram').addEventListener('change',syncLearnerTikTokConfirm_);
@@ -2312,7 +2312,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     return {program:$('learnerProgram').value,tiktokSuitabilityConfirmed:$('learnerTikTokConfirmed').checked,name:$('learnerName').value,nric:$('learnerNric').value,dob:$('learnerDob').value,mobile:$('learnerMobile').value,email:$('learnerEmail').value,gender:$('learnerGender').value,citizenship:$('learnerCitizenship').value,race:$('learnerRace').value,postal:$('learnerPostal').value,unit:$('learnerUnit').value,noUnit:$('learnerNoUnit').checked,address:$('learnerAddress').value,education:$('learnerEducation').value,website:$('learnerWebsite').value};
   }
   $('learnerForm').onsubmit=async e=>{
-    e.preventDefault();if(viewAs)return;syncLearnerTikTokConfirm_();if(selectedLearnerCourseNeedsSuitability_($('learnerProgram').value)&&!$('learnerTikTokConfirmed').checked){msg($('learnerMsg'),'Not saved — tick the suitability confirmation after testing all 4 points.','error');$('learnerTikTokConfirmed').focus();return;}if(!$('learnerForm').reportValidity())return;const button=$('learnerSubmit');button.disabled=true;msg($('learnerMsg'),learnerPublicMode?'Submitting details…':'Saving record…','info');
+    e.preventDefault();if(viewAs)return;syncLearnerTikTokConfirm_();if(!learnerPublicMode&&selectedLearnerCourseNeedsSuitability_($('learnerProgram').value)&&!$('learnerTikTokConfirmed').checked){msg($('learnerMsg'),'Not saved — tick the suitability confirmation after testing all 4 points.','error');$('learnerTikTokConfirmed').focus();return;}if(!$('learnerForm').reportValidity())return;const button=$('learnerSubmit');button.disabled=true;msg($('learnerMsg'),learnerPublicMode?'Submitting details…':'Saving record…','info');
     try{if(learnerPublicMode){await run('submitLearnerInvitation',learnerPublicToken,learnerPayloadFromForm_());$('learnerForm').reset();$('learnerRegisterCard').classList.add('hidden');$('learnerPublicSuccess').classList.remove('hidden');$('learnerHeading').textContent='Submitted';$('learnerPreviewNote').textContent='Your details were sent.';msg($('learnerMsg'),'','');}
       else{learnerData=await run('registerLearner',token,learnerPayloadFromForm_());$('learnerForm').reset();syncLearnerUnit_();fillLearnerCourses_();syncLearnerTikTokConfirm_();learnerTab='list';renderLearners_();msg($('learnerListMsg'),'Saved ✓ Learner record.','success');$('learnerListMsg').style.visibility='visible';}}
     catch(err){msg($('learnerMsg'),err.message,'error');}finally{button.disabled=false;}
@@ -2320,7 +2320,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   $('learnerShareCopy').onclick=async()=>{const copied=await copyText_(learnerShareUrl,$('learnerShareCopy'));msg($('learnerShareMsg'),copied?'Copied ✓':'Not copied — press and hold the link above to copy.',copied?'success':'error');};
 
   async function startPublicLearner_(publicToken){
-    booting_(false);learnerPublicMode=true;learnerPublicToken=publicToken;document.title='Bells Course Registration Form';showPanel('learners');fillLearnerCourses_();$('appBrand').classList.add('hidden');$('login').classList.add('hidden');$('learnerBack').classList.add('hidden');$('learnerTabs').classList.add('hidden');$('learnerListCard').classList.add('hidden');$('learnerShareCard').classList.add('hidden');$('learnerPublicSuccess').classList.add('hidden');$('learnerRegisterCard').classList.add('hidden');$('learnerRegisterIntro').classList.add('hidden');$('learnerEyebrow').classList.add('hidden');$('learnerHeading').textContent='Bells Course Registration Form';$('learnerLogo').classList.remove('hidden');$('learnerPreviewNote').textContent='';$('learnerPreviewNote').classList.add('hidden');
+    booting_(false);learnerPublicMode=true;learnerPublicToken=publicToken;document.title='Bells Course Registration Form';showPanel('learners');fillLearnerCourses_();syncLearnerTikTokConfirm_();$('appBrand').classList.add('hidden');$('login').classList.add('hidden');$('learnerBack').classList.add('hidden');$('learnerTabs').classList.add('hidden');$('learnerListCard').classList.add('hidden');$('learnerShareCard').classList.add('hidden');$('learnerPublicSuccess').classList.add('hidden');$('learnerRegisterCard').classList.add('hidden');$('learnerRegisterIntro').classList.add('hidden');$('learnerEyebrow').classList.add('hidden');$('learnerHeading').textContent='Bells Course Registration Form';$('learnerLogo').classList.remove('hidden');$('learnerPreviewNote').textContent='';$('learnerPreviewNote').classList.add('hidden');
     try{const invite=await run('getLearnerInvitation',publicToken);ensureLearnerCourseOption_(invite.course);$('learnerName').value=String(invite.learnerName||'');$('learnerRegisterCard').classList.remove('hidden');$('learnerSubmit').textContent='Submit details';}
     catch(e){$('learnerPreviewNote').textContent=e.message;$('learnerPreviewNote').classList.remove('hidden');}
   }
