@@ -297,6 +297,7 @@ body.bg-modal-open{ overflow: hidden; }
     /* Current month has live-only copy. Keep those two rows in the layout while paging
        backwards, so the blue month card stays the same height instead of jumping. */
     #asOf{flex:0 0 100%;min-height:1.55em}
+    .kukup-big{font-size:44px;font-weight:900;line-height:1.1;color:var(--blue);margin-top:8px;font-variant-numeric:tabular-nums}.kukup-bar{height:14px;border-radius:8px;background:rgba(159,176,208,.22);margin:10px 0;overflow:hidden}.kukup-bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:8px}.kukup-lines{white-space:pre-line;line-height:1.7;margin:6px 0 0;min-height:5.1em}.kukup-left,.kukup-now{white-space:pre-line;margin:6px 0 0;min-height:1.4em}.kukup-now{min-height:2.8em}.kukup-period{margin:2px 0 0}.kukup-team-scroll{overflow-x:auto;margin-top:8px}.kukup-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}.kukup-table th,.kukup-table td{padding:7px 6px;text-align:left;border-bottom:1px solid rgba(159,176,208,.16);white-space:nowrap}.kukup-table th{color:var(--muted);font-size:12px;font-weight:600}.kukup-table th:last-child,.kukup-table td:last-child{text-align:right;font-weight:800}
     .month-run{white-space:pre-line;min-height:4.65em;margin-top:10px;color:var(--gold);font-weight:700}
     .month-run.empty{visibility:hidden}
     /* Paging controls must not move: a page tall enough to scroll would otherwise
@@ -844,6 +845,22 @@ body.bg-modal-open{ overflow: hidden; }
       <div class="row" style="margin-top:14px" id="nextActions"></div>
     </section>
 
+    <section class="card kukup-card hidden" id="kukupCard" aria-label="Kukup sponsorship">
+      <div class="eyebrow">Kukup sponsorship</div>
+      <p class="muted small kukup-period">28 Sep - 13 Dec 2026</p>
+      <div class="kukup-big" id="kukupPct">0%</div>
+      <p class="muted small" id="kukupSub">of your Kukup sponsored (max 100%)</p>
+      <div class="kukup-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="kukupBar"><i id="kukupFill"></i></div>
+      <p class="kukup-lines" id="kukupLines"></p>
+      <p class="muted small kukup-left" id="kukupLeft"></p>
+      <p class="muted small kukup-now" id="kukupNow"></p>
+    </section>
+
+    <section class="card kukup-team hidden" id="kukupTeamCard" aria-label="Team Kukup progress">
+      <div class="eyebrow">Team Kukup progress</div>
+      <div class="kukup-team-scroll"><table class="kukup-table"><thead><tr><th>Name</th><th>RS / 2x / 3x</th><th>Sponsored</th></tr></thead><tbody id="kukupTeamBody"></tbody></table></div>
+    </section>
+
     <section class="card tinted sec5 hidden" id="pendingCard">
       <div class="eyebrow">Pending commission</div>
       <h2 style="margin-top:6px;font-size:28px;letter-spacing:-.02em"><span id="pendingAmt">$0</span></h2>
@@ -1081,7 +1098,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-09.2';
+  const BUILD='2026-11-10.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1303,6 +1320,43 @@ body.bg-modal-open{ overflow: hidden; }
     $('monthPrev').disabled=!(monthIdx<ms.length-1);
     $('monthNext').disabled=!(monthIdx>0);
     if(tierData)renderTier_();
+  }
+  /* Kukup sponsorship (10 Nov 2026). Own card from data.kukup (computed nightly, percent only); the team table comes from
+     getKukupTeam, which resolves scope on the server. Read-only: nothing here writes. */
+  let kukupTeamKey='';
+  function renderKukup_(){
+    const k=data&&data.kukup, card=$('kukupCard');
+    if(!k){ card.classList.add('hidden'); return; }
+    const pct=Math.max(0,Math.min(100,Number(k.pct)||0)), rs=Number(k.rs)||0, dbl=Number(k.dbl)||0, tpl=Number(k.tpl)||0, left=Number(k.left)||0;
+    const wk=n=>n+' week'+(n===1?'':'s');
+    $('kukupPct').textContent=pct+'%';
+    $('kukupFill').style.width=pct+'%'; $('kukupBar').setAttribute('aria-valuenow',String(pct));
+    $('kukupLines').textContent='Rising Star (1,000 PV) x '+wk(rs)+' = '+(rs*10)+'%\nDouble (2,000 PV) x '+wk(dbl)+' = '+(dbl*25)+'%\nTriple (3,000 PV) x '+wk(tpl)+' = '+(tpl*50)+'%'
+      +((rs*10+dbl*25+tpl*50)>100?'\nCapped at 100%.':'');
+    $('kukupLeft').textContent=left>0?('Weeks left: '+left+'. Each week counts once, at its highest level.'):'The qualifying period has ended.';
+    const pv=Math.round(Number(data.numbers&&data.numbers.pvWeek)||0).toLocaleString('en-US');
+    let now='';
+    if(left>0){
+      if(k.now==='tpl') now='This week: '+pv+' PV - Triple so far (+50%).\nTop level reached.';
+      else if(k.now==='dbl') now='This week: '+pv+' PV - Double so far (+25%).\nReach 3,000 for +50%.';
+      else if(k.now==='rs') now='This week: '+pv+' PV - Rising Star so far (+10%).\nReach 2,000 for +25%.';
+      else now='This week: '+pv+' PV - no level yet.\nReach 1,000 for +10%.';
+    }
+    $('kukupNow').textContent=now;
+    card.classList.remove('hidden');
+    loadKukupTeam_();
+  }
+  async function loadKukupTeam_(){
+    const card=$('kukupTeamCard'), asId=viewAs?viewAs.id:'', key=(token||'').slice(-8)+'|'+asId;
+    if(kukupTeamKey===key) return;
+    kukupTeamKey=key;
+    try{
+      const r=await run('getKukupTeam',token,asId);
+      if(kukupTeamKey!==key) return;
+      if(!r||r.view!=='team'||!(r.people||[]).length){ card.classList.add('hidden'); return; }
+      $('kukupTeamBody').innerHTML=r.people.map(p=>'<tr><td>'+esc(p.name)+'</td><td>'+(Number(p.rs)||0)+' / '+(Number(p.dbl)||0)+' / '+(Number(p.tpl)||0)+'</td><td>'+(Number(p.pct)||0)+'%</td></tr>').join('');
+      card.classList.remove('hidden');
+    }catch(e){ if(kukupTeamKey===key){ kukupTeamKey=''; card.classList.add('hidden'); } }
   }
   /** A run crosses months, so it belongs to "now" and is hidden while paging back. */
   function renderRun(show){
@@ -3183,7 +3237,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       $('nextActions').innerHTML=a; wireGateButtons_(); $('nextCard').classList.remove('hidden'); }
     else { $('nextTitle').textContent='All open steps done'; $('nextNote').textContent='Keep your monthly standards and wait for your leader to open the next stage.'; $('nextActions').innerHTML=''; }
     // numbers
-    monthIdx=0; renderNumbers();
+    monthIdx=0; renderNumbers(); renderKukup_();
     // No Income Projection sheet means no figure at all - say nothing rather than imply $0 owed.
     const pend=data.pending;
     $('pendingCard').classList.toggle('hidden',!SHOW_PENDING_COMMISSION||pend===null||pend===undefined);
