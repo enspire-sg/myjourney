@@ -887,7 +887,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-11.2';
+  const SHELL_VERSION = '2026-11-11.3';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -2970,8 +2970,15 @@
     $('icCountCard').style.display = '';
     if (r.thisWeek) icThisWeek = r.thisWeek;
     var wk = r.view === 'week';
-    icFill_(body, 'div', r.dueNext && r.dueNext.length ? 'Due next for IC: ' + r.dueNext.join(', ')
-      : (wk ? 'Nobody has shifts this week yet.' : 'Nobody has shifts this month yet.'), 'note warn icDueLine');
+    var noRec = r.recorded === false, entNo = r.entKept === false, shiftsNo = r.shiftsKnown === false;
+    if (noRec) {
+      icFill_(body, 'div', wk && r.weekEnd >= r.today ? 'Nobody has shifts this week yet.' : 'No record kept for this ' + (wk ? 'week' : 'month') + '.', 'note warn icDueLine');
+      return;
+    }
+    if (r.dueNext && r.dueNext.length) icFill_(body, 'div', 'Due next for IC: ' + r.dueNext.join(', '), 'note warn icDueLine');
+    else if (!shiftsNo) icFill_(body, 'div', wk ? 'Nobody has shifts this week yet.' : 'Nobody has shifts this month yet.', 'note warn icDueLine');
+    if (entNo) icFill_(body, 'div', 'Entrepreneur IC was not recorded for this ' + (wk ? 'week' : 'month') + '.', 'sub icNoEnt');
+    else if (r.entMissingDays) icFill_(body, 'div', 'Entrepreneur IC was not recorded for ' + r.entMissingDays + ' day' + (r.entMissingDays === 1 ? '' : 's') + ' of this ' + (wk ? 'week' : 'month') + '.', 'sub icNoEnt');
     var table = document.createElement('table'); table.className = 'icTable ' + (wk ? 'wk' : 'mo');
     var head = document.createElement('tr');
     (wk ? ['Person', 'Booth IC', 'Which shifts', 'Ent IC'] : ['Person', 'Booth IC', 'Ent IC', 'IC shifts', 'Shifts']).forEach(function (h) { icFill_(head, 'th', h); });
@@ -2982,12 +2989,12 @@
       icFill_(tr, 'td', p.name); icFill_(tr, 'td', String(p.booth));
       if (wk) {
         icShiftsCell_(tr.appendChild(document.createElement('td')), p.boothShifts);
-        icFill_(tr, 'td', String(p.ent));
+        icFill_(tr, 'td', entNo ? 'not kept' : String(p.ent));
       } else {
-        icFill_(tr, 'td', String(p.ent));
+        icFill_(tr, 'td', entNo ? 'not kept' : String(p.ent));
         var t = icFill_(tr, 'td', String(p.total));
         if (p.planned) icFill_(t, 'span', '+' + p.planned + ' planned', 'icPlan');
-        icFill_(tr, 'td', String(p.shifts));
+        icFill_(tr, 'td', p.shifts === null || p.shifts === undefined ? '\u2013' : String(p.shifts));
       }
       tb.appendChild(tr);
     });
