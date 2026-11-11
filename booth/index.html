@@ -338,6 +338,21 @@
   .icSwap { padding:8px 0; border-top:1px solid var(--line); font-size:14px; overflow-wrap:anywhere; }
   .icSwap .icBy { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
   #icBody { min-height:240px; }
+  #icCountCard { scrollbar-gutter:stable; }
+  .icModes { display:grid; grid-template-columns:104px 104px 1fr; gap:8px; align-items:center; margin:0 0 10px; }
+  .icModes button { min-height:44px; width:104px; padding:0; }
+  .icModes button.on { background:var(--navy); color:#fff; border-color:var(--navy); font-weight:700; }
+  .icWeekNav { display:grid; grid-template-columns:44px 1fr 44px; gap:4px; align-items:center; }
+  .icWeekNav button { min-height:44px; width:44px; padding:0; font-size:20px; }
+  .icWeekLbl { text-align:center; font-weight:700; font-size:15px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .icTable.wk th:nth-child(2), .icTable.wk td:nth-child(2) { width:14%; text-align:center; }
+  .icTable.wk th:nth-child(3), .icTable.wk td:nth-child(3) { width:36%; text-align:left; font-size:13px; }
+  .icTable.wk th:nth-child(4), .icTable.wk td:nth-child(4) { width:14%; }
+  .icTable.wk th:first-child, .icTable.wk td:first-child { width:36%; }
+  .icTable.mo th:first-child, .icTable.mo td:first-child { width:28%; }
+  .icTable.mo th:not(:first-child), .icTable.mo td:not(:first-child) { width:18%; }
+  .icPlan { color:var(--muted); font-weight:400; font-size:12px; display:block; }
+  .icFut { color:var(--muted); font-style:italic; }
   .gapwhy { font-size:12px; color:var(--muted); margin:0 0 8px; }
   div.gap { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
          padding:9px 0; border-top:1px solid var(--line); font-size:14px; }
@@ -769,8 +784,13 @@
     </div>
     <div class="card" id="icCountCard" data-g="month" style="display:none">
       <h2>Booth IC count</h2>
-      <p class="sub">How many shifts each person has been Booth IC or Entrepreneur IC. Read only.</p>
-      <div class="icBar">
+      <p class="sub">Who is Booth IC, and on which shifts. Read only.</p>
+      <div class="icModes">
+        <button type="button" class="ghost on" id="icModeWeek">This week</button>
+        <button type="button" class="ghost" id="icModeMonth">Month</button>
+        <div id="icNavHost"></div>
+      </div>
+      <div class="icBar" id="icMonthBar" style="display:none">
         <button type="button" class="ghost" id="icPrev" aria-label="Previous month">&lsaquo;</button>
         <select id="icMonthPick" class="fixsel" aria-label="Month"></select>
         <button type="button" class="ghost" id="icNext" aria-label="Next month">&rsaquo;</button>
@@ -867,7 +887,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-11.1';
+  const SHELL_VERSION = '2026-11-11.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -2917,33 +2937,17 @@
   }
 
   /* ---- Booth IC count card: read-only, shown only when the server says this person may see it ---- */
-  var icMonthLoaded = false, icMonthSeq = 0;
+  var icMonthLoaded = false, icMonthSeq = 0, icView = 'week', icWeekStart = '', icThisWeek = '';
   function icMonthKey_(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2); }
   function icFill_(host, tag, text, cls) {
     var e = document.createElement(tag); if (cls) e.className = cls; e.textContent = text; host.appendChild(e); return e;
   }
-  function renderIcCount(r) {
-    var body = $('icBody'); body.innerHTML = '';
-    if (!r || r.allowed !== true) { $('icCountCard').style.display = 'none'; return; }
-    $('icCountCard').style.display = '';
-    var due = icFill_(body, 'div', r.dueNext && r.dueNext.length ? 'Due next for IC: ' + r.dueNext.join(', ') : 'Nobody has shifts this month yet.', 'note warn icDueLine');
-    var table = document.createElement('table'); table.className = 'icTable';
-    var head = document.createElement('tr');
-    ['Person', 'Booth IC', 'Ent IC', 'Total IC', 'Shifts'].forEach(function (h) { icFill_(head, 'th', h); });
-    var thead = document.createElement('thead'); thead.appendChild(head); table.appendChild(thead);
-    var tb = document.createElement('tbody');
-    (r.people || []).forEach(function (p) {
-      var tr = document.createElement('tr'); if (p.due) tr.className = 'icDue';
-      icFill_(tr, 'td', p.name); icFill_(tr, 'td', String(p.booth)); icFill_(tr, 'td', String(p.ent));
-      icFill_(tr, 'td', String(p.total)); icFill_(tr, 'td', String(p.shifts));
-      tb.appendChild(tr);
-    });
-    table.appendChild(tb); body.appendChild(table);
-    icFill_(body, 'p', 'Highlighted = fewest IC shifts this month. Shifts still to come are counted.', 'sub');
-    icFill_(body, 'h2', 'Swaps this month');
-    if (!(r.swaps || []).length) {
-      icFill_(body, 'p', 'No swaps recorded this month. Swaps are only recorded from ' + r.logStarted + '; earlier ones were not kept.', 'sub');
-    }
+  function icKey_(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function icMonday_(d) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+  function icShiftWeek_(ws, n) { var p = ws.split('-'); return icKey_(new Date(+p[0], +p[1] - 1, +p[2] + n)); }
+  function icSwapsBlock_(body, r, title, none) {
+    icFill_(body, 'h2', title);
+    if (!(r.swaps || []).length) icFill_(body, 'p', none + ' Swaps are only recorded from ' + r.logStarted + '; earlier ones were not kept.', 'sub');
     (r.swaps || []).forEach(function (s) {
       var d = document.createElement('div'); d.className = 'icSwap';
       d.appendChild(document.createTextNode(s.date + (s.shift ? ' ' + s.shift : '') + '  ' + s.role + ': ' + s.from + ' \u2192 ' + (s.to || 'nobody')));
@@ -2951,22 +2955,86 @@
       body.appendChild(d);
     });
   }
+  function icShiftsCell_(td, list) {
+    if (!list || !list.length) { td.textContent = '\u2013'; return; }
+    list.forEach(function (s, i) {
+      if (i) td.appendChild(document.createTextNode(' \u00b7 '));
+      var sp = document.createElement('span');
+      sp.textContent = s.label + (s.future ? ' (planned)' : ''); if (s.future) sp.className = 'icFut';
+      td.appendChild(sp);
+    });
+  }
+  function renderIcCount(r) {
+    var body = $('icBody'); body.innerHTML = '';
+    if (!r || r.allowed !== true) { $('icCountCard').style.display = 'none'; return; }
+    $('icCountCard').style.display = '';
+    if (r.thisWeek) icThisWeek = r.thisWeek;
+    var wk = r.view === 'week';
+    icFill_(body, 'div', r.dueNext && r.dueNext.length ? 'Due next for IC: ' + r.dueNext.join(', ')
+      : (wk ? 'Nobody has shifts this week yet.' : 'Nobody has shifts this month yet.'), 'note warn icDueLine');
+    var table = document.createElement('table'); table.className = 'icTable ' + (wk ? 'wk' : 'mo');
+    var head = document.createElement('tr');
+    (wk ? ['Person', 'Booth IC', 'Which shifts', 'Ent IC'] : ['Person', 'Booth IC', 'Ent IC', 'IC shifts', 'Shifts']).forEach(function (h) { icFill_(head, 'th', h); });
+    var thead = document.createElement('thead'); thead.appendChild(head); table.appendChild(thead);
+    var tb = document.createElement('tbody');
+    (r.people || []).forEach(function (p) {
+      var tr = document.createElement('tr'); if (p.due) tr.className = 'icDue';
+      icFill_(tr, 'td', p.name); icFill_(tr, 'td', String(p.booth));
+      if (wk) {
+        icShiftsCell_(tr.appendChild(document.createElement('td')), p.boothShifts);
+        icFill_(tr, 'td', String(p.ent));
+      } else {
+        icFill_(tr, 'td', String(p.ent));
+        var t = icFill_(tr, 'td', String(p.total));
+        if (p.planned) icFill_(t, 'span', '+' + p.planned + ' planned', 'icPlan');
+        icFill_(tr, 'td', String(p.shifts));
+      }
+      tb.appendChild(tr);
+    });
+    table.appendChild(tb); body.appendChild(table);
+    icFill_(body, 'p', wk
+      ? 'Highlighted = fewest Booth IC shifts so far this week. Shifts still to come are shown in grey as planned and are not counted for the highlight.'
+      : 'Highlighted = fewest IC shifts so far this month. IC shifts counts each shift once, even if the person is both Booth IC and Ent IC. Planned shifts still to come are shown in grey and not counted.', 'sub');
+    icSwapsBlock_(body, r, wk ? 'Swaps this week' : 'Swaps this month', wk ? 'No swaps recorded this week.' : 'No swaps recorded this month.');
+    icFill_(body, 'p', 'Month view keeps the monthly totals. Both count each shift once.', 'sub');
+  }
+  function icSyncChrome_() {
+    var wk = icView === 'week';
+    $('icModeWeek').className = 'ghost' + (wk ? ' on' : ''); $('icModeMonth').className = 'ghost' + (wk ? '' : ' on');
+    $('icMonthBar').style.display = wk ? 'none' : '';
+    $('icNavHost').style.visibility = wk ? 'visible' : 'hidden';
+  }
   function loadIcCount() {
-    var sel = $('icMonthPick');
-    if (!sel.children.length) {
-      var now = new Date();
+    var host = $('icNavHost');
+    if (!host.children.length) {
+      host.className = 'icWeekNav';
+      host.innerHTML = '<button type="button" class="ghost" id="icWPrev" aria-label="Previous week">&lsaquo;</button><span class="icWeekLbl" id="icWeekLbl">&nbsp;</span><button type="button" class="ghost" id="icWNext" aria-label="Next week">&rsaquo;</button>';
+      icWeekStart = icKey_(icMonday_(new Date()));
+      $('icWPrev').onclick = function () { icWeekStart = icShiftWeek_(icWeekStart, -7); loadIcCount(); };
+      $('icWNext').onclick = function () { icWeekStart = icShiftWeek_(icWeekStart, 7); loadIcCount(); };
+      $('icModeWeek').onclick = function () { icView = 'week'; loadIcCount(); };
+      $('icModeMonth').onclick = function () { icView = 'month'; loadIcCount(); };
+      var sel0 = $('icMonthPick'), now = new Date();
       for (var i = 0; i < 6; i++) {
         var d = new Date(now.getFullYear(), now.getMonth() - i, 1), o = document.createElement('option');
-        o.value = icMonthKey_(d); o.textContent = o.value; sel.appendChild(o);
+        o.value = icMonthKey_(d); o.textContent = o.value; sel0.appendChild(o);
       }
-      sel.onchange = loadIcCount;
-      $('icPrev').onclick = function () { if (sel.selectedIndex < sel.options.length - 1) { sel.selectedIndex++; loadIcCount(); } };
-      $('icNext').onclick = function () { if (sel.selectedIndex > 0) { sel.selectedIndex--; loadIcCount(); } };
+      sel0.onchange = loadIcCount;
+      $('icPrev').onclick = function () { if (sel0.selectedIndex < sel0.options.length - 1) { sel0.selectedIndex++; loadIcCount(); } };
+      $('icNext').onclick = function () { if (sel0.selectedIndex > 0) { sel0.selectedIndex--; loadIcCount(); } };
     }
+    var sel = $('icMonthPick');
+    icSyncChrome_();
     $('icPrev').disabled = sel.selectedIndex >= sel.options.length - 1;
     $('icNext').disabled = sel.selectedIndex <= 0;
+    var wk = icView === 'week';
+    if (wk) {
+      var a = icWeekStart.split('-'), s = new Date(+a[0], +a[1] - 1, +a[2]), e = new Date(+a[0], +a[1] - 1, +a[2] + 6);
+      var M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      $('icWeekLbl').textContent = s.getDate() + (s.getMonth() === e.getMonth() ? '' : ' ' + M[s.getMonth()]) + ' \u2013 ' + e.getDate() + ' ' + M[e.getMonth()];
+    }
     var seq = ++icMonthSeq;
-    run('getIcCount', [token, sel.value || ''], function (r) { if (seq === icMonthSeq) renderIcCount(r); },
+    run('getIcCount', wk ? [token, '', icWeekStart] : [token, sel.value || ''], function (r) { if (seq === icMonthSeq) renderIcCount(r); },
       function () { $('icCountCard').style.display = 'none'; });
   }
 
