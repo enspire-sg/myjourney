@@ -324,6 +324,20 @@
   @media (max-width:560px) { .ladder { grid-template-columns:1fr; } }
   .filled { font-size:13px; color:var(--muted); padding:8px 0 2px; }
   .gaphead { font-size:13px; font-weight:650; margin:16px 0 2px; }
+  /* Booth IC count card (11 Nov 2026). Read-only. Fixed widths so nothing moves when numbers or month change. */
+  .icBar { display:grid; grid-template-columns:44px 1fr 44px; gap:8px; align-items:center; margin:0 0 10px; }
+  .icBar button { min-height:44px; width:44px; padding:0; font-size:20px; }
+  .icBar select { width:100%; min-height:44px; }
+  .icTable { width:100%; border-collapse:collapse; table-layout:fixed; font-size:14px; }
+  .icTable th { text-align:right; color:var(--muted); font-size:12px; font-weight:650; padding:6px 4px; }
+  .icTable td { text-align:right; padding:9px 4px; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  .icTable th:first-child, .icTable td:first-child { text-align:left; width:34%; font-weight:650; overflow-wrap:anywhere; }
+  .icTable th:not(:first-child), .icTable td:not(:first-child) { width:16.5%; }
+  .icTable tr.icDue td { background:var(--warnbg); color:var(--warn); font-weight:700; }
+  .icDueLine { min-height:44px; margin:0 0 10px; }
+  .icSwap { padding:8px 0; border-top:1px solid var(--line); font-size:14px; overflow-wrap:anywhere; }
+  .icSwap .icBy { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+  #icBody { min-height:240px; }
   .gapwhy { font-size:12px; color:var(--muted); margin:0 0 8px; }
   div.gap { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
          padding:9px 0; border-top:1px solid var(--line); font-size:14px; }
@@ -753,6 +767,16 @@
       <div id="monthRep"></div>
       </details>
     </div>
+    <div class="card" id="icCountCard" data-g="month" style="display:none">
+      <h2>Booth IC count</h2>
+      <p class="sub">How many shifts each person has been Booth IC or Entrepreneur IC. Read only.</p>
+      <div class="icBar">
+        <button type="button" class="ghost" id="icPrev" aria-label="Previous month">&lsaquo;</button>
+        <select id="icMonthPick" class="fixsel" aria-label="Month"></select>
+        <button type="button" class="ghost" id="icNext" aria-label="Next month">&rsaquo;</button>
+      </div>
+      <div id="icBody"><p class="sub" id="icStatus">Loading&hellip;</p></div>
+    </div>
     <div class="card" id="bookingsCard" data-g="plan" style="display:none">
       <h2>Bookings</h2>
       <p class="sub" id="bookingsSummary"></p>
@@ -843,7 +867,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-09.4';
+  const SHELL_VERSION = '2026-11-11.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1428,9 +1452,9 @@
   // The server refuses writes during a preview anyway. This stops the round trip and says so
   // in plain words, instead of letting a disabled-looking page throw an error a second later.
   var monthRepLoaded = false;
-  var READS = ['getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation', 'getWeekGrid', 'getIpa',
+  var READS = ['getIcCount', 'getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation', 'getWeekGrid', 'getIpa',
                'getBookingFor', 'setPreview'];
-  var API_READS = ['getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation',
+  var API_READS = ['getIcCount', 'getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation',
                    'getWeekGrid', 'getIpa', 'getBookingFor', 'getSaturdayCycle', 'getLateNoticeQueue',
                    'requestAccessCode', 'verifyAccessCode', 'redeemJourneyHandoffAndGetBooking'];
 
@@ -2753,6 +2777,7 @@
   }
   function mbOpen(group) {
     $('panel-allocation').setAttribute('data-group', group);
+    if (group === 'month' && !icMonthLoaded) { icMonthLoaded = true; loadIcCount(); }
     ['today', 'plan', 'grid', 'month'].forEach(function (g) {
       $('mbBtn-' + g).setAttribute('aria-pressed', g === group ? 'true' : 'false');
     });
@@ -2889,6 +2914,60 @@
         host.appendChild(row);
       });
     });
+  }
+
+  /* ---- Booth IC count card: read-only, shown only when the server says this person may see it ---- */
+  var icMonthLoaded = false, icMonthSeq = 0;
+  function icMonthKey_(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2); }
+  function icFill_(host, tag, text, cls) {
+    var e = document.createElement(tag); if (cls) e.className = cls; e.textContent = text; host.appendChild(e); return e;
+  }
+  function renderIcCount(r) {
+    var body = $('icBody'); body.innerHTML = '';
+    if (!r || r.allowed !== true) { $('icCountCard').style.display = 'none'; return; }
+    $('icCountCard').style.display = '';
+    var due = icFill_(body, 'div', r.dueNext && r.dueNext.length ? 'Due next for IC: ' + r.dueNext.join(', ') : 'Nobody has shifts this month yet.', 'note warn icDueLine');
+    var table = document.createElement('table'); table.className = 'icTable';
+    var head = document.createElement('tr');
+    ['Person', 'Booth IC', 'Ent IC', 'Total IC', 'Shifts'].forEach(function (h) { icFill_(head, 'th', h); });
+    var thead = document.createElement('thead'); thead.appendChild(head); table.appendChild(thead);
+    var tb = document.createElement('tbody');
+    (r.people || []).forEach(function (p) {
+      var tr = document.createElement('tr'); if (p.due) tr.className = 'icDue';
+      icFill_(tr, 'td', p.name); icFill_(tr, 'td', String(p.booth)); icFill_(tr, 'td', String(p.ent));
+      icFill_(tr, 'td', String(p.total)); icFill_(tr, 'td', String(p.shifts));
+      tb.appendChild(tr);
+    });
+    table.appendChild(tb); body.appendChild(table);
+    icFill_(body, 'p', 'Highlighted = fewest IC shifts this month. Shifts still to come are counted.', 'sub');
+    icFill_(body, 'h2', 'Swaps this month');
+    if (!(r.swaps || []).length) {
+      icFill_(body, 'p', 'No swaps recorded this month. Swaps are only recorded from ' + r.logStarted + '; earlier ones were not kept.', 'sub');
+    }
+    (r.swaps || []).forEach(function (s) {
+      var d = document.createElement('div'); d.className = 'icSwap';
+      d.appendChild(document.createTextNode(s.date + (s.shift ? ' ' + s.shift : '') + '  ' + s.role + ': ' + s.from + ' \u2192 ' + (s.to || 'nobody')));
+      icFill_(d, 'span', 'moved by ' + s.movedBy + ', ' + s.at + (s.location ? ' \u00b7 ' + s.location : ''), 'icBy');
+      body.appendChild(d);
+    });
+  }
+  function loadIcCount() {
+    var sel = $('icMonthPick');
+    if (!sel.children.length) {
+      var now = new Date();
+      for (var i = 0; i < 6; i++) {
+        var d = new Date(now.getFullYear(), now.getMonth() - i, 1), o = document.createElement('option');
+        o.value = icMonthKey_(d); o.textContent = o.value; sel.appendChild(o);
+      }
+      sel.onchange = loadIcCount;
+      $('icPrev').onclick = function () { if (sel.selectedIndex < sel.options.length - 1) { sel.selectedIndex++; loadIcCount(); } };
+      $('icNext').onclick = function () { if (sel.selectedIndex > 0) { sel.selectedIndex--; loadIcCount(); } };
+    }
+    $('icPrev').disabled = sel.selectedIndex >= sel.options.length - 1;
+    $('icNext').disabled = sel.selectedIndex <= 0;
+    var seq = ++icMonthSeq;
+    run('getIcCount', [token, sel.value || ''], function (r) { if (seq === icMonthSeq) renderIcCount(r); },
+      function () { $('icCountCard').style.display = 'none'; });
   }
 
   function loadMonthRep() {
