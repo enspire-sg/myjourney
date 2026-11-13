@@ -1109,7 +1109,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-13.6';
+  const BUILD='2026-11-13.7';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2300,6 +2300,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   function learnerCourseLabel_(name){ const value=String(name||'').trim(); if(value==='TikTok with AI (Bundle)')return 'TTAI + MPC Bundle'; return value.replace(/\s*\(Seniors\s*\/\s*Retirees\)\s*$/i,'').trim(); }
   function ensureLearnerCourseOption_(course){
     const select=$('learnerProgram'), value=String(course||''), label=learnerCourseLabel_(value);
+    if(!value){ select.value=''; syncLearnerTikTokConfirm_(); return; }
     let option=[...select.options].find(o=>o.value===value);
     if(!option){ option=document.createElement('option'); option.value=value; select.appendChild(option); }
     option.textContent=label; select.value=value; syncLearnerTikTokConfirm_();
