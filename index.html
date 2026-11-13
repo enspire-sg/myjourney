@@ -517,24 +517,11 @@ body.bg-modal-open{ overflow: hidden; }
       <div class="row"><div class="eyebrow">Pipeline</div><div class="spacer"></div><button class="btn ghost mini" id="pipeBack" type="button">&larr; My journey</button></div>
       <p class="muted small hidden" id="pipePreviewNote"></p>
       <div class="row" style="margin-top:12px" id="pipeTabs" role="group" aria-label="Pipeline">
-        <button class="srcchip" type="button" aria-pressed="true" data-ptab="add">Add a lead</button>
-        <button class="srcchip" type="button" aria-pressed="false" data-ptab="opp">My Client</button>
+        <button class="srcchip" type="button" aria-pressed="true" data-ptab="opp">My Client</button>
         <button class="srcchip" type="button" aria-pressed="false" data-ptab="follow">Follow up</button>
         <button class="srcchip" type="button" aria-pressed="false" data-ptab="week">This week</button>
       </div>
       <p class="muted small" id="pipeTabNote" style="margin-top:10px"></p>
-    </section>
-
-    <section class="card" id="pipeAddCard">
-      <h1 style="font-size:28px;margin-top:0">Add a lead</h1>
-      <p class="muted small">Takes about twenty seconds. It writes the client into your Notion list and opens an opportunity for them, so you never type the same person twice.</p>
-      <div class="field"><label for="pipeName">Client&rsquo;s name</label><input id="pipeName" type="text" autocomplete="off" placeholder="Mdm Tan"></div>
-      <div class="field"><label for="pipePhone">WhatsApp number</label><input id="pipePhone" type="tel" inputmode="tel" autocomplete="off" placeholder="9123 4567"></div>
-      <div class="field"><label id="pipeSourceLabel">Where did you meet them?</label><div class="row" id="pipeSources" role="group" aria-labelledby="pipeSourceLabel"></div></div>
-      <div class="field"><label for="pipeDate">First contact date</label><input id="pipeDate" type="date"></div>
-      <div class="field"><label for="pipeNotes">Notes <span class="muted small">(optional)</span></label><textarea id="pipeNotes" rows="3" placeholder="What they want, when to call them back"></textarea></div>
-      <div class="row" style="margin-top:16px"><button class="btn primary block" id="pipeSave" type="button">Save lead</button></div>
-      <div class="message" id="pipeMsg"></div>
     </section>
 
     <section class="card hidden" id="pipeOppAddCard">
@@ -547,11 +534,6 @@ body.bg-modal-open{ overflow: hidden; }
       <div class="row" style="margin-top:16px"><button class="btn primary block" id="oppSubmit" type="button">My Client</button></div>
       <div id="oppSlot" role="status" aria-live="polite" style="min-height:112px;margin-top:14px"></div>
       <div id="oppTally" role="status" aria-live="polite" style="min-height:104px;margin-top:12px"></div>
-    </section>
-
-    <section class="card hidden" id="pipeRecentCard">
-      <div class="eyebrow">Your recent leads</div>
-      <div id="pipeList" style="margin-top:10px"></div>
     </section>
 
     <section class="card hidden" id="pipeWeekCard">
@@ -1019,8 +1001,8 @@ body.bg-modal-open{ overflow: hidden; }
       }
     });
   }
-  let ownPipelineTab=false, ownPreviewTab=false, pipeData=null, pipeSource='';
-  let pipeTab='add', pipeOpp=null, pipeOutcome='';
+  let ownPipelineTab=false, ownPreviewTab=false, pipeData=null;
+  let pipeTab='opp', pipeOpp=null, pipeOutcome='';
   let oppFilter='all', oppFind='';
   /* The panels are mutually exclusive, so exactly one function decides which is up.
    * Before this, each switch hid its own list of the others and the lists disagreed - opening
@@ -1127,7 +1109,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-13.4';
+  const BUILD='2026-11-13.5';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1987,7 +1969,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const want=viewAs?String(viewAs.id):'';
     const have=pipeData?String((pipeData.preview&&pipeData.preview.id)||''):null;
     if(!pipeData||have!==want){
-      pipeData=null; pipeOpp=null; pipeTab='add';
+      pipeData=null; pipeOpp=null; pipeTab='opp';
       // A filter left over from the last person would hide the new one's leads with no clue why.
       oppFilter='all'; oppFind=''; $('pipeOppFind').value='';
       const note=$('pipePreviewNote');
@@ -2004,15 +1986,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const note=$('pipePreviewNote');
     note.textContent=pv?('Read-only \u2014 this is '+pv.name+'\u2019s pipeline.'):'';
     note.classList.toggle('hidden',!pv);
-    setReadOnlyPreview_('pipeline','#pipeName,#pipePhone,#pipeDate,#pipeNotes,#pipeSave,[data-src],#pipeFuDate,#pipeFuNext,#pipeFuNotes,#pipeFuPv,#pipeFuSign,#pipeFuSave,[data-out],#pipeWell,#pipeFocus,#pipeReflectSave');
-  }
-  /* The chips are the only place the source lives, so a submit cannot send a value Notion will
-   * reject - the list comes from the server, which shares it with the push job. */
-  function renderSources(){
-    const ss=(pipeData&&pipeData.sources)||[];
-    if(!pipeSource&&ss.length)pipeSource=ss[0];
-    $('pipeSources').innerHTML=ss.map(s=>'<button class="srcchip" type="button" aria-pressed="'+(s===pipeSource?'true':'false')+'" data-src="'+esc(s)+'">'+esc(s)+'</button>').join('');
-    [...document.querySelectorAll('[data-src]')].forEach(b=>{ b.onclick=()=>{ pipeSource=b.dataset.src; renderSources(); }; });
+    setReadOnlyPreview_('pipeline','#pipeFuDate,#pipeFuNext,#pipeFuNotes,#pipeFuPv,#pipeFuSign,#pipeFuSave,[data-out],#pipeWell,#pipeFocus,#pipeReflectSave');
   }
   /* One function decides which of the four pipeline cards is up, for the same reason showPanel
    * does it for the panels: four hand-written lists of "hide the others" is how they end up
@@ -2027,7 +2001,6 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
    * the buttons having to carry database names. */
   function pipeTabNote(){
     const who=pipeWho();
-    if(pipeTab==='add')return 'Goes to your Client Database in Notion.';
     if(pipeTab==='opp')return 'Checked against your own Client Database, then written to your own Notion.';
     if(pipeTab==='follow')return who?(who+'\u2019s Opportunities Tracker in Notion.')
       :'Your Opportunities Tracker in Notion.';
@@ -2036,8 +2009,6 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   }
   function pipeShow(){
     const pv=!!(pipeData&&pipeData.preview);
-    $('pipeAddCard').classList.toggle('hidden',pipeTab!=='add');
-    $('pipeRecentCard').classList.toggle('hidden',pipeTab!=='add');
     $('pipeOppAddCard').classList.toggle('hidden',pipeTab!=='opp');
     if(pipeTab==='opp')oppInit();
     $('pipeOppsCard').classList.toggle('hidden',pipeTab!=='follow'||!!pipeOpp);
@@ -2050,12 +2021,6 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   }
   function renderPipeline(){
     const d=pipeData||{};
-    renderSources();
-    if(!$('pipeDate').value)$('pipeDate').value=d.today||'';
-    $('pipeDate').max=d.today||'';
-    const ls=d.leads||[];
-    $('pipeList').innerHTML=ls.length?ls.map(pipeRow).join('')
-      :'<p class="muted small">Nothing yet. The leads you add will show here.</p>';
     const label=[...document.querySelectorAll('[data-ptab="follow"]')][0];
     const n=(d.opps||[]).length;
     if(label)label.textContent=n?('Follow up ('+n+')'):'Follow up';
@@ -2129,7 +2094,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       const who=pipeWho();
       note.textContent=d.concluded?('Nothing open. '+d.concluded+' closed off so far.')
         :(who?(who+' has nothing open yet.')
-          :'Nothing open yet. Add a lead and it will show here within a few minutes.');
+          :'Nothing open yet. Add a client under My Client and it will show here within a few minutes.');
       $('pipeOpps').innerHTML='';
       return;
     }
@@ -2199,12 +2164,6 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     if(signed&&!$('pipeFuSign').value)$('pipeFuSign').value=$('pipeFuDate').value;
     $('pipeFuSave').textContent=pipeOutcome?('Save \u2014 '+pipeOutcome):'Save follow-up';
   }
-  function pipeRow(l){
-    const st=l.state==='error'?'<span style="color:#ffd98a">Could not reach Notion yet \u2014 it will try again</span>'
-            :l.state==='saved'?'In your Notion list'
-            :'Sending to Notion\u2026';
-    return '<div class="step"><div class="t"><b>'+esc(l.name)+'</b><small>'+esc(l.phone)+' \u00b7 '+esc(l.source)+' \u00b7 '+esc(l.date)+'</small><small>'+st+'</small></div></div>';
-  }
   [...document.querySelectorAll('[data-ptab]')].forEach(b=>{
     b.onclick=()=>{ pipeTab=b.dataset.ptab; pipeOpp=null; pipeShow(); window.scrollTo(0,0); }; });
   $('pipeFuBack').onclick=()=>{ pipeOpp=null; pipeShow(); window.scrollTo(0,0); };
@@ -2230,6 +2189,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
    * page only ever says Saved after the server confirms saved:true. A NEW client writes only the client row:
    * a Notion automation makes the opportunity. The result lives in #oppSlot, which keeps its height so the
    * button never moves. */
+  const OPP_NOT_ON_='This form is not switched on. Please add the client in your Notion form for now.';
   const OPP_SOURCES=['Booth','Referral','Warm Contact','Digital Outreach','Others','Reactivation'];
   let oppBusy=false, oppSrc='';   /* no default: the person must choose, like the required Notion dropdown */
   function oppPhone8(v){
@@ -2302,25 +2262,11 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         oppShow('open','Already open in your own tracker','Not saved. This number already has an open opportunity in your own tracker. Nothing created.');
       }else if(r&&r.status==='refused'){
         oppShow('bad','Not saved',String(r.message||'Check the form and tap My Client again.'));
+      }else if(r&&(r.status==='created'||r.status==='linked')&&r.saved!==true){
+        oppShow('bad','Not saved yet',OPP_NOT_ON_);
       }else{ oppShow('bad','Not saved','No confirmation from the server. Tap My Client to try again.'); }
-    }catch(e){ oppShow('bad','Not saved',String(e&&e.message||e)+' Tap My Client to try again.'); }
+    }catch(e){ if(/not switched on/i.test(String(e&&e.message||e)))oppShow('bad','Not saved yet',OPP_NOT_ON_); else oppShow('bad','Not saved',String(e&&e.message||e)+' Tap My Client to try again.'); }
     finally{ oppBusy=false; $('oppSubmit').disabled=false; oppTallyLoad(); }
-  };
-  $('pipeSave').onclick=async()=>{
-    if(viewAs)return;
-    const btn=$('pipeSave');
-    msg($('pipeMsg'),'','');
-    const name=$('pipeName').value.trim();
-    btn.disabled=true;
-    try{
-      pipeData=await run('addLead',token,{ name:name, phone:$('pipePhone').value,
-        source:pipeSource, date:$('pipeDate').value, notes:$('pipeNotes').value });
-      $('pipeName').value=''; $('pipePhone').value=''; $('pipeNotes').value='';
-      pipeTab='add'; pipeOpp=null;
-      renderPipeline();
-      msg($('pipeMsg'),'Saved. '+name+' is in your pipeline.','success');
-    }catch(e){ msg($('pipeMsg'),e.message,'error'); }
-    finally{ btn.disabled=false; }
   };
   [...document.querySelectorAll('[data-ofilter]')].forEach(b=>{
     b.onclick=()=>{ oppFilter=b.dataset.ofilter; renderOpps(); }; });
