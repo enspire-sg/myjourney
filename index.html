@@ -60,7 +60,7 @@
     .action-needed-list{display:grid;gap:14px;margin-top:28px}.action-needed-item{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:18px;align-items:center;padding:20px 22px;border:1px solid #334563;border-radius:22px;background:rgba(6,15,28,.52)}
     .action-icon{display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:rgba(245,193,79,.10);color:#f5c35d;font-size:24px}.action-copy b{display:block;color:#f8f9fd;font-size:20px;line-height:1.25}.action-meta{margin-top:8px;color:#aeb9cf;font-size:14px}.action-deadline{margin-left:8px;color:#f3a8d0;font-weight:800}.action-needed-item .btn{min-width:150px;padding:13px 20px}.action-needed-foot{margin:22px 0 0;color:#98a6bf;font-size:13px}
     @media(max-width:560px){#actionNeededCard.action-needed{padding:26px 18px 22px;border-radius:24px}#actionNeededCard.action-needed:before{inset:14px auto 14px 0;width:5px}.action-needed-head{gap:10px}.action-needed-head h2{font-size:28px}.action-count{padding:8px 12px;font-size:12px}.action-needed-item{grid-template-columns:46px minmax(0,1fr);gap:12px;padding:16px}.action-icon{width:46px;height:46px;border-radius:13px;font-size:20px}.action-copy b{font-size:17px}.action-meta{font-size:13px;line-height:1.5}.action-needed-item .btn{grid-column:1/-1;width:100%;min-width:0}.action-needed-list{margin-top:22px}}
-    .oppres{padding:12px 14px;border-radius:16px;border:2px solid;line-height:1.5}.oppres b{display:block;font-size:17px}.oppres.new{background:#12352b;border-color:#45d7a3;color:#eafff6}.oppres.new b{color:#45d7a3}.oppres.open{background:#3a1c24;border-color:#ff6b6b;color:#ffecec}.oppres.open b{color:#ff8a8a}.oppres.old{background:#13294a;border-color:#7ab2ff;color:#eaf3ff}.oppres.old b{color:#8dbcff}.oppres.bad{background:#3a2e12;border-color:#f5c35d;color:#fff6dc}.oppres.bad b{color:#f5c35d}
+    .req{color:#ff8a8a;font-weight:700}.oppres{padding:12px 14px;border-radius:16px;border:2px solid;line-height:1.5}.oppres b{display:block;font-size:17px}.oppres.new{background:#12352b;border-color:#45d7a3;color:#eafff6}.oppres.new b{color:#45d7a3}.oppres.open{background:#3a1c24;border-color:#ff6b6b;color:#ffecec}.oppres.open b{color:#ff8a8a}.oppres.old{background:#13294a;border-color:#7ab2ff;color:#eaf3ff}.oppres.old b{color:#8dbcff}.oppres.bad{background:#3a2e12;border-color:#f5c35d;color:#fff6dc}.oppres.bad b{color:#f5c35d}
     .message{margin-top:14px;padding:12px 14px;border-radius:13px;display:none;line-height:1.5}.message.error{display:block;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);color:#ffb0b0}.message.success{display:block;background:rgba(69,215,163,.12);border:1px solid rgba(69,215,163,.35);color:#91edcd}
 .message.info{display:block;background:rgba(141,178,255,.12);border:1px solid rgba(141,178,255,.32);color:#bcd2ff}
     #ipaMsg{display:block;min-height:48px;visibility:hidden}#ipaMsg.info,#ipaMsg.error,#ipaMsg.success{visibility:visible}
@@ -517,7 +517,7 @@ body.bg-modal-open{ overflow: hidden; }
       <p class="muted small hidden" id="pipePreviewNote"></p>
       <div class="row" style="margin-top:12px" id="pipeTabs" role="group" aria-label="Pipeline">
         <button class="srcchip" type="button" aria-pressed="true" data-ptab="add">Add a lead</button>
-        <button class="srcchip" type="button" aria-pressed="false" data-ptab="opp">New Opportunity</button>
+        <button class="srcchip" type="button" aria-pressed="false" data-ptab="opp">My Client</button>
         <button class="srcchip" type="button" aria-pressed="false" data-ptab="follow">Follow up</button>
         <button class="srcchip" type="button" aria-pressed="false" data-ptab="week">This week</button>
       </div>
@@ -537,13 +537,13 @@ body.bg-modal-open{ overflow: hidden; }
     </section>
 
     <section class="card hidden" id="pipeOppAddCard">
-      <h1 style="font-size:28px;margin-top:0">New Opportunity</h1>
-      <p class="muted small">Type the Whatsapp number first. We check your own Notion list, so you never add the same person twice.</p>
-      <div class="field"><label for="oppName">Client name</label><input id="oppName" type="text" autocomplete="off" placeholder="Mdm Tan"></div>
-      <div class="field"><label for="oppPhone">Whatsapp number (8 digits)</label><input id="oppPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="9123 4567"></div>
-      <div class="field"><label for="oppDate">Lead date</label><input id="oppDate" type="date"></div>
-      <div class="field"><label id="oppSourceLabel">Source</label><div class="row" id="oppSources" role="group" aria-labelledby="oppSourceLabel"></div></div>
-      <div class="row" style="margin-top:16px"><button class="btn primary block" id="oppSubmit" type="button">Submit</button></div>
+      <h1 style="font-size:28px;margin-top:0">My Client</h1>
+      <p class="muted small">Fill in the four boxes. We check your own Notion list first, so you never add the same person twice. <b>*</b> = must fill in.</p>
+      <div class="field"><label for="oppName">Client&rsquo;s Name<span class="req"> *</span></label><input id="oppName" type="text" autocomplete="off" placeholder="Mdm Tan"></div>
+      <div class="field"><label for="oppDate">First Contact Date<span class="req"> *</span></label><input id="oppDate" type="date"></div>
+      <div class="field"><label id="oppSourceLabel">Source of Contact<span class="req"> *</span></label><div class="row" id="oppSource" role="group" aria-labelledby="oppSourceLabel"></div></div>
+      <div class="field"><label for="oppPhone">Whatsapp Number<span class="req"> *</span> <span class="muted small">(8 digits)</span></label><input id="oppPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="9123 4567"></div>
+      <div class="row" style="margin-top:16px"><button class="btn primary block" id="oppSubmit" type="button">My Client</button></div>
       <div id="oppSlot" role="status" aria-live="polite" style="min-height:112px;margin-top:14px"></div>
     </section>
 
@@ -1125,7 +1125,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-13.2';
+  const BUILD='2026-11-13.3';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2221,11 +2221,12 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     finally{ btn.disabled=false; }
   };
 
-  /* New Opportunity by phone number. The server (VPS, your own Notion only) decides; this page only
-   * ever says Saved after the server confirms saved:true. The result lives in #oppSlot, which keeps
-   * its height so the Submit button never moves. */
+  /* My Client (modelled on the Notion MY CLIENT form). The server (VPS, your own Notion only) decides; this
+   * page only ever says Saved after the server confirms saved:true. A NEW client writes only the client row:
+   * a Notion automation makes the opportunity. The result lives in #oppSlot, which keeps its height so the
+   * button never moves. */
   const OPP_SOURCES=['Booth','Referral','Warm Contact','Digital Outreach','Others','Reactivation'];
-  let oppSource='Booth', oppBusy=false;
+  let oppBusy=false, oppSrc='';   /* no default: the person must choose, like the required Notion dropdown */
   function oppPhone8(v){
     let t=String(v==null?'':v).normalize('NFKC').replace(/[\u0000-\u0020\u007f-\u00a0\u1680\u180e\u2000-\u200f\u2028-\u202f\u205f-\u2064\u3000\ufeff]/g,'');
     if(!t||/[^0-9+\-().]/.test(t))return '';
@@ -2234,8 +2235,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   }
   function oppShow(kind,title,text){ $('oppSlot').innerHTML='<div class="oppres '+kind+'"><b>'+esc(title)+'</b>'+esc(text)+'</div>'; }
   function renderOppSources(){
-    $('oppSources').innerHTML=OPP_SOURCES.map(s=>'<button class="srcchip" type="button" aria-pressed="'+(s===oppSource?'true':'false')+'" data-osrc="'+esc(s)+'">'+esc(s)+'</button>').join('');
-    [...document.querySelectorAll('[data-osrc]')].forEach(b=>{ b.onclick=()=>{ oppSource=b.dataset.osrc; renderOppSources(); }; });
+    $('oppSource').innerHTML=OPP_SOURCES.map(x=>'<button class="srcchip" type="button" aria-pressed="'+(x===oppSrc?'true':'false')+'" data-osrc="'+esc(x)+'">'+esc(x)+'</button>').join('');
+    [...document.querySelectorAll('[data-osrc]')].forEach(b=>{ b.onclick=()=>{ oppSrc=b.dataset.osrc; renderOppSources(); }; });
   }
   function oppInit(){
     renderOppSources();
@@ -2244,24 +2245,26 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   }
   $('oppSubmit').onclick=async()=>{
     if(viewAs||oppBusy)return;
-    const name=$('oppName').value.trim(), phone=$('oppPhone').value;
+    const name=$('oppName').value.trim(), phone=$('oppPhone').value, date=$('oppDate').value, src=oppSrc;
     if(name.length<2){ oppShow('bad','Not saved','Type the client\u2019s name.'); return; }
+    if(!date){ oppShow('bad','Not saved','Pick the first contact date.'); return; }
+    if(OPP_SOURCES.indexOf(src)<0){ oppShow('bad','Not saved','Choose the source of contact.'); return; }
     if(!oppPhone8(phone)){ oppShow('bad','Not saved','Enter an 8-digit number'); return; }
-    oppBusy=true; $('oppSubmit').disabled=true; $('oppSlot').innerHTML='<p class="muted small">Checking your list\u2026</p>';
+    oppBusy=true; $('oppSubmit').disabled=true; $('oppSlot').innerHTML='<p class="muted small">Checking your list\u2026 this can take up to half a minute. Please wait.</p>';
     try{
-      const r=await run('addOpportunityByPhone',token,{name:name,phone:phone,source:oppSource,date:$('oppDate').value});
+      const r=await run('addOpportunityByPhone',token,{name:name,phone:phone,source:src,date:date});
       if(r&&r.saved===true&&r.status==='created'){
-        oppShow('new','Saved \u2713 New client + new opportunity','Number not found, so a new client and a new opportunity were created.');
+        oppShow('new','Client added \u2713',r.opportunityAppeared===true?'Saved \u2713 Their opportunity was created automatically.':'Saved \u2713 The opportunity usually appears within a minute.');
         $('oppName').value=''; $('oppPhone').value='';
       }else if(r&&r.saved===true&&r.status==='linked'){
-        oppShow('old','Saved \u2713 New opportunity added','Closed before. New opportunity added to the existing client'+(r.clientName?(' '+r.clientName):'')+'.');
+        oppShow('old','Added to '+(r.clientName||'your existing client')+' \u2713','Saved \u2713 This client was closed before, so a new opportunity was added to them.');
         $('oppName').value=''; $('oppPhone').value='';
       }else if(r&&r.status==='already_open'){
-        oppShow('open','Not saved \u2014 already open','This number is already open in your own tracker. Nothing created.');
+        oppShow('open','Already open in your own tracker','Not saved. This number already has an open opportunity in your own tracker. Nothing created.');
       }else if(r&&r.status==='refused'){
-        oppShow('bad','Not saved',String(r.message||'Check the form and tap Submit again.'));
-      }else{ oppShow('bad','Not saved','No confirmation from the server. Tap Submit to try again.'); }
-    }catch(e){ oppShow('bad','Not saved',String(e&&e.message||e)+' Tap Submit to try again.'); }
+        oppShow('bad','Not saved',String(r.message||'Check the form and tap My Client again.'));
+      }else{ oppShow('bad','Not saved','No confirmation from the server. Tap My Client to try again.'); }
+    }catch(e){ oppShow('bad','Not saved',String(e&&e.message||e)+' Tap My Client to try again.'); }
     finally{ oppBusy=false; $('oppSubmit').disabled=false; }
   };
   $('pipeSave').onclick=async()=>{
