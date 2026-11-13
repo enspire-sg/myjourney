@@ -887,7 +887,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-11.3';
+  const SHELL_VERSION = '2026-11-13.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -3189,7 +3189,7 @@
       var message = document.createElement('div'); message.className = 'actionConfirmError';
       save.onclick = function () {
         if (!expected.value.trim() || reason.value.trim().length < 8 || reason.value.trim().split(/\s+/).length < 2) {
-          message.textContent = 'Add the expected time and a short, real reason.'; return;
+          message.textContent = 'Reason needs at least 2 words, e.g. "Doctor appointment". Also add the expected time.'; return;
         }
         form.innerHTML = '';
         form.appendChild(actionConfirmPanel(
