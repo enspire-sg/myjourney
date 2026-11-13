@@ -1109,7 +1109,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-13.5';
+  const BUILD='2026-11-13.6';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2410,7 +2410,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
 
   async function startPublicLearner_(publicToken){
     booting_(false);learnerPublicMode=true;learnerPublicToken=publicToken;document.title='Bells Course Registration Form';showPanel('learners');fillLearnerCourses_();syncLearnerTikTokConfirm_();$('appBrand').classList.add('hidden');$('login').classList.add('hidden');$('learnerBack').classList.add('hidden');$('learnerTabs').classList.add('hidden');$('learnerListCard').classList.add('hidden');$('learnerShareCard').classList.add('hidden');$('learnerPublicSuccess').classList.add('hidden');$('learnerRegisterCard').classList.add('hidden');$('learnerRegisterIntro').classList.add('hidden');$('learnerEyebrow').classList.add('hidden');$('learnerHeading').textContent='Bells Course Registration Form';$('learnerLogo').classList.remove('hidden');$('learnerPreviewNote').textContent='';$('learnerPreviewNote').classList.add('hidden');
-    try{const invite=await run('getLearnerInvitation',publicToken);ensureLearnerCourseOption_(invite.course);$('learnerName').value=String(invite.learnerName||'');$('learnerRegisterCard').classList.remove('hidden');$('learnerSubmit').textContent='Submit details';}
+    try{const invite=await run('getLearnerInvitation',publicToken);fillLearnerCourses_();ensureLearnerCourseOption_(invite.course);$('learnerName').value=String(invite.learnerName||'');$('learnerRegisterCard').classList.remove('hidden');$('learnerSubmit').textContent='Submit details';}
     catch(e){$('learnerPreviewNote').textContent=e.message;$('learnerPreviewNote').classList.remove('hidden');}
   }
 
