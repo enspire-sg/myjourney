@@ -551,17 +551,21 @@ body.bg-modal-open{ overflow: hidden; }
       <p class="muted small" id="pipeWeekWhen"></p>
       <div id="pipeWeekNums" class="gcards"></div>
       <p class="muted small" id="pipeWeekNote"></p>
+      <div id="pipeWeekSlot" role="status" aria-live="polite" style="min-height:96px;margin-top:10px"></div>
     </section>
 
     <!-- the only part of the journal that is not worked out for you -->
     <section class="card hidden" id="pipeReflectCard">
       <div class="eyebrow">Your words</div>
-      <p class="muted small">The numbers above are counted for you. This part is yours.</p>
+      <p class="muted small" id="pipeReflectIntro">The numbers above are counted for you. This part is yours.</p>
+      <div id="pipeReflectPaused" class="oppres bad" style="min-height:112px"><b>Not connected yet</b>Writing your reflection here is switched off until it has a place in your Notion journal. For now, write it on your weekly page in Notion.</div>
+      <div id="pipeReflectBoxes" class="hidden">
       <div class="field"><label for="pipeWell">What went well?</label><textarea id="pipeWell" rows="3" placeholder="The one thing that worked this week"></textarea></div>
       <div class="field"><label for="pipeFocus">Key focus for next week</label><textarea id="pipeFocus" rows="3" placeholder="The one thing you will do differently"></textarea></div>
       <div class="row" style="margin-top:16px"><button class="btn primary block" id="pipeReflectSave" type="button">Save reflection</button></div>
       <div class="message" id="pipeReflectMsg"></div>
       <p class="muted small" id="pipeReflectWhen"></p>
+      </div>
     </section>
 
     <!-- follow up: LIVE list from the person's own Notion, then the Status chooser for the one picked -->
@@ -1022,6 +1026,7 @@ body.bg-modal-open{ overflow: hidden; }
   let ownPipelineTab=false, ownPreviewTab=false, pipeData=null;
   let pipeTab='opp', pipeOpp=null, pipeOutcome='', pipeCourse='';
   let fuData=null, fuLoading=false, fuError='', fuBusy=false, fuSeq=0;
+  let weekData=null, weekLoading=false, weekError='', weekSeq=0;
   /* The panels are mutually exclusive, so exactly one function decides which is up.
    * Before this, each switch hid its own list of the others and the lists disagreed - opening
    * Resources and then Team showed both at once. Add a panel here and nowhere else. */
@@ -1127,7 +1132,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-13.9';
+  const BUILD='2026-11-13.10';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1988,6 +1993,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const have=pipeData?String((pipeData.preview&&pipeData.preview.id)||''):null;
     if(!pipeData||have!==want){
       pipeData=null; pipeOpp=null; pipeTab='opp';
+      weekData=null; weekError=''; weekLoading=false; weekSeq++; $('pipeWeekSlot').innerHTML='';
       fuData=null; fuError=''; fuClean=false; fuDirty=false; $('fuListSlot').innerHTML=''; $('fuSlot').innerHTML='';
       const note=$('pipePreviewNote');
       note.classList.remove('hidden'); note.textContent='Loading\u2026';
@@ -2037,6 +2043,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       b.setAttribute('aria-pressed',b.dataset.ptab===pipeTab?'true':'false'); });
     $('pipeTabNote').textContent=pipeTabNote();
     if(pipeTab==='follow'&&!pv&&!fuData&&!fuLoading)loadFollow();
+    if(pipeTab==='week'&&!weekData&&!weekLoading&&!weekError)loadWeek();
   }
   function renderPipeline(){
     const d=pipeData||{};
@@ -2049,19 +2056,30 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     pipeApplyPreview();
     pipeShow();
   }
-  /* Read-only on purpose. Every number here is Notion's own rollup of the leads and follow-ups
-   * already filed - if one looks wrong the fix is in the lead, not here. A figure Notion has not
-   * worked out yet shows as a dash: "none yet" and "you did none" are different. */
+  /* This week: read LIVE from the person's own Notion Sales Journal (weekly page), when the tab opens.
+   * Read-only on purpose. A figure Notion has not worked out shows as a dash: "none yet" and "you did none"
+   * are different. No page for this week = a plain message, never a row of zeros. A leader's preview asks
+   * for the previewed person through the same gate as the rest of the preview. */
+  function weekSlot(kind,title,text,retry){
+    $('pipeWeekSlot').innerHTML='<div class="oppres '+kind+'"><b>'+esc(title)+'</b>'+esc(text)+(retry?'<div style="margin-top:10px"><button class="btn secondary block" type="button" id="pipeWeekRetry" style="min-height:52px">Retry</button></div>':'')+'</div>';
+    if(retry)$('pipeWeekRetry').onclick=retry;
+  }
+  async function loadWeek(){
+    const seq=++weekSeq, pv=(pipeData&&pipeData.preview)||null;
+    weekLoading=true; weekError=''; renderWeek();
+    try{ const r=pv?await run('getMyWeekAs',token,String(pv.id)):await run('getMyWeek',token); if(seq!==weekSeq)return; weekData=r||{status:'missing'}; }
+    catch(e){ if(seq!==weekSeq)return; weekData=null; weekError=String(e&&e.message||'Could not load this week from Notion. Check your connection and tap Retry.'); }
+    finally{ if(seq===weekSeq)weekLoading=false; }
+    renderPipeline();
+  }
   function renderWeek(){
-    const j=(pipeData&&pipeData.journal)||null;
-    if(!j){
-      $('pipeWeekWhen').textContent='';
-      $('pipeWeekNums').innerHTML='';
-      $('pipeWeekNote').textContent=pipeWho()
-        ?(pipeWho()+' has nothing for this week yet.')
-        :'Nothing yet for this week. It fills itself in as you add leads and log follow-ups.';
-      return;
-    }
+    $('pipeWeekWhen').textContent=''; $('pipeWeekNums').innerHTML=''; $('pipeWeekNote').textContent='';
+    if(weekLoading){ $('pipeWeekSlot').innerHTML=''; $('pipeWeekNote').textContent=pipeWho()?('Loading '+pipeWho()+'\u2019s week from Notion\u2026'):'Loading this week from Notion\u2026'; return; }
+    if(weekError){ weekSlot('bad','Not loaded',weekError,()=>{ weekError=''; weekData=null; $('pipeWeekSlot').innerHTML=''; loadWeek(); }); return; }
+    const j=weekData;
+    if(!j){ $('pipeWeekSlot').innerHTML=''; return; }
+    if(j.status!=='ok'){ $('pipeWeekSlot').innerHTML=''; $('pipeWeekNote').textContent=String(j.message||'No journal page for this week in Notion yet.'); return; }
+    $('pipeWeekSlot').innerHTML='';
     $('pipeWeekWhen').textContent='Monday '+esc(j.start)+' to Sunday '+esc(j.end);
     $('pipeWeekNums').innerHTML=(j.numbers||[]).map(n=>{
       const pct=/%|rate|discipline|speed/i.test(n.label);
@@ -2069,23 +2087,13 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         :(pct?Math.round(n.value*100)+'%':fmt(n.value));
       return '<div class="gcard"><b>'+v+'</b><span>'+esc(n.label)+'</span></div>';
     }).join('');
-    $('pipeWeekNote').textContent=j.updated?('Worked out from your leads and follow-ups. Last checked '+esc(j.updated)+'.'):'';
+    $('pipeWeekNote').textContent='Read live from '+(pipeWho()?(pipeWho()+'\u2019s'):'your')+' weekly page in Notion.';
   }
-  /* The saved reflection, and where it has got to. Deliberately NOT inside renderWeek: the
-   * numbers come from the newest mirrored journal row while this is keyed on the week running
-   * now, and on a Monday morning those are two different weeks. */
+  /* "Your words": switched off for now. The reflection has no matching field on the personal weekly page, so
+   * nothing is read from or saved to the old sheet any more. The boxes and the old handler stay in the page,
+   * hidden, so turning this on later is a one-line change. */
   function renderReflect(){
-    const r=(pipeData&&pipeData.reflection)||null;
-    if(!r){ $('pipeWell').value=''; $('pipeFocus').value='';
-      $('pipeReflectWhen').textContent=''; return; }
-    /* Never overwrite a box somebody is typing in. renderPipeline runs after every save and
-     * every panel draw, and wiping a half-written sentence is the one thing that would stop
-     * people using this. */
-    if(document.activeElement!==$('pipeWell'))$('pipeWell').value=r.wentWell||'';
-    if(document.activeElement!==$('pipeFocus'))$('pipeFocus').value=r.keyFocus||'';
-    $('pipeReflectWhen').textContent=r.error?('Saved here, but Notion refused it: '+r.error)
-      :(r.savedAt?('Saved '+r.savedAt+(r.synced?' and it is on your journal.'
-        :'. It reaches your journal in a few minutes.')):'');
+    $('pipeReflectPaused').classList.remove('hidden'); $('pipeReflectBoxes').classList.add('hidden');
   }
   /* Follow up / Status, DIRECT to the person's own Notion (no mirror, no push job, no sheet). The list is read
    * live from their own Opportunities Tracker; a Status tap writes one page there. "Saved \u2713" only appears
