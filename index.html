@@ -60,7 +60,8 @@
     .action-needed-list{display:grid;gap:14px;margin-top:28px}.action-needed-item{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:18px;align-items:center;padding:20px 22px;border:1px solid #334563;border-radius:22px;background:rgba(6,15,28,.52)}
     .action-icon{display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:rgba(245,193,79,.10);color:#f5c35d;font-size:24px}.action-copy b{display:block;color:#f8f9fd;font-size:20px;line-height:1.25}.action-meta{margin-top:8px;color:#aeb9cf;font-size:14px}.action-deadline{margin-left:8px;color:#f3a8d0;font-weight:800}.action-needed-item .btn{min-width:150px;padding:13px 20px}.action-needed-foot{margin:22px 0 0;color:#98a6bf;font-size:13px}
     @media(max-width:560px){#actionNeededCard.action-needed{padding:26px 18px 22px;border-radius:24px}#actionNeededCard.action-needed:before{inset:14px auto 14px 0;width:5px}.action-needed-head{gap:10px}.action-needed-head h2{font-size:28px}.action-count{padding:8px 12px;font-size:12px}.action-needed-item{grid-template-columns:46px minmax(0,1fr);gap:12px;padding:16px}.action-icon{width:46px;height:46px;border-radius:13px;font-size:20px}.action-copy b{font-size:17px}.action-meta{font-size:13px;line-height:1.5}.action-needed-item .btn{grid-column:1/-1;width:100%;min-width:0}.action-needed-list{margin-top:22px}}
-    .req{color:#ff8a8a;font-weight:700}.oppres{padding:12px 14px;border-radius:16px;border:2px solid;line-height:1.5}.oppres b{display:block;font-size:17px}.oppres.new{background:#12352b;border-color:#45d7a3;color:#eafff6}.oppres.new b{color:#45d7a3}.oppres.open{background:#3a1c24;border-color:#ff6b6b;color:#ffecec}.oppres.open b{color:#ff8a8a}.oppres.old{background:#13294a;border-color:#7ab2ff;color:#eaf3ff}.oppres.old b{color:#8dbcff}.oppres.bad{background:#3a2e12;border-color:#f5c35d;color:#fff6dc}.oppres.bad b{color:#f5c35d}
+    .req{color:#ff8a8a;font-weight:700}.oppres{padding:12px 14px;border-radius:16px;border:2px solid;line-height:1.5}.oppres b{display:block;font-size:17px}
+.fu-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 6px}.fu-choice{min-height:60px;padding:10px 12px;border-radius:16px;border:2px solid var(--line);background:#0b1628;color:var(--ink);font:inherit;font-size:16px;font-weight:800;line-height:1.25;cursor:pointer}.fu-choice[aria-pressed="true"]{border-color:var(--gold);background:#2a2412;color:#fff6dc}.fu-choice.wide{grid-column:1/-1}.fu-save{min-height:56px;font-size:17px}.fu-card{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid rgba(42,59,86,.6)}.fu-card:first-child{border-top:0}.fu-card .t{flex:1;min-width:0}.fu-card .t b{display:block;font-size:15px;line-height:1.35;overflow-wrap:anywhere}.fu-card .t small{display:block;color:var(--muted);font-size:12.5px;line-height:1.45;margin-top:2px}.fu-card .fu-status{flex:0 0 auto;min-width:92px;min-height:48px;font-size:15px}.fu-card.fu-late .t small.fu-due{color:#ffb0b0}.oppres.new{background:#12352b;border-color:#45d7a3;color:#eafff6}.oppres.new b{color:#45d7a3}.oppres.open{background:#3a1c24;border-color:#ff6b6b;color:#ffecec}.oppres.open b{color:#ff8a8a}.oppres.old{background:#13294a;border-color:#7ab2ff;color:#eaf3ff}.oppres.old b{color:#8dbcff}.oppres.bad{background:#3a2e12;border-color:#f5c35d;color:#fff6dc}.oppres.bad b{color:#f5c35d}
     .message{margin-top:14px;padding:12px 14px;border-radius:13px;display:none;line-height:1.5}.message.error{display:block;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);color:#ffb0b0}.message.success{display:block;background:rgba(69,215,163,.12);border:1px solid rgba(69,215,163,.35);color:#91edcd}
 .message.info{display:block;background:rgba(141,178,255,.12);border:1px solid rgba(141,178,255,.32);color:#bcd2ff}
     #ipaMsg{display:block;min-height:48px;visibility:hidden}#ipaMsg.info,#ipaMsg.error,#ipaMsg.success{visibility:visible}
@@ -554,33 +555,26 @@ body.bg-modal-open{ overflow: hidden; }
       <p class="muted small" id="pipeReflectWhen"></p>
     </section>
 
-    <!-- follow up: the list of what is still open, then the form for the one you picked -->
+    <!-- follow up: LIVE list from the person's own Notion, then the Status chooser for the one picked -->
     <section class="card hidden" id="pipeOppsCard">
       <h1 style="font-size:28px;margin-top:0">Follow up</h1>
-      <p class="muted small" id="pipeOppsNote">The ones needing attention first.</p>
-      <div id="pipeOppFilterWrap" class="hidden">
-        <div class="row" style="margin-top:12px" id="pipeOppFilters" role="group" aria-label="Filter your open leads">
-          <button class="srcchip" type="button" aria-pressed="true" data-ofilter="all">All</button>
-          <button class="srcchip" type="button" aria-pressed="false" data-ofilter="action">Needs action</button>
-          <button class="srcchip" type="button" aria-pressed="false" data-ofilter="new">Not contacted</button>
-        </div>
-        <div class="field" style="margin-top:10px"><label for="pipeOppFind">Find</label><input id="pipeOppFind" type="search" autocomplete="off" placeholder="Name or where you met them"></div>
-      </div>
-      <div id="pipeOpps" style="margin-top:12px"></div>
+      <p class="muted small" id="pipeOppsNote">Your open clients, oldest first. Tap Status to update one.</p>
+      <div id="fuListSlot" role="status" aria-live="polite" style="min-height:84px;margin-top:10px"></div>
+      <div id="pipeOpps" style="margin-top:6px"></div>
     </section>
 
     <section class="card hidden" id="pipeFuCard">
-      <div class="row"><div class="eyebrow">Follow up</div><div class="spacer"></div><button class="btn ghost mini" id="pipeFuBack" type="button">&larr; All leads</button></div>
+      <div class="row"><div class="eyebrow">Status</div><div class="spacer"></div><button class="btn ghost mini" id="pipeFuBack" type="button">&larr; All clients</button></div>
       <h1 style="font-size:28px" id="pipeFuWho"></h1>
       <p class="muted small" id="pipeFuMeta"></p>
-      <div class="field"><label for="pipeFuDate">When did you follow up?</label><input id="pipeFuDate" type="date"></div>
-      <div class="field"><label id="pipeFuOutLabel">What happened?</label><div class="row" id="pipeFuOutcomes" role="group" aria-labelledby="pipeFuOutLabel"></div></div>
+      <div class="fu-choices" id="pipeFuOutcomes" role="group" aria-label="Choose the status"></div>
+      <div class="field" id="pipeFuDateWrap"><label for="pipeFuDate" id="pipeFuDateLabel">When did you follow up?</label><input id="pipeFuDate" type="date"></div>
       <div class="field hidden" id="pipeFuNextWrap"><label for="pipeFuNext">Next action date <span class="muted small">(optional)</span></label><input id="pipeFuNext" type="date"></div>
-      <div class="field hidden" id="pipeFuPvWrap"><label for="pipeFuPv">PV signed</label><input id="pipeFuPv" type="number" inputmode="decimal" min="1" step="1" placeholder="1200"></div>
+      <div class="field hidden" id="pipeFuPvWrap"><label for="pipeFuPv">PV signed <span class="req">*</span></label><input id="pipeFuPv" type="number" inputmode="decimal" min="1" step="1" placeholder="200"></div>
       <div class="field hidden" id="pipeFuSignWrap"><label for="pipeFuSign">Sign-up date</label><input id="pipeFuSign" type="date"></div>
-      <div class="field"><label for="pipeFuNotes">Notes <span class="muted small">(optional)</span></label><textarea id="pipeFuNotes" rows="3" placeholder="What they said"></textarea></div>
-      <div class="row" style="margin-top:16px"><button class="btn primary block" id="pipeFuSave" type="button">Save follow-up</button></div>
-      <div class="message" id="pipeFuMsg"></div>
+      <div class="field hidden" id="pipeFuCourseWrap"><label id="pipeFuCourseLabel">Course <span class="muted small">(optional)</span></label><div class="row" id="pipeFuCourses" role="group" aria-labelledby="pipeFuCourseLabel"></div></div>
+      <div class="row" style="margin-top:16px"><button class="btn primary block fu-save" id="pipeFuSave" type="button" disabled>Choose a status</button></div>
+      <div id="fuSlot" role="status" aria-live="polite" style="min-height:112px;margin-top:14px"></div>
     </section>
   </section>
 
@@ -1002,8 +996,8 @@ body.bg-modal-open{ overflow: hidden; }
     });
   }
   let ownPipelineTab=false, ownPreviewTab=false, pipeData=null;
-  let pipeTab='opp', pipeOpp=null, pipeOutcome='';
-  let oppFilter='all', oppFind='';
+  let pipeTab='opp', pipeOpp=null, pipeOutcome='', pipeCourse='';
+  let fuData=null, fuLoading=false, fuError='', fuBusy=false, fuSeq=0;
   /* The panels are mutually exclusive, so exactly one function decides which is up.
    * Before this, each switch hid its own list of the others and the lists disagreed - opening
    * Resources and then Team showed both at once. Add a panel here and nowhere else. */
@@ -1109,7 +1103,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-13.7';
+  const BUILD='2026-11-13.8';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1970,8 +1964,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const have=pipeData?String((pipeData.preview&&pipeData.preview.id)||''):null;
     if(!pipeData||have!==want){
       pipeData=null; pipeOpp=null; pipeTab='opp';
-      // A filter left over from the last person would hide the new one's leads with no clue why.
-      oppFilter='all'; oppFind=''; $('pipeOppFind').value='';
+      fuData=null; fuError=''; $('fuListSlot').innerHTML=''; $('fuSlot').innerHTML='';
       const note=$('pipePreviewNote');
       note.classList.remove('hidden'); note.textContent='Loading\u2026';
       try{ pipeData=want?await run('getPipelineAs',token,want):await run('getPipeline',token); }
@@ -1986,7 +1979,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const note=$('pipePreviewNote');
     note.textContent=pv?('Read-only \u2014 this is '+pv.name+'\u2019s pipeline.'):'';
     note.classList.toggle('hidden',!pv);
-    setReadOnlyPreview_('pipeline','#pipeFuDate,#pipeFuNext,#pipeFuNotes,#pipeFuPv,#pipeFuSign,#pipeFuSave,[data-out],#pipeWell,#pipeFocus,#pipeReflectSave');
+    setReadOnlyPreview_('pipeline','#pipeFuDate,#pipeFuNext,#pipeFuPv,#pipeFuSign,#pipeFuSave,[data-out],[data-fucourse],#pipeWell,#pipeFocus,#pipeReflectSave');
   }
   /* One function decides which of the four pipeline cards is up, for the same reason showPanel
    * does it for the panels: four hand-written lists of "hide the others" is how they end up
@@ -2003,7 +1996,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const who=pipeWho();
     if(pipeTab==='opp')return 'Checked against your own Client Database, then written to your own Notion.';
     if(pipeTab==='follow')return who?(who+'\u2019s Opportunities Tracker in Notion.')
-      :'Your Opportunities Tracker in Notion.';
+      :'Read live from your own Opportunities Tracker. Saved straight to your own Notion.';
     return who?(who+'\u2019s Sales Journal in Notion.')
       :'Your Sales Journal in Notion, filled in for you.';
   }
@@ -2018,12 +2011,13 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     [...document.querySelectorAll('[data-ptab]')].forEach(b=>{
       b.setAttribute('aria-pressed',b.dataset.ptab===pipeTab?'true':'false'); });
     $('pipeTabNote').textContent=pipeTabNote();
+    if(pipeTab==='follow'&&!pv&&!fuData&&!fuLoading)loadFollow();
   }
   function renderPipeline(){
     const d=pipeData||{};
     const label=[...document.querySelectorAll('[data-ptab="follow"]')][0];
-    const n=(d.opps||[]).length;
-    if(label)label.textContent=n?('Follow up ('+n+')'):'Follow up';
+    const n=fuData?fuData.items.length:0;
+    if(label)label.textContent=n?('Follow up ('+n+(fuData.more?'+':'')+')'):'Follow up';
     renderOpps();
     renderWeek();
     renderReflect();
@@ -2068,122 +2062,116 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       :(r.savedAt?('Saved '+r.savedAt+(r.synced?' and it is on your journal.'
         :'. It reaches your journal in a few minutes.')):'');
   }
-  /* The list is read from the Opportunities mirror the cron keeps, so it can be a few minutes
-   * behind. A follow-up already waiting shows on its row rather than being hidden, so nobody
-   * files it twice while the cron catches up. */
-  /* Which open leads the chips and the find box let through.
-   *
-   * `today` comes from the server with the rest of the payload rather than from the phone, so a
-   * device with the wrong date cannot change what counts as needing action. */
-  function oppMatches(o,today){
-    if(oppFilter==='action'&&!(o.next&&today&&o.next<=today))return false;
-    if(oppFilter==='new'&&o.last)return false;
-    const q=oppFind.trim().toLowerCase();
-    if(!q)return true;
-    return String(o.client||'').toLowerCase().indexOf(q)>=0
-      ||String(o.source||'').toLowerCase().indexOf(q)>=0;
+  /* Follow up / Status, DIRECT to the person's own Notion (no mirror, no push job, no sheet). The list is read
+   * live from their own Opportunities Tracker; a Status tap writes one page there. "Saved \u2713" only appears
+   * after the server confirms the Notion write; otherwise "Not saved" + the plain reason + Retry. Results live
+   * in reserved slots so no button moves. */
+  const FU_CHOICES=[['','Still open'],['Signed','Signed'],['No Response','No Response'],['Reactivate later','Reactivate later'],['Not interested','Not interested'],['Do not contact','Do not contact']];
+  function fuLabel(c){ const x=FU_CHOICES.filter(a=>a[0]===c)[0]; return x?x[1]:'Still open'; }
+  function fuDay(d){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d||'')); if(!m)return String(d||''); return Number(m[3])+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(m[2])-1]; }
+  function fuSlotShow(id,kind,title,text,retry){
+    $(id).innerHTML='<div class="oppres '+kind+'"><b>'+esc(title)+'</b>'+esc(text)+(retry?'<div style="margin-top:10px"><button class="btn secondary block" type="button" id="'+id+'Retry" style="min-height:52px">Retry</button></div>':'')+'</div>';
+    if(retry)$(id+'Retry').onclick=retry;
+  }
+  async function loadFollow(){
+    if(viewAs||(pipeData&&pipeData.preview)){ fuData=null; renderOpps(); return; }
+    const seq=++fuSeq; fuLoading=true; fuError=''; renderOpps();
+    try{ const r=await run('getMyOpenOpportunities',token); if(seq!==fuSeq)return; fuData=r||{items:[]}; if(!Array.isArray(fuData.items))fuData.items=[]; }
+    catch(e){ if(seq!==fuSeq)return; fuData=null; fuError=String(e&&e.message||'Could not load your open clients. Check your connection and tap Retry.'); }
+    finally{ if(seq===fuSeq)fuLoading=false; }
+    renderPipeline();
   }
   function renderOpps(){
-    const d=pipeData||{};
-    const os=d.opps||[];
-    const note=$('pipeOppsNote');
-    $('pipeOppFilterWrap').classList.toggle('hidden',!os.length);
-    [...document.querySelectorAll('[data-ofilter]')].forEach(b=>{
-      b.setAttribute('aria-pressed',b.dataset.ofilter===oppFilter?'true':'false'); });
-    if(!os.length){
-      const who=pipeWho();
-      note.textContent=d.concluded?('Nothing open. '+d.concluded+' closed off so far.')
-        :(who?(who+' has nothing open yet.')
-          :'Nothing open yet. Add a client under My Client and it will show here within a few minutes.');
-      $('pipeOpps').innerHTML='';
-      return;
-    }
-    const shown=os.filter(o=>oppMatches(o,d.today||''));
-    const closed=d.concluded?(' '+d.concluded+' closed off so far.'):'';
-    if(!shown.length){
-      /* Said differently from "nothing open", which is the opposite problem: here they have leads
-       * and the filter is hiding them, so the way out has to be on screen. */
-      const whoF=pipeWho();
-      note.textContent='None of '+(whoF?(whoF+'\u2019s'):'your')+' '+os.length
-        +' open leads match. Clear the box or tap All.';
-      $('pipeOpps').innerHTML='';
-      return;
-    }
-    note.textContent=(shown.length===os.length
-      ? 'The ones needing attention first.'
-      : 'Showing '+shown.length+' of '+os.length+'.')+closed;
-    $('pipeOpps').innerHTML=shown.map(o=>{
+    const note=$('pipeOppsNote'), box=$('pipeOpps');
+    if(viewAs||(pipeData&&pipeData.preview)){ note.textContent='Read-only preview. Open clients are only shown to their owner.'; box.innerHTML=''; return; }
+    if(fuLoading){ note.textContent='Loading your open clients\u2026'; box.innerHTML=''; return; }
+    if(fuError){ note.textContent=''; box.innerHTML=''; fuSlotShow('fuListSlot','bad','Not loaded',fuError,()=>{ $('fuListSlot').innerHTML=''; fuData=null; loadFollow(); }); return; }
+    if(!fuData){ note.textContent=''; box.innerHTML=''; return; }
+    const os=fuData.items;
+    if(!os.length){ note.textContent='No open opportunities. Add a client under My Client.'; box.innerHTML=''; return; }
+    note.textContent=os.length+' open'+(fuData.more?' (showing the first '+os.length+')':'')+', oldest first. Tap Status to update one.';
+    const today=fuData.today||'';
+    box.innerHTML=os.map(o=>{
       const bits=[];
-      if(o.phone)bits.push(esc(o.phone));
-      if(o.next)bits.push('next '+esc(o.next));
-      else if(o.last)bits.push('last spoke '+esc(o.last));
-      else if(o.lead)bits.push('met '+esc(o.lead));
-      const tag=o.bucket||o.status;
-      const act=o.pending
-        ? '<span class="muted small">saving\u2026</span>'
-        : '<button class="btn secondary mini" data-fu="'+esc(o.id)+'">Follow up</button>';
-      return '<div class="step"><div class="t"><b>'+esc(o.client)+'</b><small>'+bits.join(' \u00b7 ')
-        +'</small>'+(tag?'<small>'+esc(tag)+'</small>':'')+'</div><div class="act">'+act+'</div></div>';
+      if(o.source)bits.push(esc(o.source));
+      if(o.lead)bits.push('lead '+esc(fuDay(o.lead))+(o.days!=null?' ('+esc(o.days)+'d)':''));
+      const bits2=[];
+      bits2.push(o.last?'last follow-up '+esc(fuDay(o.last)):'not followed up yet');
+      const late=!!(o.next&&today&&o.next<=today);
+      if(o.next)bits2.push('next '+esc(fuDay(o.next)));
+      return '<div class="fu-card'+(late?' fu-late':'')+'"><div class="t"><b>'+esc(o.client)+'</b><small>'+bits.join(' \u00b7 ')+'</small><small class="fu-due">'+bits2.join(' \u00b7 ')+'</small></div>'
+        +'<button class="btn secondary fu-status" type="button" data-fu="'+esc(o.id)+'">Status</button></div>';
     }).join('');
     [...document.querySelectorAll('[data-fu]')].forEach(b=>{ b.onclick=()=>openFollowUp(b.dataset.fu); });
   }
   function openFollowUp(id){
-    pipeOpp=((pipeData&&pipeData.opps)||[]).filter(o=>o.id===id)[0]||null;
+    pipeOpp=((fuData&&fuData.items)||[]).filter(o=>o.id===id)[0]||null;
     if(!pipeOpp)return;
-    pipeOutcome='';
-    msg($('pipeFuMsg'),'','');
+    pipeOutcome=null; pipeCourse='';
+    $('fuSlot').innerHTML=''; $('fuListSlot').innerHTML='';
     $('pipeFuWho').textContent=pipeOpp.client;
     const bits=[];
-    if(pipeOpp.phone)bits.push(pipeOpp.phone);
-    if(pipeOpp.lead)bits.push('met '+pipeOpp.lead);
-    if(pipeOpp.last)bits.push('last spoke '+pipeOpp.last);
+    if(pipeOpp.source)bits.push(pipeOpp.source);
+    if(pipeOpp.lead)bits.push('lead '+fuDay(pipeOpp.lead));
+    if(pipeOpp.last)bits.push('last follow-up '+fuDay(pipeOpp.last));
     $('pipeFuMeta').textContent=bits.join(' \u00b7 ');
-    const t=(pipeData&&pipeData.today)||'';
+    const t=(fuData&&fuData.today)||'';
     $('pipeFuDate').value=t; $('pipeFuDate').max=t; $('pipeFuDate').min=pipeOpp.lead||'';
-    $('pipeFuNext').value=''; $('pipeFuPv').value=''; $('pipeFuSign').value=''; $('pipeFuNotes').value='';
-    $('pipeFuSign').max=t;
+    $('pipeFuNext').value=''; $('pipeFuNext').min=t; $('pipeFuPv').value=''; $('pipeFuSign').value=t; $('pipeFuSign').max=t; $('pipeFuSign').min=pipeOpp.lead||'';
     renderOutcomes();
     pipeShow();
     window.scrollTo(0,0);
   }
-  /* "Still open" is the first chip and sends no outcome at all - most follow-ups are a
-   * conversation that happened and left the lead alive. Picking a real outcome closes it, which
-   * is why the next-action field disappears. */
+  /* Six big choices. Nothing is pre-selected, so a stray tap on Save cannot record the wrong status. */
   function renderOutcomes(){
-    const os=['Still open'].concat(((pipeData&&pipeData.outcomes)||[]));
-    $('pipeFuOutcomes').innerHTML=os.map(o=>{
-      const v=o==='Still open'?'':o;
-      return '<button class="srcchip" type="button" aria-pressed="'+(v===pipeOutcome?'true':'false')+'" data-out="'+esc(v)+'">'+esc(o)+'</button>';
-    }).join('');
-    [...document.querySelectorAll('[data-out]')].forEach(b=>{
-      b.onclick=()=>{ pipeOutcome=b.dataset.out; renderOutcomes(); }; });
-    const signed=pipeOutcome==='Signed';
-    $('pipeFuNextWrap').classList.toggle('hidden',!!pipeOutcome);
+    $('pipeFuOutcomes').innerHTML=FU_CHOICES.map((c,i)=>'<button class="fu-choice'+(i===0?' wide':'')+'" type="button" aria-pressed="'+(pipeOutcome===c[0]?'true':'false')+'" data-out="'+esc(c[0])+'">'+esc(c[1])+(i===0?' \u2014 log a follow-up':'')+'</button>').join('');
+    [...document.querySelectorAll('[data-out]')].forEach(b=>{ b.onclick=()=>{ if(fuBusy)return; pipeOutcome=b.dataset.out; $('fuSlot').innerHTML=''; renderOutcomes(); }; });
+    const chosen=pipeOutcome!==null, signed=pipeOutcome==='Signed', open=pipeOutcome==='';
+    $('pipeFuNextWrap').classList.toggle('hidden',!open);
     $('pipeFuPvWrap').classList.toggle('hidden',!signed);
     $('pipeFuSignWrap').classList.toggle('hidden',!signed);
-    if(signed&&!$('pipeFuSign').value)$('pipeFuSign').value=$('pipeFuDate').value;
-    $('pipeFuSave').textContent=pipeOutcome?('Save \u2014 '+pipeOutcome):'Save follow-up';
+    const courses=(fuData&&fuData.courses)||[];
+    $('pipeFuCourseWrap').classList.toggle('hidden',!(signed&&courses.length));
+    $('pipeFuCourses').innerHTML=courses.map(c=>'<button class="srcchip" type="button" aria-pressed="'+(c===pipeCourse?'true':'false')+'" data-fucourse="'+esc(c)+'">'+esc(c)+'</button>').join('');
+    [...document.querySelectorAll('[data-fucourse]')].forEach(b=>{ b.onclick=()=>{ if(fuBusy)return; pipeCourse=(pipeCourse===b.dataset.fucourse)?'':b.dataset.fucourse; renderOutcomes(); }; });
+    $('pipeFuDateLabel').textContent=signed?'Date you spoke to them':'When did you follow up?';
+    $('pipeFuSave').disabled=!chosen||fuBusy;
+    $('pipeFuSave').textContent=chosen?('Save \u2014 '+fuLabel(pipeOutcome)):'Choose a status';
   }
   [...document.querySelectorAll('[data-ptab]')].forEach(b=>{
     b.onclick=()=>{ pipeTab=b.dataset.ptab; pipeOpp=null; pipeShow(); window.scrollTo(0,0); }; });
-  $('pipeFuBack').onclick=()=>{ pipeOpp=null; pipeShow(); window.scrollTo(0,0); };
-  $('pipeFuSave').onclick=async()=>{
-    if(viewAs)return;
-    const btn=$('pipeFuSave');
-    msg($('pipeFuMsg'),'','');
-    if(!pipeOpp)return;
-    const who=pipeOpp.client, chosen=pipeOutcome;
-    btn.disabled=true;
+  $('pipeFuBack').onclick=()=>{ if(fuBusy)return; pipeOpp=null; pipeShow(); window.scrollTo(0,0); };
+  async function saveStatus(){
+    if(viewAs||fuBusy||!pipeOpp||pipeOutcome===null)return;
+    const opp=pipeOpp, chosen=pipeOutcome;
+    if(chosen==='Signed'&&!(Number($('pipeFuPv').value)>0)){ fuSlotShow('fuSlot','bad','Not saved','Type the PV for the sign-up.'); return; }
+    if(!$('pipeFuDate').value){ fuSlotShow('fuSlot','bad','Not saved','Pick the date you followed up.'); return; }
+    fuBusy=true; renderOutcomes(); $('fuSlot').innerHTML='<p class="muted small">Saving to your Notion\u2026</p>';
     try{
-      pipeData=await run('logFollowUp',token,{ oppId:pipeOpp.id, date:$('pipeFuDate').value,
-        outcome:pipeOutcome, next:$('pipeFuNext').value, notes:$('pipeFuNotes').value,
-        pv:$('pipeFuPv').value, signUp:$('pipeFuSign').value });
-      pipeOpp=null;
-      renderPipeline();
-      msg($('pipeFuMsg'),'Saved for '+who+(chosen?(' \u2014 '+chosen):'')+'.','success');
-    }catch(e){ msg($('pipeFuMsg'),e.message,'error'); }
-    finally{ btn.disabled=false; }
-  };
+      const r=await run('setOpportunityStatus',token,{ oppId:opp.id, outcome:chosen, date:$('pipeFuDate').value,
+        next:chosen===''?$('pipeFuNext').value:'', pv:chosen==='Signed'?$('pipeFuPv').value:'',
+        signUp:chosen==='Signed'?$('pipeFuSign').value:'', course:chosen==='Signed'?pipeCourse:'' });
+      if(r&&r.saved===true&&r.status==='ok'){
+        // Only now, after Notion confirmed: update the list and go back to it.
+        const items=fuData.items;
+        if(chosen===''){ opp.last=$('pipeFuDate').value; opp.next=$('pipeFuNext').value||opp.next; }
+        else fuData.items=items.filter(o=>o.id!==opp.id);
+        pipeOpp=null; fuBusy=false; renderPipeline();
+        fuSlotShow('fuListSlot','new','Saved \u2713 '+opp.client,String(r.message||'').replace(/^Saved:\s*/,''));
+        window.scrollTo(0,0);
+        return;
+      }
+      if(r&&r.status==='closed'){
+        fuData.items=fuData.items.filter(o=>o.id!==opp.id); pipeOpp=null; fuBusy=false; renderPipeline();
+        fuSlotShow('fuListSlot','bad','Not saved',String(r.message||'That client is already closed.'));
+        return;
+      }
+      if(r&&r.status==='unchanged'){ fuSlotShow('fuSlot','old','Nothing changed',String(r.message||'Already logged for that day.')); }
+      else{ fuSlotShow('fuSlot','bad','Not saved',String((r&&r.message)||'No confirmation from the server.')+' Nothing was changed.',saveStatus); }
+    }catch(e){ fuSlotShow('fuSlot','bad','Not saved',String(e&&e.message||e),saveStatus); }
+    finally{ fuBusy=false; if(pipeOpp)renderOutcomes(); }
+  }
+  $('pipeFuSave').onclick=saveStatus;
 
   /* My Client (modelled on the Notion MY CLIENT form). The server (VPS, your own Notion only) decides; this
    * page only ever says Saved after the server confirms saved:true. A NEW client writes only the client row:
@@ -2268,11 +2256,6 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     }catch(e){ if(/not switched on/i.test(String(e&&e.message||e)))oppShow('bad','Not saved yet',OPP_NOT_ON_); else oppShow('bad','Not saved',String(e&&e.message||e)+' Tap My Client to try again.'); }
     finally{ oppBusy=false; $('oppSubmit').disabled=false; oppTallyLoad(); }
   };
-  [...document.querySelectorAll('[data-ofilter]')].forEach(b=>{
-    b.onclick=()=>{ oppFilter=b.dataset.ofilter; renderOpps(); }; });
-  /* `input`, not `change`: the list narrows as they type. renderOpps never touches the box's own
-   * value, so this cannot fight the person typing in it. */
-  $('pipeOppFind').oninput=()=>{ oppFind=$('pipeOppFind').value; renderOpps(); };
   $('pipeReflectSave').onclick=async()=>{
     if(viewAs)return;
     const btn=$('pipeReflectSave');
