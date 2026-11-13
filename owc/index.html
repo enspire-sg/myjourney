@@ -70,6 +70,183 @@
     .preview-step:disabled{opacity:.4;cursor:default}
     /* Paging controls must not move: a page tall enough to scroll would otherwise
        narrow the viewport by the scrollbar width and shift everything anchored right. */
+        /* Bells EasyGuide (copied from My Journey between the markers; everything outside them is OWC's own). */
+    .easyguide-view{width:min(980px,100%);margin:auto;padding:22px 14px 70px}.easyguide-view[hidden]{display:none}
+    .easyguide-card{margin-top:16px}.easyguide-card .event-actions{margin-top:12px}.easyguide-card .btn{width:100%}
+    #owcEasyGuideView #bells .btn.ghost{border:1px solid var(--bg-line);min-width:84px;white-space:nowrap}
+    /* EASYGUIDE_CSS_BEGIN */
+    /* The back button now sits on the light Bells sheet, where My Journey's ghost button -
+       grey text on a dark border - is nearly invisible. Give it the guide's own palette. */
+    #bells .bells-sheet .btn.ghost{ color: var(--bg-navy); border-color: var(--bg-line); background: rgba(255,255,255,.72); }
+    #bells .bells-sheet .btn.ghost:hover{ background: #fff; }
+    /* The standalone guide is 980px wide; My Journey's shell is 760, so the embedded copy was a
+       narrower version of the same page. While the Bells view is open the shell widens to match it.
+       Kept in CSS with :has() rather than a JS class: several paths hide #bells, and a toggle only
+       one of them clears is a width left stuck on. Browsers without :has() keep the 760px shell,
+       which is simply what it looked like before. */
+    .shell:has(#bells:not(.hidden)){ width: min(100%, 980px); }   /* .brand stays narrow */
+    #bells .bells-sheet{background:linear-gradient(155deg,#eef4fa 0%,#f8fafc 58%,#edf3f8 100%);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin-top:12px;color:#142033;font:16px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    @media(max-width:560px){#bells .bells-sheet{padding:14px 11px;border-radius:14px}}
+    #bells{--bg-navy: #143a63;
+      --bg-navy-2: #0d2948;
+      --bg-blue: #2f6fa7;
+      --bg-gold: #f4c542;
+      --bg-green: #e6f2df;
+      --bg-ink: #142033;
+      --bg-muted: #64748b;
+      --bg-line: #d9e2ec;
+      --bg-paper: #ffffff;
+      --bg-page: #f3f6fa;
+      --bg-shadow: 0 18px 45px rgba(15, 41, 72, .12);}
+
+#bells .bg-shell{ width: min(980px, 100%); margin: 0 auto; padding: 24px 16px 48px; }
+#bells .bg-brand{
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 18px; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+    }
+#bells .bg-brand-mark{ display: flex; align-items: center; gap: 12px; }
+#bells .bg-logo{
+      display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px;
+      background: var(--bg-navy); color: white; font-weight: 900; letter-spacing: -.04em;
+      box-shadow: 0 8px 20px rgba(20, 58, 99, .23);
+    }
+#bells .bg-brand h1{ margin: 0; font-size: clamp(1.25rem, 3vw, 1.75rem); letter-spacing: -.03em; line-height: 1.45; }
+#bells .bg-panel{
+      background: rgba(255,255,255,.94); border: 1px solid rgba(217,226,236,.9);
+      border-radius: 22px; box-shadow: var(--bg-shadow); overflow: hidden;
+    }
+#bells .bg-controls{
+      display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px;
+      padding: 20px; background: var(--bg-navy);
+    }
+#bells .bg-category-filters{ grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px; min-height: 44px; align-items: center; }
+#bells .bg-filter-chip{ min-height: 40px; padding: 7px 13px; border: 1px solid #9fb1c7; border-radius: 999px; background: #fff; color: var(--bg-navy-2); font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
+#bells .bg-filter-chip[aria-pressed="true"]{ background: #0b1b2e; border-color: #0b1b2e; color: #fff; }
+#bells .bg-filter-chip:focus-visible{ outline: 3px solid rgba(244,197,66,.75); outline-offset: 2px; }
+@media(max-width:560px){#bells .bg-filter-chip{min-height:44px}}
+#bells .bg-field{ min-width: 0; }
+#bells label{ display: block; margin: 0 0 7px; color: #dbeafe; font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+#bells select{
+      width: 100%; min-height: 48px; border: 1px solid rgba(255,255,255,.25); border-radius: 12px;
+      background: white; color: var(--bg-ink); padding: 11px 40px 11px 13px; font: inherit; font-weight: 700;
+      outline: none;
+    }
+#bells select:focus{ border-color: var(--bg-gold); box-shadow: 0 0 0 3px rgba(244,197,66,.28); }
+#bells .bg-helper{ color: #b8cce0; font-size: .76rem; margin-top: 6px; }
+#bells .bg-result{ padding: 22px; }
+#bells .bg-tiktok-guide{ margin: 0 0 18px; padding: 18px; border: 2px solid #d7a928; border-radius: 16px; background: #fff9df; color: #142033; }
+#bells .bg-tiktok-guide h2{ margin: 0 0 8px; font-size: 1.35rem; color: var(--bg-navy); }
+#bells .bg-tiktok-guide ol{ margin: 12px 0; padding-left: 22px; }
+#bells .bg-tiktok-guide li{ margin: 9px 0; }
+#bells .bg-tiktok-guide p{ margin: 9px 0 0; }
+#bells .bg-tiktok-warning{ margin: 0 0 18px; padding: 14px 16px; border: 2px solid #c74435; border-radius: 14px; background: #fff0ed; color: #6d1b14; line-height: 1.45; }
+#bells .bg-tiktok-warning a{ color: inherit; font-weight: 900; }
+.learner-tiktok-confirm{ padding: 14px; border: 1px solid rgba(245,193,79,.55); border-radius: 14px; background: rgba(245,193,79,.09); }
+.learner-tiktok-confirm label{ display: flex; align-items: flex-start; gap: 10px; font-weight: 700; text-transform: none; letter-spacing: 0; line-height: 1.45; }
+.learner-tiktok-confirm input{ width: auto; margin-top: 3px; flex: 0 0 auto; }
+#bells .bg-result-head{ display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+#bells .bg-eyebrow{ color: var(--bg-blue); font-size: .75rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+#bells .bg-course-heading{ display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 5px 0 7px; }
+#bells #bgCourseName{ margin: 0; font-size: clamp(1.25rem, 3vw, 1.85rem); line-height: 1.18; letter-spacing: -.035em; }
+#bells .bg-tech-tag{ display: inline-block; border-radius: 8px; background: #c74435; color: #fff; padding: 3px 8px; font-size: 12px; line-height: 1.35; font-weight: 900; }
+#bells .bg-tags{ display: flex; flex-wrap: wrap; gap: 7px; }
+#bells .bg-tag{ border-radius: 999px; background: #edf3f8; color: var(--bg-navy); padding: 5px 9px; font-size: .76rem; font-weight: 800; }
+#bells .bg-tag.bg-online{ background: #e8f6ed; color: #22623a; }
+#bells .bg-actions{ margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#bells .bg-tms-links{ display: flex; flex-wrap: wrap; gap: 8px; }
+#bells .bg-brochure-btn{
+      border: 0; border-radius: 11px; background: var(--bg-navy); color: white;
+      padding: 10px 14px; font: inherit; font-size: .84rem; font-weight: 850; cursor: pointer;
+    }
+#bells .bg-brochure-btn:hover{ background: var(--bg-blue); }
+#bells .bg-brochure-btn:focus-visible{ outline: 3px solid rgba(244,197,66,.75); outline-offset: 2px; }
+#bells .bg-brochure-btn:disabled{ background: #cbd5e1; color: #64748b; cursor: not-allowed; }
+#bells .bg-tms-btn{
+      border-radius: 11px; background: var(--bg-gold); color: var(--bg-navy-2); text-decoration: none;
+      padding: 10px 14px; font-size: .84rem; font-weight: 850;
+    }
+#bells .bg-tms-btn:hover{ background: #ffd75f; }
+#bells .bg-tms-btn:focus-visible{ outline: 3px solid rgba(47,111,167,.55); outline-offset: 2px; }
+/* One size for every course - see the Easy Guide, which carries the same rule. */
+#bells .bg-price{
+      flex: 0 0 300px; width: 300px; min-height: 96px;
+      background: var(--bg-gold); color: var(--bg-navy-2); border-radius: 16px;
+      padding: 14px 16px; text-align: right;
+    }
+#bells .bg-result-head > div:first-child{ min-width: 0; }
+#bells .bg-price small{ display: block; font-size: .72rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+#bells .bg-price .bg-as-of{ margin-bottom: 5px; color: #5b6676; font-size: 12px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+#bells .bg-price strong{ display: block; margin-top: 2px; font-size: 1.85rem; line-height: 1.1; letter-spacing: -.04em; }
+#bells .bg-laptop-note{ margin-top: 10px; padding: 8px 10px; border: 1px solid #8fb3da; border-radius: 10px; background: #e8f1fb; color: #142033; font-size: 13px; line-height: 1.35; text-align: left; }
+#bells .bg-facts{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--bg-line); border-radius: 16px; overflow: hidden; }
+#bells .bg-fact{ min-width: 0; padding: 14px 15px; background: var(--bg-paper); border-right: 1px solid var(--bg-line); border-bottom: 1px solid var(--bg-line); }
+#bells .bg-fact:nth-child(3n){ border-right: 0; }
+#bells .bg-fact:nth-last-child(-n+3){ border-bottom: 0; }
+#bells .bg-fact .bg-k{ display: block; margin-bottom: 4px; color: var(--bg-muted); font-size: .71rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+#bells .bg-fact .bg-v{ display: block; overflow-wrap: anywhere; font-size: .95rem; font-weight: 800; }
+#bells .bg-fact.bg-location .bg-v{ color: #8a5a00; }
+#bells .bg-bundle-breakdown{
+      margin: 0 0 18px; border: 1px solid #d7b038; border-radius: 16px; overflow: hidden;
+      background: #fffaf0;
+    }
+#bells .bg-bundle-breakdown h3{
+      margin: 0; padding: 11px 14px; background: var(--bg-gold); color: var(--bg-navy-2);
+      font-size: .82rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase;
+    }
+#bells .bg-bundle-component, #bells .bg-bundle-total{
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+      padding: 11px 14px; border-top: 1px solid #eadfb9;
+    }
+#bells .bg-bundle-component:first-child{ border-top: 0; }
+#bells .bg-bundle-component span{ min-width: 0; font-size: .9rem; font-weight: 750; }
+#bells .bg-bundle-component strong, #bells .bg-bundle-total strong{ white-space: nowrap; color: var(--bg-navy-2); }
+#bells .bg-bundle-total{ background: #fff2bd; font-weight: 900; }
+#bells .bg-loading, #bells .bg-empty{ padding: 44px 24px; text-align: center; color: var(--bg-muted); }
+#bells .bg-empty{ display: none; }
+#bells .bg-error{ background: #fff1f1; color: #8b1d1d; border: 1px solid #f2c3c3; padding: 12px 14px; border-radius: 12px; }
+body.bg-modal-open{ overflow: hidden; }
+#bells .bg-modal{
+      display: none; position: fixed; inset: 0; z-index: 1000; padding: 18px;
+      background: rgba(7, 24, 43, .78); backdrop-filter: blur(4px);
+    }
+#bells .bg-modal.bg-open{ display: grid; place-items: center; }
+#bells .bg-modal-card{
+      width: min(1040px, 100%); height: min(92vh, 900px); overflow: hidden;
+      border-radius: 18px; background: white; box-shadow: 0 30px 80px rgba(0,0,0,.35);
+      display: grid; grid-template-rows: auto 1fr;
+    }
+#bells .bg-modal-bar{
+      display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+      background: var(--bg-navy); color: white;
+    }
+#bells .bg-modal-bar h3{ min-width: 0; flex: 1; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .96rem; }
+#bells .bg-modal-link{ color: white; font-size: .8rem; font-weight: 800; white-space: nowrap; }
+#bells .bg-modal-close{ border: 0; background: rgba(255,255,255,.14); color: white; border-radius: 9px; padding: 7px 10px; font: inherit; font-weight: 900; cursor: pointer; }
+#bells .bg-modal iframe{ width: 100%; height: 100%; border: 0; background: #eef2f6; }
+
+    @media (max-width: 720px) {
+#bells .bg-shell{ padding: 14px 10px 30px; }
+#bells .bg-brand{ padding: env(safe-area-inset-top, 0px) max(4px, env(safe-area-inset-right, 0px)) 0 max(4px, env(safe-area-inset-left, 0px)); }
+#bells .bg-controls{ grid-template-columns: 1fr; padding: 16px; }
+#bells .bg-result{ padding: 17px; }
+#bells .bg-result-head{ display: block; }
+#bells .bg-price{ margin-top: 14px; width: 100%; text-align: left; }
+#bells .bg-facts{ grid-template-columns: 1fr 1fr; }
+#bells .bg-fact:nth-child(3n){ border-right: 1px solid var(--bg-line); }
+#bells .bg-fact:nth-child(2n){ border-right: 0; }
+#bells .bg-fact:nth-last-child(-n+3){ border-bottom: 1px solid var(--bg-line); }
+#bells .bg-fact:nth-last-child(-n+2){ border-bottom: 0; }
+    }
+
+    @media (max-width: 430px) {
+#bells .bg-facts{ grid-template-columns: 1fr; }
+#bells .bg-fact, #bells .bg-fact:nth-child(2n), #bells .bg-fact:nth-child(3n){ border-right: 0; border-bottom: 1px solid var(--bg-line); }
+#bells .bg-fact:last-child{ border-bottom: 0; }
+#bells .bg-modal{ padding: 0; }
+#bells .bg-modal-card{ width: 100%; height: 100dvh; border-radius: 0; }
+#bells .bg-modal-bar{ padding-top: max(11px, env(safe-area-inset-top, 0px)); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+    }
+    /* EASYGUIDE_CSS_END */
     html{scrollbar-gutter:stable}
     /* Fallback for engines without scrollbar-gutter: always show the track, so the
        layout width is the same whether or not the page is tall enough to scroll. */
@@ -214,6 +391,7 @@
       <article class="event-card"><h2>Momentum Monday</h2><p id="postPassMomentumTime" class="event-time"></p><p id="postPassMomentumLocation" class="event-location"></p><p id="postPassMomentumNote" class="event-note"></p><p id="postPassAttire" class="event-note"></p><div class="event-actions"><a id="postPassMomentumMap" class="btn btn-soft" target="_blank" rel="noopener">Open location</a><a id="postPassMomentumCalendar" class="btn btn-primary" target="_blank" rel="noopener">Add to calendar</a></div></article>
       <article class="event-card"><h2>BELLS + Enspire Onboarding</h2><p id="postPassOnboardingTime" class="event-time"></p><p id="postPassOnboardingLocation" class="event-location"></p><p id="postPassOnboardingNote" class="event-note"></p><div class="event-actions"><a id="postPassOnboardingMap" class="btn btn-soft" target="_blank" rel="noopener">Open location</a><a id="postPassOnboardingCalendar" class="btn btn-primary" target="_blank" rel="noopener">Add to calendar</a></div></article>
     </div>
+    <section id="postPassEasyGuide" class="event-card easyguide-card" aria-labelledby="postPassEasyGuideTitle"><h2 id="postPassEasyGuideTitle">Bells EasyGuide</h2><p class="event-note">Browse every course, brochure and fee you will be introducing at booths. Same guide as in My Journey.</p><div class="event-actions"><button id="openEasyGuide" class="btn btn-primary" type="button">Open EasyGuide</button></div></section>
     <section id="postPassComplete" class="post-pass-complete" hidden><h2>Onboarding preparation submitted</h2><p id="postPassPreviewDone" class="preview-note" hidden>Preview only — nothing was saved and no leader was notified. <button id="postPassPreviewBack" type="button" class="link-btn">Back to the form</button></p><p id="postPassCompleteTime">Your leaders can see your response. A copy was sent to your registered email.</p><div id="postPassNextPanel"><h3>What happens after this</h3><ol class="next-steps"><li><strong>Momentum Monday</strong> — there is roleplay, so come with the script memorised.</li><li><strong>BELLS + Enspire Onboarding</strong> — bring these six, saved on your phone. Do not upload them anywhere.<ul class="document-list"><li>NRIC</li><li>Bank account number</li><li>Passport photo</li><li>Highest Qualification cert</li><li>Academic Transcript (from Highest Education)</li><li>Resume</li></ul></li><li><strong>Fill the New Intrapreneur form</strong> after Onboarding — <a href="https://docs.google.com/forms/d/e/1FAIpQLScKchU5t56Aq0IyvYhQQkfvuOA94_2hmdxlx8ElQabFwWEO8Q/viewform" target="_blank" rel="noopener">open the form</a>. Use the same Enspire Gmail you entered here.</li><li><strong>My Journey opens</strong> — once that form is in, your account is created automatically and we email the sign-in link to your Enspire Gmail. That is where you log your quest steps from then on.</li></ol></div><div id="postPassScriptPanel"><h3>Now memorise the booth script</h3><p>Momentum Monday has roleplay, so read this through before you come.</p><details class="script-doc" open><summary>Booth script</summary><div class="script-body">
 <p class="script-lead">Booth sales is one of the fastest ways to gain new leads, closings, and experience in direct sales. Those who take initiative and push beyond their comfort zones will achieve higher sales, higher commissions, and more bonuses.</p>
 <section class="script-card"><h3>Section 1: Who to Look For?</h3>
@@ -354,6 +532,118 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     </form>
   </section>
 
+  <!-- EasyGuide: full-page in-app view opened from the post-pass page. The guide itself is copied from My Journey by sync_easyguide.py. -->
+  <section id="owcEasyGuideView" class="easyguide-view" hidden>
+  <!-- EASYGUIDE_MARKUP_BEGIN -->
+  <section id="bells">
+    <div class="bells-sheet">
+      <!-- The standalone Bells Easy Guide opens with this header. Its CSS was ported when the guide
+           was embedded but the markup was not, so the rules sat unused and the page started on a
+           bare panel. The back button lives inside it: .bg-brand is already space-between, so the
+           mark sits left and the button right, and there is no second title row. -->
+      <header class="bg-brand">
+        <div class="bg-brand-mark">
+          <div class="bg-logo" aria-hidden="true">B</div>
+          <div><h1>Bells Easy Guide</h1></div>
+        </div>
+        <button class="btn ghost mini" id="bellsBack" type="button">&#8592; Back</button>
+      </header>
+
+      <section class="bg-panel" aria-live="polite">
+      <div class="bg-controls">
+        <div id="bgCategoryFilters" class="bg-category-filters" role="group" aria-label="Filter courses by category">
+          <button class="bg-filter-chip" type="button" data-bg-filter="all" aria-pressed="true">All</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="baking" aria-pressed="false">Baking</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="tech" aria-pressed="false">Tech</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="bundles" aria-pressed="false">Bundles</button>
+        </div>
+        <div class="bg-field">
+          <label for="bgCourseSelect">Course</label>
+          <select id="bgCourseSelect" aria-label="Select course"></select>
+          <div id="bgMatchCount" class="bg-helper"></div>
+        </div>
+        <div class="bg-field">
+          <label for="bgProfileSelect">Learner profile</label>
+          <select id="bgProfileSelect">
+            <option value="full">Full Fee</option>
+            <option value="age2139" selected>SG Age 21–39 / PR Age 21 &amp; above</option>
+            <option value="age40">SG Age 40 &amp; above</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="bgLoading" class="bg-loading">Loading the latest course catalogue…</div>
+      <div id="bgResult" class="bg-result" style="display:none">
+        <div class="bg-result-head">
+          <div>
+            <div class="bg-eyebrow">Selected course</div>
+            <div class="bg-course-heading"><h2 id="bgCourseName"></h2><span id="bgTechTag" class="bg-tech-tag" style="display:none">Tech: test learner first</span></div>
+            <div class="bg-tags">
+              <span id="bgCategory" class="bg-tag"></span>
+              <span id="bgDelivery" class="bg-tag"></span>
+            </div>
+            <div class="bg-actions">
+              <button id="bgBrochureButton" class="bg-brochure-btn" type="button">View brochure</button>
+              <div id="bgTmsLinks" class="bg-tms-links"></div>
+            </div>
+          </div>
+          <div class="bg-price">
+            <small id="bgCatalogueAsOf" class="bg-as-of"></small>
+            <small id="bgPriceLabel">SG Age 21–39 / PR Age 21 &amp; above</small>
+            <strong id="bgFee"></strong>
+            <div id="bgLaptopNote" class="bg-laptop-note" style="display:none"><b>Bring a laptop.</b> No laptop? They can borrow one.</div>
+          </div>
+        </div>
+
+        <section class="bg-tiktok-guide" id="bgTikTokGuide" aria-labelledby="bgTikTokGuideHeading" style="display:none">
+          <h2 id="bgTikTokGuideHeading">Is your learner suitable to go for Tech courses?</h2>
+          <p>Test the learner by asking them to do each task. Do not just ask whether they can do it.</p>
+          <ol>
+            <li><b>Computer knowledge:</b> they must know how to use Microsoft Word and PowerPoint, save and upload files, and create an email account by themselves.</li>
+            <li><b>Phone:</b> ask them to switch between apps, copy a line from WhatsApp and paste it into a note, and download an app from the Play Store / App Store.</li>
+            <li><b>English:</b> the course is 100% in English. Speak to them in English. If they switch back to their mother tongue or are uncomfortable, their English is not good enough.</li>
+            <li><b>PWM:</b> they intend to go into retail or are already in retail, and can explain why PWM has the $4K funding. This is covered in the quizzes, training and handbook.</li>
+          </ol>
+          <p><b>Any “no” or any doubt = do NOT enrol. Offer Handphone course instead.</b></p>
+          <p><b>Any unqualified learner who is enrolled will have their PV manually removed from the system.</b></p>
+          <p class="muted small">Applies to all Tech courses: SUP, UPW, TTAI, 3D Printing, AAI.</p>
+        </section>
+
+        <div id="bgTikTokWarning" class="bg-tiktok-warning" style="display:none"><b>Check before enrolling:</b> any “no” or doubt on the 4 suitability checks means do NOT enrol. Offer Handphone course instead. Unsuitable enrolments lose their PV. <a href="#bgTikTokGuide">Read the full checks above.</a></div>
+
+        <div id="bgBundleBreakdown" class="bg-bundle-breakdown" style="display:none">
+          <h3>Course price breakdown</h3>
+          <div id="bgBundleComponentRows"></div>
+          <div class="bg-bundle-total"><span>Total</span><strong id="bgBundleTotal"></strong></div>
+        </div>
+
+        <div class="bg-facts">
+          <div class="bg-fact"><span class="bg-k">Duration</span><span id="bgDuration" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">PV</span><span id="bgPv" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">Delivery</span><span id="bgDeliveryFact" class="bg-v"></span></div>
+          <div class="bg-fact bg-location"><span class="bg-k">Location</span><span id="bgLocation" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">Eligible credit</span><span id="bgCredit" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">SkillsFuture course code</span><span id="bgCourseCode" class="bg-v"></span></div>
+        </div>
+      </div>
+      <div id="bgEmpty" class="bg-empty">No courses available.</div>
+    </section>
+  
+<div id="bgBrochureModal" class="bg-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="bgBrochureTitle">
+    <div class="bg-modal-card">
+      <div class="bg-modal-bar">
+        <h3 id="bgBrochureTitle">Course brochure</h3>
+        <a id="bgBrochureOpen" class="bg-modal-link" href="#" target="_blank" rel="noopener">Open PDF</a>
+        <button id="bgBrochureClose" class="bg-modal-close" type="button" aria-label="Close brochure">Close</button>
+      </div>
+      <iframe id="bgBrochureFrame" title="Course brochure PDF" allow="fullscreen"></iframe>
+    </div>
+  </div>
+    </div>
+  </section>
+  <!-- EASYGUIDE_MARKUP_END -->
+  </section>
+
   <main id="challengeApp" class="shell" hidden>
     <section class="hero">
       <div class="hero-main">
@@ -450,7 +740,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     <textarea id="notes" hidden></textarea>
 
   </main>
-  <p class="privacy" style="text-align:center">Static shell · Build <span id="shellBuild">2026-11-01.1</span></p>
+  <p class="privacy" style="text-align:center">Static shell · Build <span id="shellBuild">2026-11-13.1</span></p>
 
   <div id="challengeSyncbar" class="syncbar" hidden><div class="sync-inner"><div id="syncStatus" class="sync-status">Confirmed submissions update progress and the leader dashboard automatically.</div><button id="syncButton" type="button" hidden>Sync</button></div></div>
 
@@ -527,7 +817,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-08.1';
+    const BUILD='2026-11-13.1';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1186,6 +1476,372 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       event.preventDefault();postPass.status.textContent='';if(!postPassFreeNav()){const invalidStep=postPassFirstInvalidStep();if(invalidStep>=0){postPassGoTo(invalidStep,true);const bad=postPassStepFields(invalidStep).find(field=>!field.checkValidity());if(bad)bad.reportValidity();return}}if(!postPass.state||!postPass.state.schedule){postPass.status.textContent='Your cohort schedule is not confirmed yet. Check again later.';return}const payload={feedbackOperations:document.getElementById('postPassFeedbackOperations').value,feedbackCommunication:document.getElementById('postPassFeedbackCommunication').value,feedbackSeniors:document.getElementById('postPassFeedbackSeniors').value,feedbackTraining:document.getElementById('postPassFeedbackTraining').value,feedbackApp:document.getElementById('postPassFeedbackApp').value,feedbackOther:document.getElementById('postPassFeedbackOther').value,documentsReady:document.getElementById('postPassDocumentsReady').checked,enspireGmail:document.getElementById('postPassEnspireGmail').value,tmsCreated:document.getElementById('postPassTmsCreated').checked,tmsCredentialsSaved:document.getElementById('postPassTmsSaved').checked,travelDates:document.getElementById('postPassTravel').value,scriptReady:document.getElementById('postPassScriptReady').checked};postPass.submit.disabled=true;postPass.status.textContent='Submitting securely…';server.run.withSuccessHandler(result=>{postPass.submit.disabled=false;if(!(result.postPass&&result.postPass.preview))clearPostPassDraft();showPostPassApp(result.postPass||{...postPass.state,submitted:true,submittedAt:result.submittedAt})}).withFailureHandler(err=>{postPass.submit.disabled=false;postPass.status.textContent=err.message||String(err)}).submitOwcPostPassOnboarding(localStorage.getItem(PARTICIPANT_SESSION_KEY),payload)
     }
     postPass.form.addEventListener('submit',submitOwcPostPassForm);
+    /* Bells EasyGuide: copied from My Journey between the markers; no server calls, no sign-in needed. */
+    /* EASYGUIDE_JS_BEGIN */
+(function(){
+  const TECH_SUITABILITY_COURSE_RE=/^(?:Certificate in AI Essentials(?: \(Zoom\))?|Upgrade yourself with Gen AI \(Seniors\/Retirees\)|TikTok with AI \((?:Bundle|TTAI)\)|3D Printing|AI Agents & Automation|Vibe Coding for Web & App Development|Claude AI \(Zoom\))$|data analytic|\bDDA\b/i;
+  function isTechSuitabilityCourse_(name,code){ return TECH_SUITABILITY_COURSE_RE.test(String(name||'').trim())||TECH_SUITABILITY_COURSE_RE.test(String(code||'').trim()); }
+  window.isTechSuitabilityCourse_=isTechSuitabilityCourse_;
+})();
+(function(){
+
+    const PROFILE_LABELS = {
+      full: 'Full Fee',
+      age2139: 'SG Age 21–39 / PR Age 21 & above',
+      age40: 'SG Age 40 & above'
+    };
+    const BROCHURE_FILES = {
+      AAI: '12yv5NZc58FCRGGTd-KF0vwdGc81SxeMc',
+      BAK: '1KOxwhb2FvKOdZxSYgkHiIMt25P4lT9RZ',
+      CAI: '1ECEdw8y73dve_zPDbGLd8wr3SGMbLn8P',
+      DDA: '1Yi0QrCp4MvQo6FbMs_DxwAwi1O7EDjJe',
+      FRF: '1BFCcPuuG5QbDjs4mMTTVH3-KT6oRaMnH',
+      MPC: '1ChfvnBCuEb-sNs65xBBjbYSgMXhBGujT',
+      PPV: '1sxyuTjRY3mPR0V1fy7vdkNSuZltnKIaT',
+      SUP: '1P3QLN1jxCNr0TkXvcxCEkpn69g6Ezuj7',
+      TPE: '1v9KmCyrr4-NLMd6iJqh3D_ywQWX4rVMs',
+      TTP: '1gLPzbnhzRu7l-ZLXEKiC4wrzZB7FwMkS',
+      UPW: '1uDrysKl1zsm04eJoz7hz3XusjLTyyKfM',
+      VCW: '1ByGq6GkhAkSn8vqIrEwtQovsiGYjbvut'
+    };
+    const BROCHURE_BY_COURSE = {
+      'Cakes & Cookies (Bundle)': 'BAK',
+      'Cafe Style Bread & Tarts (Bundle)': 'BAK',
+      'Premium Cakes': 'BAK',
+      'Handphone Apps with Photography (Bundle)': 'FRF',
+      'Mobile Photography & Videography (Bundle)': 'PPV',
+      'Certificate in AI Essentials': 'SUP',
+      'Upgrade yourself with Gen AI (Seniors/Retirees)': 'UPW',
+      'Certificate in AI Essentials (Zoom)': 'SUP',
+      '3D Printing': 'TPE',
+      'Vibe Coding for Web & App Development': 'VCW',
+      'Claude AI (Zoom)': 'CAI',
+      'AI Agents & Automation': 'AAI',
+      'Communication & Coaching': 'MPC',
+      'TikTok with AI (Bundle)': 'TTP'
+    };
+    const TMS_CODE_BY_COURSE = {
+      'Cakes & Cookies (Bundle)': 'MBC COO',
+      'Cafe Style Bread & Tarts (Bundle)': 'CBD TSP',
+      'Premium Cakes': 'ACK',
+      'Handphone Apps with Photography (Bundle)': 'DLF DPS',
+      'Mobile Photography & Videography (Bundle)': 'DPS VTS',
+      'Certificate in AI Essentials': 'SUP',
+      'Upgrade yourself with Gen AI (Seniors/Retirees)': 'UPW',
+      'Certificate in AI Essentials (Zoom)': 'SUP',
+      '3D Printing': 'TPE',
+      'Vibe Coding for Web & App Development': 'VCW',
+      'Claude AI (Zoom)': 'CLA',
+      'AI Agents & Automation': 'ABC',
+      'Communication & Coaching': 'MPC',
+      'TikTok with AI (Bundle)': 'TTAI'
+    };
+    const BUNDLE_COMPONENTS = /* BUNDLE_COMPONENTS_START */ {"Cakes & Cookies (Bundle)":[{"name":"Make Basic Cakes","fees":{"full":632.2,"age2139":342.2,"age40":226.2}},{"name":"Make Cookies","fees":{"full":632.2,"age2139":342.2,"age40":226.2}}],"Cafe Style Bread & Tarts (Bundle)":[{"name":"Make Café Style Bread","fees":{"full":817.5,"age2139":442.5,"age40":292.5}},{"name":"Make Tarts and Short-Crust Pastries","fees":{"full":632.2,"age2139":342.2,"age40":226.2}}],"Handphone Apps with Photography (Bundle)":[{"name":"Digital Literacy Fundamentals","fees":{"full":872.0,"age2139":472.0,"age40":312.0}},{"name":"Digital Photography with Smartphones","fees":{"full":436.0,"age2139":236.0,"age40":156.0}}],"Mobile Photography & Videography (Bundle)":[{"name":"Digital Photography with Smartphones","fees":{"full":436.0,"age2139":236.0,"age40":156.0}},{"name":"Videography Techniques for Social Media Platforms","fees":{"full":599.5,"age2139":324.5,"age40":214.5}}],"TikTok with AI (Bundle)":[{"name":"Apply Generative AI Tools for Productivity Improvement","fees":{"full":1177.2,"age2139":637.2,"age40":421.2}},{"name":"E-Commerce Promotion Management","fees":{"full":937.4,"age2139":507.4,"age40":335.4}}]} /* BUNDLE_COMPONENTS_END */;
+    const TMS_BY_COURSE = {
+      'Cakes & Cookies (Bundle)': [
+        { label: 'TMS weekdays', path: '/course-details/107/baking-cake-cookies-weekdays' },
+        { label: 'TMS weekends', path: '/course-details/109/baking-cake-cookies-weekends' }
+      ],
+      'Cafe Style Bread & Tarts (Bundle)': [
+        { label: 'View TMS schedule', path: '/course-details/214/baking-tarts-cafe-style-bread' }
+      ],
+      'Premium Cakes': [
+        { label: 'View TMS schedule', path: '/course-details/153/baking-prepare-advanced-cakes' }
+      ],
+      'Handphone Apps with Photography (Bundle)': [
+        { label: 'TMS handphone', path: '/course-details/229/tech-future-ready-fundamentals' }
+      ],
+      'Mobile Photography & Videography (Bundle)': [
+        { label: 'View TMS schedule', path: '/course-details/77/tech-professional-photography-videography' }
+      ],
+      'Certificate in AI Essentials': [
+        { label: 'View TMS schedule', path: '/course-details/245/tech-certificate-in-ai-essentials' }
+      ],
+      'Upgrade yourself with Gen AI (Seniors/Retirees)': [
+        { label: 'View TMS schedule', path: '/course-details/213/tech-upgrade-yourself-with-gen-ai' }
+      ],
+      'Certificate in AI Essentials (Zoom)': [
+        { label: 'View TMS schedule', path: '/course-details/246/tech-certificate-in-ai-essentials-online' }
+      ],
+      '3D Printing': [
+        { label: 'View TMS schedule', path: '/course-details/230/tech-3d-printing-essentials-from-digital-design-to-physical-prototype' }
+      ],
+      'Vibe Coding for Web & App Development': [
+        { label: 'Search TMS schedule', path: '/agb-courses' }
+      ],
+      'Claude AI (Zoom)': [
+        { label: 'View TMS schedule', path: '/course-details/247/tech-claude-ai-made-easy-for-professionals-online' }
+      ],
+      'AI Agents & Automation': [
+        { label: 'View TMS schedule', path: '/course-details/225/tech-ai-agents-and-automation-bootcamp' }
+      ],
+      'Communication & Coaching': [
+        { label: 'View TMS schedule', path: '/course-details/176/pwm-mastering-performance-based-coaching' }
+      ],
+      'TikTok with AI (Bundle)': [
+        { label: 'View TMS schedule', path: '/course-details/202/tik-tok-promotion-bundle' }
+      ]
+    };
+    const TMS_BASE = 'https:' + '/' + '/tms.bells.sg';
+    const money = new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', currencyDisplay: 'narrowSymbol' });
+    const CATALOGUE_AS_OF = /* CATALOGUE_AS_OF_START */ '2026-11-13' /* CATALOGUE_AS_OF_END */;
+    const INITIAL_DATA = /* CATALOGUE_START */ [{"name":"Cakes & Cookies (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"8 DAYS (48 HRS)","fees":{"full":1264.4,"age2139":684.4,"age40":452.4},"pv":200.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2019503177 + TGS-2019503181"},{"name":"Cafe Style Bread & Tarts (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"9 DAYS (54 HRS)","fees":{"full":1449.7,"age2139":784.7,"age40":518.7},"pv":220.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023019954 + TGS-2019503567"},{"name":"Premium Cakes","category":"Baking","delivery":"Classroom","duration":"5 DAYS (30 HRS)","fees":{"full":1199.0,"age2139":649.0,"age40":429.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023036448"},{"name":"Handphone Apps with Photography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"4 DAYS (32 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061249 + TGS-2021007824"},{"name":"Mobile Photography & Videography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"5 DAYS (38 HRS)","fees":{"full":1035.5,"age2139":560.5,"age40":370.5},"pv":110.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021007824 + TGS-2021009032"},{"name":"Certificate in AI Essentials","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Upgrade yourself with Gen AI (Seniors/Retirees)","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Certificate in AI Essentials (Zoom)","category":"Tech","delivery":"Online","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"3D Printing","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1237.15,"age2139":669.65,"age40":442.655},"pv":120.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061253"},{"name":"Vibe Coding for Web & App Development","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2020503366"},{"name":"Claude AI (Zoom)","category":"Tech","delivery":"Online","duration":"2 DAYS (16 HRS)","fees":{"full":806.6,"age2139":436.6,"age40":288.6},"pv":90.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059941"},{"name":"AI Agents & Automation","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061246"},{"name":"Communication & Coaching","category":"PWM","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1177.2,"age2139":637.2,"age40":421.2},"pv":130.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046246"},{"name":"TikTok with AI (Bundle)","category":"PWM · Bundle","delivery":"Classroom","duration":"6 DAYS (46 HRS)","fees":{"full":2114.6,"age2139":1144.6,"age40":756.5999999999999},"pv":200.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046178 + TGS-2024046177"}] /* CATALOGUE_END */;
+    window.BELLS_COURSE_NAMES = INITIAL_DATA.map(c=>c.name);
+    let allCourses = INITIAL_DATA.slice();
+    let visibleCourses = allCourses.slice();
+    let activeCategory = 'all';
+
+    const els = {
+      course: document.getElementById('bgCourseSelect'),
+      profile: document.getElementById('bgProfileSelect'),
+      loading: document.getElementById('bgLoading'),
+      result: document.getElementById('bgResult'),
+      empty: document.getElementById('bgEmpty'),
+      matchCount: document.getElementById('bgMatchCount'),
+      categoryFilters: document.getElementById('bgCategoryFilters'),
+      courseName: document.getElementById('bgCourseName'),
+      techTag: document.getElementById('bgTechTag'),
+      catalogueAsOf: document.getElementById('bgCatalogueAsOf'),
+      category: document.getElementById('bgCategory'),
+      delivery: document.getElementById('bgDelivery'),
+      deliveryFact: document.getElementById('bgDeliveryFact'),
+      priceLabel: document.getElementById('bgPriceLabel'),
+      fee: document.getElementById('bgFee'),
+      duration: document.getElementById('bgDuration'),
+      pv: document.getElementById('bgPv'),
+      location: document.getElementById('bgLocation'),
+      credit: document.getElementById('bgCredit'),
+      courseCode: document.getElementById('bgCourseCode'),
+      bundleBreakdown: document.getElementById('bgBundleBreakdown'),
+      bundleComponentRows: document.getElementById('bgBundleComponentRows'),
+      bundleTotal: document.getElementById('bgBundleTotal'),
+      brochureButton: document.getElementById('bgBrochureButton'),
+      tmsLinks: document.getElementById('bgTmsLinks'),
+      brochureModal: document.getElementById('bgBrochureModal'),
+      brochureTitle: document.getElementById('bgBrochureTitle'),
+      brochureOpen: document.getElementById('bgBrochureOpen'),
+      brochureClose: document.getElementById('bgBrochureClose'),
+      brochureFrame: document.getElementById('bgBrochureFrame'),
+      tiktokGuide: document.getElementById('bgTikTokGuide'),
+      laptopNote: document.getElementById('bgLaptopNote'),
+      tiktokWarning: document.getElementById('bgTikTokWarning')
+    };
+
+    function value(row, index) {
+      return row.c && row.c[index] && row.c[index].v !== null ? row.c[index].v : '';
+    }
+
+    function handleSheetData(response) {
+      if (!response || response.status !== 'ok' || !response.table) {
+        showLoadError();
+        return;
+      }
+      allCourses = response.table.rows.map(row => {
+        const category = String(value(row, 1)).trim();
+        const delivery = String(value(row, 2)).trim();
+        return {
+          name: String(value(row, 0)).trim(),
+          category,
+          delivery,
+          duration: String(value(row, 3)).trim(),
+          fees: {
+            full: Number(value(row, 4)) || 0,
+            age2139: Number(value(row, 5)) || 0,
+            age40: Number(value(row, 6)) || 0
+          },
+          pv: Number(value(row, 7)) || 0,
+          location: delivery.toLowerCase() === 'online' ? 'Online' : 'Search in TMS',
+          credit: category.startsWith('PWM')
+            ? 'Mid Career Credit or Skillsfuture Credit'
+            : 'SkillsFuture Credit (not Mid-Career Credit)',
+          courseCode: String(value(row, 9)).trim()
+        };
+      }).filter(course => course.name);
+
+      if (!allCourses.length) {
+        showLoadError();
+        return;
+      }
+      els.loading.style.display = 'none';
+      applyCategoryFilter('all', allCourses[0].name);
+    }
+
+    function showLoadError() {
+      els.loading.innerHTML = '<div class="bg-error">Course data could not be loaded. Please refresh or contact the sheet owner.</div>';
+      els.matchCount.textContent = '0 courses available';
+    }
+
+    function categoryMatches(course, filter) {
+      const category = String(course.category || '');
+      if (filter === 'baking') return category.startsWith('Baking');
+      if (filter === 'tech') return category.startsWith('Tech');
+      if (filter === 'bundles') return category.includes('Bundle');
+      return true;
+    }
+
+    function applyCategoryFilter(filter, preferredName) {
+      activeCategory = ['all', 'baking', 'tech', 'bundles'].includes(filter) ? filter : 'all';
+      visibleCourses = allCourses.filter(course => categoryMatches(course, activeCategory));
+      Array.from(els.categoryFilters.querySelectorAll('[data-bg-filter]')).forEach(chip => {
+        chip.setAttribute('aria-pressed', String(chip.dataset.bgFilter === activeCategory));
+      });
+      fillCourseOptions(preferredName);
+    }
+
+    function fillCourseOptions(preferredName) {
+      const previous = preferredName || els.course.value;
+      els.course.innerHTML = '';
+      visibleCourses.forEach(course => {
+        const option = document.createElement('option');
+        const tmsCode = TMS_CODE_BY_COURSE[course.name];
+        const techSuffix = (window.isTechSuitabilityCourse_ && window.isTechSuitabilityCourse_(course.name, tmsCode || '')) ? ' · Tech check' : '';
+        option.value = course.name;
+        option.textContent = (tmsCode ? `${course.name} — ${tmsCode}` : course.name) + techSuffix;
+        els.course.appendChild(option);
+      });
+      if (visibleCourses.some(course => course.name === previous)) els.course.value = previous;
+      else if (visibleCourses.length) els.course.value = visibleCourses[0].name;
+      els.matchCount.textContent = `${visibleCourses.length} course${visibleCourses.length === 1 ? '' : 's'} available`;
+      render();
+    }
+
+    function selectedCourse() {
+      return allCourses.find(course => course.name === els.course.value) || visibleCourses[0];
+    }
+
+    function renderBundleBreakdown(course, profile) {
+      const components = BUNDLE_COMPONENTS[course.name];
+      if (!components || !components.length) {
+        els.bundleBreakdown.style.display = 'none';
+        els.bundleComponentRows.replaceChildren();
+        return false;
+      }
+
+      els.bundleComponentRows.replaceChildren();
+      components.forEach(component => {
+        const row = document.createElement('div');
+        const name = document.createElement('span');
+        const fee = document.createElement('strong');
+        row.className = 'bg-bundle-component';
+        name.textContent = component.name;
+        fee.textContent = money.format(component.fees[profile]);
+        row.append(name, fee);
+        els.bundleComponentRows.appendChild(row);
+      });
+      els.bundleTotal.textContent = money.format(course.fees[profile]);
+      els.bundleBreakdown.style.display = 'block';
+      return true;
+    }
+
+    function formatCatalogueDate(isoDate) {
+      const parts = String(isoDate || '').split('-').map(Number);
+      if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return String(isoDate || '');
+      return new Intl.DateTimeFormat('en-SG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Singapore' }).format(new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])));
+    }
+
+    function render() {
+      const course = selectedCourse();
+      if (!course) {
+        els.result.style.display = 'none';
+        els.empty.style.display = 'block';
+        els.tiktokGuide.style.display = 'none';
+        els.laptopNote.style.display = 'none';
+        els.tiktokWarning.style.display = 'none';
+        return;
+      }
+      els.result.style.display = 'block';
+      els.empty.style.display = 'none';
+      const profile = els.profile.value;
+      els.courseName.textContent = course.name;
+      const courseCode = TMS_CODE_BY_COURSE[course.name] || '';
+      const needsTechCheck = !!(window.isTechSuitabilityCourse_ && window.isTechSuitabilityCourse_(course.name, courseCode));
+      els.techTag.style.display = needsTechCheck ? 'inline-block' : 'none';
+      els.tiktokGuide.style.display = needsTechCheck ? 'block' : 'none';
+      els.laptopNote.style.display = needsTechCheck ? 'block' : 'none';
+      els.tiktokWarning.style.display = 'none';
+      els.catalogueAsOf.textContent = 'Prices as of ' + formatCatalogueDate(CATALOGUE_AS_OF);
+      els.category.textContent = course.category;
+      els.delivery.textContent = course.delivery;
+      els.delivery.className = `bg-tag${course.delivery.toLowerCase() === 'online' ? ' bg-online' : ''}`;
+      const isBundle = renderBundleBreakdown(course, profile);
+      els.priceLabel.textContent = `${PROFILE_LABELS[profile]}${isBundle ? ' · Total' : ''}`;
+      els.fee.textContent = money.format(course.fees[profile]);
+      els.duration.textContent = course.duration;
+      els.pv.textContent = course.pv;
+      els.deliveryFact.textContent = course.delivery;
+      els.location.textContent = course.location;
+      els.credit.textContent = course.credit;
+      els.courseCode.textContent = course.courseCode;
+      const brochureCode = BROCHURE_BY_COURSE[course.name];
+      const brochureFile = brochureCode && BROCHURE_FILES[brochureCode];
+      els.brochureButton.disabled = !brochureFile;
+      els.brochureButton.textContent = brochureFile ? 'View brochure' : 'Brochure unavailable';
+      els.brochureButton.dataset.fileId = brochureFile || '';
+      els.tmsLinks.replaceChildren();
+      (TMS_BY_COURSE[course.name] || [{ label: 'Search TMS schedule', path: '/agb-courses' }]).forEach(item => {
+        const link = document.createElement('a');
+        link.className = 'bg-tms-btn';
+        link.textContent = item.label;
+        link.href = TMS_BASE + item.path;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        els.tmsLinks.appendChild(link);
+      });
+    }
+
+    function openBrochure() {
+      const fileId = els.brochureButton.dataset.fileId;
+      const course = selectedCourse();
+      if (!fileId || !course) return;
+      const driveBase = 'https:' + '/' + '/drive.google.com/file/d/' + fileId;
+      const previewUrl = driveBase + '/preview';
+      els.brochureTitle.textContent = `${course.name} — Brochure`;
+      els.brochureFrame.src = previewUrl;
+      els.brochureOpen.href = driveBase + '/view';
+      els.brochureModal.classList.add('bg-open');
+      els.brochureModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('bg-modal-open');
+      els.brochureClose.focus();
+    }
+
+    function closeBrochure() {
+      els.brochureModal.classList.remove('bg-open');
+      els.brochureModal.setAttribute('aria-hidden', 'true');
+      els.brochureFrame.src = 'about:blank';
+      document.body.classList.remove('bg-modal-open');
+      els.brochureButton.focus();
+    }
+
+    els.course.addEventListener('change', render);
+    els.profile.addEventListener('change', render);
+    els.categoryFilters.addEventListener('click', event => {
+      const chip = event.target.closest('[data-bg-filter]');
+      if (chip) applyCategoryFilter(chip.dataset.bgFilter, els.course.value);
+    });
+    els.brochureButton.addEventListener('click', openBrochure);
+    els.brochureClose.addEventListener('click', closeBrochure);
+    els.brochureModal.addEventListener('click', event => {
+      if (event.target === els.brochureModal) closeBrochure();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && els.brochureModal.classList.contains('bg-open')) closeBrochure();
+    });
+    if (INITIAL_DATA.length) {
+      els.loading.style.display = 'none';
+      applyCategoryFilter('all', INITIAL_DATA[0].name);
+    } else {
+      showLoadError();
+    }
+  
+})();
+    /* EASYGUIDE_JS_END */
+    (function(){
+      const view=document.getElementById('owcEasyGuideView'),open=document.getElementById('openEasyGuide'),back=document.getElementById('bellsBack');
+      if(!view||!open||!back)return;
+      function setView(on){view.hidden=!on;postPass.app.hidden=on;window.scrollTo(0,0)}
+      open.addEventListener('click',()=>setView(true));
+      back.addEventListener('click',()=>setView(false));
+    })();
     let telegramJoinPoll=null,telegramParticipantMode=false,telegramLinked=false;
     function renderTelegramLink(result){
       const anchor=document.getElementById('telegramJoin');if(!anchor)return;
