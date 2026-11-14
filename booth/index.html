@@ -119,7 +119,8 @@
   .chip[aria-pressed=true] small { color:#c9d4ea; }
   .bookingShiftPick { flex:1 1 calc(50% - 4px); min-width:220px; }
   .bookingShiftPick .chip { width:100%; min-height:56px; border-radius:12px; }
-  .shiftRemarkSlot { min-height:78px; padding-top:5px; }
+  .shiftRemarkSlot { min-height:128px; padding-top:5px; }
+  .shiftRemarkSlot select { width:100%; margin-top:6px; padding:8px 9px; font-size:14px; }
   .shiftRemarkSlot label { margin:0 0 3px; font-size:11px; line-height:1.2; }
   .shiftRemarkSlot input { padding:8px 9px; font-size:14px; }
   @media (max-width:520px) { .bookingShiftPick { min-width:0; flex-basis:100%; } }
@@ -887,7 +888,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-13.1';
+  const SHELL_VERSION = '2026-11-14.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -899,7 +900,7 @@
     if (raw) history.replaceState(null, '', location.pathname + location.search);
   })();
   var KEY = 'booth.token';
-  var token = '', data = null, picks = {}, shiftNotes = {}, shiftRemarkInputs = [];
+  var token = '', data = null, picks = {}, shiftNotes = {}, shiftArrivals = {}, shiftRemarkInputs = [];
   var freshReady = false;
   // Who the page is pretending to be. '' is nobody. Everything that writes checks this, and
   // the server checks it again - the bar is a convenience, not the control.
@@ -1258,7 +1259,7 @@
         var selected = (picked[d.day] || []).indexOf(s) >= 0;
         b.setAttribute('aria-pressed', selected ? 'true' : 'false');
         b.innerHTML = s + '<small>' + data.shiftTimes[s] + '</small>';
-        var slot = null, input = null;
+        var slot = null, input = null, arrive = null;
         if (store_ === 'booth') {
           slot = document.createElement('div');
           slot.className = 'shiftRemarkSlot';
@@ -1277,6 +1278,29 @@
           };
           slot.appendChild(label); slot.appendChild(input);
           shiftRemarkInputs.push(input);
+          var arriveLabel = document.createElement('label');
+          arriveLabel.textContent = 'Latest I can arrive';
+          arriveLabel.style.marginTop = '6px';
+          arrive = document.createElement('select');
+          arrive.setAttribute('aria-label', 'Latest I can arrive, ' + d.day + ' ' + s);
+          var startMin = arriveStartMinutes_(data.shiftTimes[s]);
+          [0, 15, 30, 45, 60].forEach(function (m) {
+            var o = document.createElement('option');
+            o.value = String(m);
+            var text = m === 0 ? 'On time' : (m === 60 ? '1 hour after start' : m + ' min after start');
+            o.textContent = text + (startMin === null ? '' : ' (' + arriveClock_(startMin + m) + ')');
+            arrive.appendChild(o);
+          });
+          arrive.value = String(((shiftArrivals[d.day] || {})[s]) || 0);
+          if (arrive.value !== String(((shiftArrivals[d.day] || {})[s]) || 0)) arrive.value = '0';
+          arrive.style.visibility = selected ? 'visible' : 'hidden';
+          arrive.disabled = !selected;
+          arrive.onchange = function () {
+            if (!shiftArrivals[d.day]) shiftArrivals[d.day] = {};
+            shiftArrivals[d.day][s] = Number(arrive.value) || 0;
+          };
+          slot.appendChild(arriveLabel); slot.appendChild(arrive);
+          shiftRemarkInputs.push(arrive);
         }
         b.onclick = function () {
           var list = picked[d.day] || (picked[d.day] = []);
@@ -1288,6 +1312,10 @@
             slot.style.visibility = selected ? 'visible' : 'hidden';
             input.style.visibility = selected ? 'visible' : 'hidden';
             input.disabled = !selected || !!data.locked || !!data.preview;
+            if (arrive) {
+              arrive.style.visibility = selected ? 'visible' : 'hidden';
+              arrive.disabled = !selected || !!data.locked || !!data.preview;
+            }
           }
           if (store_ === 'booth') tally();
         };
@@ -1352,10 +1380,23 @@
     });
   }
 
+  /* Shift start in minutes after midnight, read from the real shift time text the server sent
+     (data.shiftTimes), never hardcoded: '7:00pm - 10:00pm' -> 1140. */
+  function arriveStartMinutes_(text) {
+    var m = /^\s*(\d{1,2}):(\d{2})\s*(am|pm)/i.exec(String(text || ''));
+    if (!m) return null;
+    return (Number(m[1]) % 12 + (m[3].toLowerCase() === 'pm' ? 12 : 0)) * 60 + Number(m[2]);
+  }
+  function arriveClock_(mins) {
+    var h = Math.floor(mins / 60) % 24, mm = mins % 60;
+    return ((h % 12) || 12) + ':' + (mm < 10 ? '0' : '') + mm + (h >= 12 ? 'pm' : 'am');
+  }
+
   function render(d) {
     data = d;
     picks = d.current.Booth || {};
     shiftNotes = d.shiftNotes || {};
+    shiftArrivals = d.shiftArrivals || {};
     renderPreview(d);
     renderBookingNotices_(d);
     $('who').textContent = d.name + (d.preview ? ' \u00b7 preview' : '');
@@ -1426,7 +1467,7 @@
     }
     this.disabled = true;
     var self = this;
-    writeRun_('saveBooking', [token, picks, why, $('ack').checked, $('ack2').checked, shiftNotes],
+    writeRun_('saveBooking', [token, picks, why, $('ack').checked, $('ack2').checked, shiftNotes, shiftArrivals],
       function (r) { return 'Booking (' + r.saved + ' shifts)'; }, function (r) {
         self.disabled = false;
         $('saved').innerHTML = '<div class="note ok">Saved \u2713 Booking — ' + r.saved
@@ -3476,7 +3517,14 @@
   }
 
   function shiftHasBookingRemark_(shift) {
-    return !!shift && (shift.people || []).some(function (person) { return !!person.remark; });
+    return !!shift && (shift.people || []).some(function (person) { return !!(person.remark || person.arrive); });
+  }
+
+  function bookingArriveLine_(arrive) {
+    var line = document.createElement('small');
+    line.className = 'bookingRemark bookingArrive';
+    line.textContent = '\u23f0 Latest arrival ' + arrive.time + ' (' + arrive.label + ')';
+    return line;
   }
 
   function bookingRemarkLine_(remark, fromWeek) {
@@ -3652,6 +3700,7 @@
               }
               people.appendChild(name);
               if (person.remark) people.appendChild(bookingRemarkLine_(person.remark, person.remarkFromWeek));
+              if (person.arrive) people.appendChild(bookingArriveLine_(person.arrive));
               if (person.lateNotice) {
                 var notice = document.createElement('div');
                 notice.className = 'lateNotice ' + String(person.lateNotice.approval || 'Pending').toLowerCase();
