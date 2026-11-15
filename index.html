@@ -310,8 +310,14 @@ body.bg-modal-open{ overflow: hidden; }
        backwards, so the blue month card stays the same height instead of jumping. */
     #asOf{flex:0 0 100%;min-height:1.55em}
     .kukup-big{font-size:44px;font-weight:900;line-height:1.1;color:var(--blue);margin-top:8px;font-variant-numeric:tabular-nums}.kukup-bar{height:14px;border-radius:8px;background:rgba(159,176,208,.22);margin:10px 0;overflow:hidden}.kukup-bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:8px}.kukup-lines{white-space:pre-line;line-height:1.7;margin:6px 0 0;min-height:5.1em}.kukup-left,.kukup-now{white-space:pre-line;margin:6px 0 0;min-height:1.4em}.kukup-now{min-height:2.8em}.kukup-period{margin:2px 0 0}.kukup-team-scroll{overflow-x:auto;margin-top:8px}.kukup-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}.kukup-table th,.kukup-table td{padding:7px 6px;text-align:left;border-bottom:1px solid rgba(159,176,208,.16);white-space:nowrap}.kukup-table th{color:var(--muted);font-size:12px;font-weight:600}.kukup-table th:last-child,.kukup-table td:last-child{text-align:right;font-weight:800}
-    .month-run{white-space:pre-line;min-height:4.65em;margin-top:10px;color:var(--gold);font-weight:700}
-    .month-run.empty{visibility:hidden}
+    .rs-box{box-sizing:border-box;min-height:252px;margin-top:14px;padding:14px 16px;border:2px solid #2f9e6e;border-radius:16px;background:#143f2c;color:#d9f7e8}
+    .rs-box.empty{visibility:hidden}.rs-box.idle{border-color:rgba(159,176,208,.3);background:rgba(27,40,65,.62);color:#e6ebf4}
+    .rs-head{font-size:20px;font-weight:850;line-height:1.25;color:#5fe0a7}.rs-box.idle .rs-head{color:#f7f8fc}
+    .rs-sub{margin:6px 0 0;font-size:14px;line-height:1.4}
+    .rs-ticks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+    .rs-tick{padding:9px 0;border-radius:10px;text-align:center;font-size:14px;font-weight:850;background:rgba(159,176,208,.16);color:#9fb0cf}
+    .rs-tick.on{background:#2fa56e;color:#fff}
+    .rs-alltime{min-height:1.5em;margin:10px 0 0;color:#8592aa}
     /* Paging controls must not move: a page tall enough to scroll would otherwise
        narrow the viewport by the scrollbar width and shift everything anchored right. */
     html{scrollbar-gutter:stable}
@@ -925,10 +931,11 @@ body.bg-modal-open{ overflow: hidden; }
           <span class="row hidden" id="monthNav" style="gap:6px"><button class="btn ghost mini" id="monthPrev" type="button" aria-label="Previous month">&lsaquo;</button><button class="btn ghost mini" id="monthNext" type="button" aria-label="Next month">&rsaquo;</button></span>
         </div>
         <div class="tier-activity-grid">
-          <div class="tier-activity-card"><b id="rsWeeks">0</b><span>Rising Star weeks so far</span></div>
-          <div class="tier-activity-card"><b id="pvPeriod">0</b><span id="pvPeriodLabel">PV this week</span></div>
+          <div class="tier-activity-card"><b id="pvPeriod">0</b><span id="pvPeriodLabel">PV this week (1,000 needed)</span></div>
+          <div class="tier-activity-card"><b id="rsInRow">&ndash;</b><span id="rsInRowLabel">weeks in a row</span></div>
         </div>
-        <p class="small month-run empty" id="rsRun"></p>
+        <div class="rs-box empty" id="rsRun"></div>
+        <p class="small muted rs-alltime"><span id="rsWeeks">0</span> <span id="rsWeeksLabel">Rising Star weeks since you joined (all time)</span></p>
         <div class="tier-activity-foot"><span class="muted small" id="asOf"></span><span class="muted small">Updated every morning.</span></div>
       </div>
       <div id="tierQuarterDetails">
@@ -1132,7 +1139,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-13.10';
+  const BUILD='2026-11-15.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1377,8 +1384,11 @@ body.bg-modal-open{ overflow: hidden; }
     $('monthLabel').textContent=cur?cur.label:data.numbers.month;
     $('rsWeeks').textContent=fmt(cur?cur.rsWeeks:data.numbers.rsWeeks);
     const current=monthIdx===0;
-    $('pvPeriod').textContent=fmt(current?data.numbers.pvWeek:(cur?cur.pv:0));
-    $('pvPeriodLabel').textContent=current?'PV this week':'PV that month';
+    const pvShown=current?data.numbers.pvWeek:(cur?cur.pv:0);
+    $('pvPeriod').textContent=fmt(pvShown)+(current&&Number(pvShown)>=1000?' \u2713':'');
+    $('pvPeriodLabel').textContent=current?'PV this week (1,000 needed)':'PV that month';
+    $('rsWeeksLabel').textContent=current?'Rising Star weeks since you joined (all time)':'Rising Star weeks since you joined, up to the end of that month';
+    { const sr=data&&data.rsStreak; $('rsInRow').textContent=(current&&sr)?fmt(sr.run+(sr.now?1:0)):'\u2013'; }
     $('asOf').textContent=(monthIdx===0&&data.numbers.asOf)?('as of '+data.numbers.asOf.replace(' SGT','')):'';
     renderRun(monthIdx===0);
     $('monthNav').classList.toggle('hidden',ms.length<2);
@@ -1432,23 +1442,27 @@ body.bg-modal-open{ overflow: hidden; }
   }
   /** A run crosses months, so it belongs to "now" and is hidden while paging back. */
   function renderRun(show){
-    const s=data&&data.rsStreak;
-    if(!show||!s){ $('rsRun').textContent=''; $('rsRun').classList.add('empty'); return; }
+    const s=data&&data.rsStreak, box=$('rsRun');
+    if(!show||!s){ box.innerHTML=''; box.classList.add('empty'); return; }
     const week=s.run+(s.now?1:0);
-    let text;
-    if(!week) text='Rising Star: no run going.\nHit 1,000 PV this week to start one.';
-    else if(s.now){
+    const PAID='Paid the Monday after the 3rd week.';
+    let head, sub, ticks, idle=false;
+    if(!week){
+      idle=true; head='No run going.'; sub='Hit 1,000 PV this week to start one.'; ticks=0;
+    } else if(s.now){
       const done=week%3, left=(3-done)%3;
-      text=left===0
-        ? 'Rising Star: '+week+' weeks in a row so far.\nEvery 3 weeks in a row earns $100.\nThis block is complete: $100 earned!'
-        : 'Rising Star: '+week+' weeks in a row so far.\nEvery 3 weeks in a row earns $100.\nKeep it going: '+left+' more week'+(left===1?'':'s')+' to make it 3 of 3 and earn $100!';
+      if(left===0){ head='\u2705 $100 bonus earned'; sub='This week finished your 3-week set. '+PAID+'<br>Next week starts a new set: 0 of 3. Hit 1,000 PV again to keep the run alive.'; ticks=3; }
+      else { head='\u23F3 '+done+' of 3 weeks done. '+left+' more week'+(left===1?'':'s')+' = $100'; sub=PAID; ticks=done; idle=true; }
     } else {
       const done=s.run%3;
-      text='Rising Star: '+s.run+' week'+(s.run===1?'':'s')+' in a row so far.\nEvery 3 weeks in a row earns $100.\n'
-         +'Hit 1,000 PV this week to make it '+(done+1)+' of 3'+(done===2?' and earn $100!':'.');
+      head=done===0?'\u23F3 0 of 3 weeks done in your new set':'\u23F3 '+done+' of 3 weeks done';
+      sub='Hit 1,000 PV this week to make it '+(done+1)+' of 3'+(done===2?' and earn $100. '+PAID:'.'); ticks=done; idle=true;
     }
-    $('rsRun').textContent=text;
-    $('rsRun').classList.remove('empty');
+    let t='';
+    for(let k=1;k<=3;k++) t+='<span class="rs-tick'+(k<=ticks?' on':'')+'">Wk '+k+(k<=ticks?' \u2713':'')+'</span>';
+    box.innerHTML='<div class="rs-head">'+head+'</div><p class="rs-sub">'+sub+'</p><div class="rs-ticks">'+t+'</div>';
+    box.classList.toggle('idle',idle&&ticks===0);
+    box.classList.remove('empty');
   }
   $('monthPrev').onclick=()=>{ if(monthIdx<(((data&&data.months)||[]).length-1)){ monthIdx++; renderNumbers(); } };
   $('monthNext').onclick=()=>{ if(monthIdx>0){ monthIdx--; renderNumbers(); } };
@@ -3840,7 +3854,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   async function openPerson(pid){ teamTab='person'; renderTeam(); $('pName').textContent='Loading…'; try{ person=await run('getPerson',token,pid); }catch(e){ $('pName').textContent=e.message; return; } renderPerson(); }
   function renderPerson(){ const p=person.profile, j=person.journey; $('pName').textContent=p.name; $('pStage').textContent=p.stage||'(no stage)';
     $('pMeta').textContent=[p.agency||'no agency', p.days!=null?p.days+' days in stage':'', p.email, p.mobile, p.joined?'joined '+p.joined:''].filter(String).join(' · ');
-    $('pTiles').innerHTML='<div class="tile"><b>'+fmt(j.numbers.pvMonth)+'</b><span>PV this month</span></div><div class="tile"><b>'+fmt(j.numbers.rsWeeks)+'</b><span>Rising Star weeks so far</span></div><div class="tile"><b>'+fmt(j.numbers.shiftsMonth)+'</b><span>Booth shifts</span></div>';
+    $('pTiles').innerHTML='<div class="tile"><b>'+fmt(j.numbers.pvMonth)+'</b><span>PV this month</span></div><div class="tile"><b>'+fmt(j.numbers.rsWeeks)+'</b><span>Rising Star weeks (all time)</span></div><div class="tile"><b>'+fmt(j.numbers.shiftsMonth)+'</b><span>Booth shifts</span></div>';
     const opts=(person.stages||[]).filter(s=>s!==p.stage); $('pNewStage').innerHTML='<option value="">Choose the new stage</option>'+opts.map(s=>'<option>'+esc(s)+'</option>').join(''); $('pReason').value=''; msg($('pMsg'),'',''); $('pMentor').value=p.mentor||'';
     $('pSteps').innerHTML=j.quests.map(q=>'<div class="phase"><h3>'+esc(q.label)+' · '+q.done+'/'+q.total+'</h3>'+q.phases.filter(ph=>!ph.locked).map(ph=>ph.items.map((it,ix)=>'<div class="step"><div class="dot '+esc(it.state)+'">'+stateLabel(it.state)+'</div><div class="t"><b>'+stepNo(ix,q.quest)+titleHtml(it)+'</b>'+(it.note?'<small>'+esc(it.note)+'</small>':'')+(it.when?'<small class="step-date">'+esc(it.when)+'</small>':'')+'</div></div>').join('')).join('')+'</div>').join('');
     $('pSubs').innerHTML=person.submissions.length?person.submissions.map(s=>'<div class="step"><div class="t"><b>'+esc(s.stepId)+' · '+esc(s.status)+'</b><small>'+esc(s.at)+(s.verifier?' · '+esc(s.verifier):'')+(s.reason?' · '+esc(s.reason):'')+'</small>'+(s.evidence?'<small>'+evidenceHtml(s.evidence)+'</small>':'')+'</div></div>').join(''):'<p class="muted small">None yet.</p>';
