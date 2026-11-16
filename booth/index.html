@@ -888,7 +888,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-16.1';
+  const SHELL_VERSION = '2026-11-16.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1710,18 +1710,26 @@
       ed.className = 'mark';
       ed.textContent = 'Edit';
       ed.onclick = function () {
-        $('bName').value = l.name;
-        loadBoothIntoForm(l);
-        $('bName').scrollIntoView({ block: 'center' });
+        /* Li Wei 16 Nov 2026: ask first. Edit/Remove sit next to each other and a stray tap wiped a booth. */
+        row.innerHTML = '';
+        row.appendChild(actionConfirmPanel('Edit ' + l.name + '? You can change its days and shifts.', 'Yes, edit',
+          function (_, failed) {
+            $('bName').value = l.name;
+            loadBoothIntoForm(l);
+            renderBooths(a);
+            $('bName').scrollIntoView({ block: 'center' });
+          }, function () { renderBooths(a); }));
       };
       row.appendChild(ed);
       var rm = document.createElement('button');
       rm.className = 'mark';
       rm.textContent = 'Remove';
       rm.onclick = function () {
-        rm.disabled = true;
-        writeRun_('removeLocation', [token, l.name, allocWeek], 'Removed booth ' + l.name, renderAll,
-          function () { rm.disabled = false; });
+        row.innerHTML = '';
+        row.appendChild(actionConfirmPanel('Remove ' + l.name + '? This takes everyone off that booth for the week.', 'Yes, remove booth',
+          function (_, failed) {
+            writeRun_('removeLocation', [token, l.name, allocWeek], 'Removed booth ' + l.name, renderAll, failed);
+          }, function () { renderBooths(a); }));
       };
       row.appendChild(rm);
       host.appendChild(row);
