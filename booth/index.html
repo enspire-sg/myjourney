@@ -126,6 +126,7 @@
   .shiftRemarkSlot select { width:100%; margin-top:0; padding:8px 9px; font-size:14px; }
   .shiftTimes { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
   .shiftTimes label { font-weight:700; }
+  .shiftTimesHelp { display:block; margin-top:6px; }
   .shiftTimes select.missing { border-color:var(--danger); outline:2px solid var(--danger); }
   .shiftRemarkSlot label { margin:0 0 3px; font-size:11px; line-height:1.2; }
   .shiftRemarkSlot input { padding:8px 9px; font-size:14px; }
@@ -894,7 +895,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-16.4';
+  const SHELL_VERSION = '2026-11-16.5';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1284,6 +1285,10 @@
           };
           slot.appendChild(label); slot.appendChild(input);
           shiftRemarkInputs.push(input);
+          var timesHelp = document.createElement('small');
+          timesHelp.className = 'shiftTimesHelp';
+          timesHelp.textContent = 'Times: only needed if you give a reason for this shift.';
+          slot.appendChild(timesHelp);
           var timesRow = document.createElement('div');
           timesRow.className = 'shiftTimes';
           var startMin = arriveStartMinutes_(data.shiftTimes[s]), endMin = arriveEndMinutes_(data.shiftTimes[s]);
@@ -1294,7 +1299,6 @@
             lab.textContent = text;
             var sel = document.createElement('select');
             sel.setAttribute('aria-label', text + ', ' + d.day + ' ' + s);
-            sel.setAttribute('aria-required', 'true');
             sel.setAttribute('data-times', which);
             var blank = document.createElement('option');
             blank.value = ''; blank.textContent = 'Choose time';
@@ -1425,8 +1429,9 @@
     var m = /^(\d{1,2}):(\d{2})$/.exec(String(v || ''));
     return m ? Number(m[1]) * 60 + Number(m[2]) : null;
   }
-  /* Both times are compulsory for every shift being saved. Returns '' when fine, otherwise one
-     plain sentence naming the first shift that is missing a time (and marks the box). */
+  /* Times are compulsory ONLY for a shift with a reason typed in its remark box; otherwise both
+     blank is fine (on time, full shift) but a half-filled pair is not. Returns '' when fine,
+     otherwise one plain sentence naming the first problem shift (and marks the box). */
   function bookingTimesProblem_() {
     var problem = '';
     data.days.forEach(function (d) {
@@ -1436,9 +1441,10 @@
         var a = arriveParse_(t.arrives), l = arriveParse_(t.leaves);
         var boxes = shiftRemarkInputs.filter(function (b) { return b.getAttribute && b.getAttribute('aria-label') && b.getAttribute('aria-label').indexOf(', ' + label) > 0 && b.getAttribute('data-times'); });
         function mark(which) { boxes.forEach(function (b) { if (b.getAttribute('data-times') === which) { b.classList.add('missing'); b.focus(); } }); }
-        if (a === null && l === null) { problem = 'Choose Arriving at and Leaving at for ' + label + '.'; mark('arrives'); }
-        else if (a === null) { problem = 'Choose Arriving at for ' + label + '.'; mark('arrives'); }
-        else if (l === null) { problem = 'Choose Leaving at for ' + label + '.'; mark('leaves'); }
+        var reason = String(((shiftNotes[d.day] || {})[s]) || '').trim() !== '';
+        if (!reason && a === null && l === null) return;
+        if (reason && (a === null || l === null)) { problem = label + ': you gave a reason, so add when you arrive and when you leave.'; mark(a === null ? 'arrives' : 'leaves'); }
+        else if (a === null || l === null) { problem = label + ': choose both Arriving at and Leaving at, or leave both blank.'; mark(a === null ? 'arrives' : 'leaves'); }
         else if (l <= a) { problem = 'Leaving at for ' + label + ' must be after Arriving at.'; mark('leaves'); }
       });
     });
@@ -1450,6 +1456,7 @@
       (d.shifts || []).forEach(function (s) {
         if ((picks[d.day] || []).indexOf(s) < 0) return;
         var t = (shiftClock[d.day] || {})[s] || {};
+        if (arriveParse_(t.arrives) === null || arriveParse_(t.leaves) === null) return;
         out.push(d.day.slice(0, 3) + ' ' + s + ' ' + arriveClock_(arriveParse_(t.arrives)) + '\u2013' + arriveClock_(arriveParse_(t.leaves)));
       });
     });
@@ -1540,10 +1547,10 @@
     var self = this;
     var timesText = bookingTimesSummary_();
     writeRun_('saveBooking', [token, picks, why, $('ack').checked, $('ack2').checked, shiftNotes, shiftArrivals, shiftClock],
-      function (r) { return 'Booking (' + r.saved + ' shifts) with your arrival and leaving times'; }, function (r) {
+      function (r) { return 'Booking (' + r.saved + ' shifts)' + (timesText ? ' with your arrival and leaving times' : ''); }, function (r) {
         self.disabled = false;
         $('saved').innerHTML = '<div class="note ok">Saved \u2713 Booking — ' + r.saved
-          + ' shifts. Your times: ' + timesText + '. You can change this until the deadline.</div>';
+          + ' shifts.' + (timesText ? ' Your times: ' + timesText + '.' : '') + ' You can change this until the deadline.</div>';
         showEmailNotice_(r);
       }, function (e) { $('err').textContent = e.message; self.disabled = false; });
   };
