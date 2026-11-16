@@ -52,6 +52,9 @@
   .bookingNotice.fine { background:var(--warnbg); color:var(--warn); }
   .suspendedFlag { display:inline-block; margin-left:6px; padding:2px 7px; border-radius:999px;
                    background:var(--dangerbg); color:var(--danger); font-size:12px; font-weight:800; }
+  .waiverSlot { min-height:44px; margin-top:6px; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .waiverSlot:empty { min-height:0; margin:0; }
+  .waiverTag { padding:2px 8px; border-radius:999px; background:var(--infobg); color:var(--infoink); font-size:12px; font-weight:700; }
   .wrap { max-width:760px; margin:0 auto; padding:16px 16px 64px; }
   header { background:var(--navy); color:#fff;
            padding:calc(18px + env(safe-area-inset-top, 0px))
@@ -119,8 +122,11 @@
   .chip[aria-pressed=true] small { color:#c9d4ea; }
   .bookingShiftPick { flex:1 1 calc(50% - 4px); min-width:220px; }
   .bookingShiftPick .chip { width:100%; min-height:56px; border-radius:12px; }
-  .shiftRemarkSlot { min-height:128px; padding-top:5px; }
-  .shiftRemarkSlot select { width:100%; margin-top:6px; padding:8px 9px; font-size:14px; }
+  .shiftRemarkSlot { min-height:176px; padding-top:5px; }
+  .shiftRemarkSlot select { width:100%; margin-top:0; padding:8px 9px; font-size:14px; }
+  .shiftTimes { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+  .shiftTimes label { font-weight:700; }
+  .shiftTimes select.missing { border-color:var(--danger); outline:2px solid var(--danger); }
   .shiftRemarkSlot label { margin:0 0 3px; font-size:11px; line-height:1.2; }
   .shiftRemarkSlot input { padding:8px 9px; font-size:14px; }
   @media (max-width:520px) { .bookingShiftPick { min-width:0; flex-basis:100%; } }
@@ -888,7 +894,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-16.2';
+  const SHELL_VERSION = '2026-11-16.4';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -900,7 +906,7 @@
     if (raw) history.replaceState(null, '', location.pathname + location.search);
   })();
   var KEY = 'booth.token';
-  var token = '', data = null, picks = {}, shiftNotes = {}, shiftArrivals = {}, shiftRemarkInputs = [];
+  var token = '', data = null, picks = {}, shiftNotes = {}, shiftArrivals = {}, shiftClock = {}, shiftRemarkInputs = [];
   var freshReady = false;
   // Who the page is pretending to be. '' is nobody. Everything that writes checks this, and
   // the server checks it again - the bar is a convenience, not the control.
@@ -1259,7 +1265,7 @@
         var selected = (picked[d.day] || []).indexOf(s) >= 0;
         b.setAttribute('aria-pressed', selected ? 'true' : 'false');
         b.innerHTML = s + '<small>' + data.shiftTimes[s] + '</small>';
-        var slot = null, input = null, arrive = null;
+        var slot = null, input = null, arrive = null, leave = null;
         if (store_ === 'booth') {
           slot = document.createElement('div');
           slot.className = 'shiftRemarkSlot';
@@ -1278,29 +1284,46 @@
           };
           slot.appendChild(label); slot.appendChild(input);
           shiftRemarkInputs.push(input);
-          var arriveLabel = document.createElement('label');
-          arriveLabel.textContent = 'Latest I can arrive';
-          arriveLabel.style.marginTop = '6px';
-          arrive = document.createElement('select');
-          arrive.setAttribute('aria-label', 'Latest I can arrive, ' + d.day + ' ' + s);
-          var startMin = arriveStartMinutes_(data.shiftTimes[s]);
-          [0, 15, 30, 45, 60].forEach(function (m) {
-            var o = document.createElement('option');
-            o.value = String(m);
-            var text = m === 0 ? 'On time' : (m === 60 ? '1 hour after start' : m + ' min after start');
-            o.textContent = text + (startMin === null ? '' : ' (' + arriveClock_(startMin + m) + ')');
-            arrive.appendChild(o);
-          });
-          arrive.value = String(((shiftArrivals[d.day] || {})[s]) || 0);
-          if (arrive.value !== String(((shiftArrivals[d.day] || {})[s]) || 0)) arrive.value = '0';
-          arrive.style.visibility = selected ? 'visible' : 'hidden';
-          arrive.disabled = !selected;
-          arrive.onchange = function () {
-            if (!shiftArrivals[d.day]) shiftArrivals[d.day] = {};
-            shiftArrivals[d.day][s] = Number(arrive.value) || 0;
+          var timesRow = document.createElement('div');
+          timesRow.className = 'shiftTimes';
+          var startMin = arriveStartMinutes_(data.shiftTimes[s]), endMin = arriveEndMinutes_(data.shiftTimes[s]);
+          var saved = ((shiftClock[d.day] || {})[s]) || {};
+          var timeBox = function (which, text, from, to, chosen) {
+            var wrapBox = document.createElement('div');
+            var lab = document.createElement('label');
+            lab.textContent = text;
+            var sel = document.createElement('select');
+            sel.setAttribute('aria-label', text + ', ' + d.day + ' ' + s);
+            sel.setAttribute('aria-required', 'true');
+            sel.setAttribute('data-times', which);
+            var blank = document.createElement('option');
+            blank.value = ''; blank.textContent = 'Choose time';
+            sel.appendChild(blank);
+            if (startMin !== null && endMin !== null) {
+              for (var m = from; m <= to; m += 15) {
+                var o = document.createElement('option');
+                o.value = arriveStore_(m); o.textContent = arriveClock_(m);
+                sel.appendChild(o);
+              }
+            }
+            sel.value = chosen || '';
+            if (sel.value !== (chosen || '')) sel.value = '';
+            sel.style.visibility = selected ? 'visible' : 'hidden';
+            sel.disabled = !selected;
+            sel.onchange = function () {
+              if (!shiftClock[d.day]) shiftClock[d.day] = {};
+              if (!shiftClock[d.day][s]) shiftClock[d.day][s] = {};
+              shiftClock[d.day][s][which] = sel.value;
+              sel.classList.remove('missing');
+            };
+            wrapBox.appendChild(lab); wrapBox.appendChild(sel);
+            timesRow.appendChild(wrapBox);
+            return sel;
           };
-          slot.appendChild(arriveLabel); slot.appendChild(arrive);
-          shiftRemarkInputs.push(arrive);
+          arrive = timeBox('arrives', 'Arriving at', (startMin || 0) - 15, (endMin || 0) - 15, saved.arrives);
+          leave = timeBox('leaves', 'Leaving at', (startMin || 0) + 15, (endMin || 0) + 60, saved.leaves);
+          slot.appendChild(timesRow);
+          shiftRemarkInputs.push(arrive); shiftRemarkInputs.push(leave);
         }
         b.onclick = function () {
           var list = picked[d.day] || (picked[d.day] = []);
@@ -1312,10 +1335,12 @@
             slot.style.visibility = selected ? 'visible' : 'hidden';
             input.style.visibility = selected ? 'visible' : 'hidden';
             input.disabled = !selected || !!data.locked || !!data.preview;
-            if (arrive) {
-              arrive.style.visibility = selected ? 'visible' : 'hidden';
-              arrive.disabled = !selected || !!data.locked || !!data.preview;
-            }
+            [arrive, leave].forEach(function (box) {
+              if (!box) return;
+              box.style.visibility = selected ? 'visible' : 'hidden';
+              box.disabled = !selected || !!data.locked || !!data.preview;
+              if (!selected) box.classList.remove('missing');
+            });
           }
           if (store_ === 'booth') tally();
         };
@@ -1387,6 +1412,49 @@
     if (!m) return null;
     return (Number(m[1]) % 12 + (m[3].toLowerCase() === 'pm' ? 12 : 0)) * 60 + Number(m[2]);
   }
+  function arriveEndMinutes_(text) {
+    var m = /-\s*(\d{1,2}):(\d{2})\s*(am|pm)\s*$/i.exec(String(text || ''));
+    if (!m) return null;
+    return (Number(m[1]) % 12 + (m[3].toLowerCase() === 'pm' ? 12 : 0)) * 60 + Number(m[2]);
+  }
+  function arriveStore_(mins) {
+    var h = Math.floor(mins / 60), mm = mins % 60;
+    return (h < 10 ? '0' : '') + h + ':' + (mm < 10 ? '0' : '') + mm;
+  }
+  function arriveParse_(v) {
+    var m = /^(\d{1,2}):(\d{2})$/.exec(String(v || ''));
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  }
+  /* Both times are compulsory for every shift being saved. Returns '' when fine, otherwise one
+     plain sentence naming the first shift that is missing a time (and marks the box). */
+  function bookingTimesProblem_() {
+    var problem = '';
+    data.days.forEach(function (d) {
+      (d.shifts || []).forEach(function (s) {
+        if (problem || (picks[d.day] || []).indexOf(s) < 0) return;
+        var t = (shiftClock[d.day] || {})[s] || {}, label = d.day + ' ' + s;
+        var a = arriveParse_(t.arrives), l = arriveParse_(t.leaves);
+        var boxes = shiftRemarkInputs.filter(function (b) { return b.getAttribute && b.getAttribute('aria-label') && b.getAttribute('aria-label').indexOf(', ' + label) > 0 && b.getAttribute('data-times'); });
+        function mark(which) { boxes.forEach(function (b) { if (b.getAttribute('data-times') === which) { b.classList.add('missing'); b.focus(); } }); }
+        if (a === null && l === null) { problem = 'Choose Arriving at and Leaving at for ' + label + '.'; mark('arrives'); }
+        else if (a === null) { problem = 'Choose Arriving at for ' + label + '.'; mark('arrives'); }
+        else if (l === null) { problem = 'Choose Leaving at for ' + label + '.'; mark('leaves'); }
+        else if (l <= a) { problem = 'Leaving at for ' + label + ' must be after Arriving at.'; mark('leaves'); }
+      });
+    });
+    return problem;
+  }
+  function bookingTimesSummary_() {
+    var out = [];
+    data.days.forEach(function (d) {
+      (d.shifts || []).forEach(function (s) {
+        if ((picks[d.day] || []).indexOf(s) < 0) return;
+        var t = (shiftClock[d.day] || {})[s] || {};
+        out.push(d.day.slice(0, 3) + ' ' + s + ' ' + arriveClock_(arriveParse_(t.arrives)) + '\u2013' + arriveClock_(arriveParse_(t.leaves)));
+      });
+    });
+    return out.join(', ');
+  }
   function arriveClock_(mins) {
     var h = Math.floor(mins / 60) % 24, mm = mins % 60;
     return ((h % 12) || 12) + ':' + (mm < 10 ? '0' : '') + mm + (h >= 12 ? 'pm' : 'am');
@@ -1396,7 +1464,8 @@
     data = d;
     picks = d.current.Booth || {};
     shiftNotes = d.shiftNotes || {};
-    shiftArrivals = d.shiftArrivals || {};
+    shiftArrivals = {};   // old 'latest arrival' minutes are never re-sent; exact times replace them
+    shiftClock = JSON.parse(JSON.stringify(d.shiftClock || {}));
     renderPreview(d);
     renderBookingNotices_(d);
     $('who').textContent = d.name + (d.preview ? ' \u00b7 preview' : '');
@@ -1465,13 +1534,16 @@
       $('note').focus();
       return;
     }
+    var timesProblem = bookingTimesProblem_();
+    if (timesProblem) { $('err').textContent = timesProblem; return; }
     this.disabled = true;
     var self = this;
-    writeRun_('saveBooking', [token, picks, why, $('ack').checked, $('ack2').checked, shiftNotes, shiftArrivals],
-      function (r) { return 'Booking (' + r.saved + ' shifts)'; }, function (r) {
+    var timesText = bookingTimesSummary_();
+    writeRun_('saveBooking', [token, picks, why, $('ack').checked, $('ack2').checked, shiftNotes, shiftArrivals, shiftClock],
+      function (r) { return 'Booking (' + r.saved + ' shifts) with your arrival and leaving times'; }, function (r) {
         self.disabled = false;
         $('saved').innerHTML = '<div class="note ok">Saved \u2713 Booking — ' + r.saved
-          + ' shifts. You can change this until the deadline.</div>';
+          + ' shifts. Your times: ' + timesText + '. You can change this until the deadline.</div>';
         showEmailNotice_(r);
       }, function (e) { $('err').textContent = e.message; self.disabled = false; });
   };
@@ -1853,6 +1925,50 @@
   // One shared confirmation shape keeps Yes and Cancel in the same fixed two-column home on
   // every phone-sized panel. Removal callers opt into one required typed reason; generic
   // confirmations keep their original callback shape and behaviour.
+  /* HQ only: lift the allocation block for a person the late-booking ladder suspends this week.
+     Records an audited Unlocks row; it does not change the ladder, fine or booking lock. The slot
+     keeps a fixed height so the controls below never jump when the button changes. */
+  function suspensionWaiverControls_(a, name, host) {
+    var slot = document.createElement('div');
+    slot.className = 'waiverSlot';
+    if (!a || !a.canOverrideSuspension) return slot;
+    var suspended = allocationSuspended_(name, a);
+    var waived = !!(a.waivedNames && a.waivedNames[name]);
+    if (!suspended && !waived) return slot;
+    function draw_() {
+      slot.innerHTML = '';
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'ghost waiverButton';
+      btn.textContent = waived ? 'Undo waiver' : 'Waive suspension this week';
+      if (waived) {
+        var tag = document.createElement('span'); tag.className = 'waiverTag';
+        tag.textContent = 'Waived by HQ: can be placed this week'; slot.appendChild(tag);
+      }
+      btn.onclick = function () {
+        slot.innerHTML = '';
+        slot.appendChild(actionConfirmPanel(
+          waived ? 'Undo the waiver for ' + name + '? They will be blocked from placement again.'
+                 : 'Waive the suspension for ' + name + ' this week? Keson will be able to place them. Their late-booking penalty and fine stay as they are.',
+          waived ? 'Yes, undo' : 'Yes, waive',
+          function (reason, failed) {
+            var after_ = function (fresh) { renderAll(fresh); if (typeof loadWeekGrid === 'function') loadWeekGrid(); };
+            if (waived) {
+              writeRun_('revokeSuspensionWaiver', [token, name, a.weekStart], 'Waiver undone for ' + name, after_, failed);
+            } else {
+              writeRun_('waiveSuspension', [token, name, a.weekStart, reason], 'Waived suspension for ' + name + ' this week', after_, failed);
+            }
+          },
+          draw_,
+          waived ? {id:'waiver-undo-' + name.replace(/[^a-z0-9]/gi, '-')}
+                 : {reasonRequired:true, placeholder:'Why is HQ waiving this suspension?',
+                    id:'waiver-' + name.replace(/[^a-z0-9]/gi, '-')}));
+      };
+      slot.appendChild(btn);
+    }
+    draw_();
+    return slot;
+  }
+
   function actionConfirmPanel(message, yesText, action, cancel, options) {
     options = options || {};
     var panel = document.createElement('div');
@@ -1865,7 +1981,7 @@
     if (options.reasonRequired) {
       reason = document.createElement('input');
       reason.type = 'text'; reason.className = 'actionConfirmReason';
-      reason.placeholder = 'Why are you removing this person?';
+      reason.placeholder = options.placeholder || 'Why are you removing this person?';
       if (options.id) reason.id = options.id + '-reason';
       reason.value = options.initialReason || '';
       reason.oninput = function () {
@@ -2787,6 +2903,7 @@
         top.appendChild(owes);
       }
       row.appendChild(top);
+      if (p.suspended || (a.waivedNames && a.waivedNames[p.name])) row.appendChild(suspensionWaiverControls_(a, p.name));
       if (p.note) {
         var note = document.createElement('p');
         note.className = 'bookingNote';
@@ -3265,6 +3382,7 @@
     head.textContent = 'Selected: ' + person.name;
     if (person.suspended) head.appendChild(suspensionFlag_());
     panel.appendChild(head);
+    if (person.suspended || (a.waivedNames && a.waivedNames[person.name])) panel.appendChild(suspensionWaiverControls_(a, person.rawName || person.name));
     function openRemoval_() {
       panel.innerHTML = '';
       panel.appendChild(actionConfirmPanel(
@@ -3531,7 +3649,12 @@
   function bookingArriveLine_(arrive) {
     var line = document.createElement('small');
     line.className = 'bookingRemark bookingArrive';
-    line.textContent = '\u23f0 Latest arrival ' + arrive.time + ' (' + arrive.label + ')';
+    if (arrive.kind === 'exact') {
+      line.textContent = '\u23f0 Arrives ' + arrive.arrives + (arrive.late ? ' (late)' : '')
+        + ' \u00b7 Leaves ' + arrive.leaves + (arrive.early ? ' (leaves early)' : '');
+    } else {
+      line.textContent = '\u23f0 Latest arrival ' + arrive.time + ' (' + arrive.label + ')';
+    }
     return line;
   }
 
