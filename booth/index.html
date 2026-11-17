@@ -321,6 +321,17 @@
   .discPersonHead .discOwed { display:block; color:var(--muted); font-size:12px; font-weight:500; }
   .discPersonHead .discChevron { color:var(--muted); }
   .discBulk { padding:6px 10px; margin:0 0 7px 3px; font-size:12px; background:var(--navy); }
+  .discSave { height:64px; box-sizing:border-box; display:flex; align-items:center; gap:10px;
+              padding:6px 12px; margin:8px 0; border-radius:10px; font-size:14px; font-weight:750;
+              background:transparent; color:transparent; overflow:hidden; }
+  .discSave .discSaveMsg { flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+  .discSave.saving { color:var(--muted); background:var(--soft); }
+  .discSave.saved { color:var(--ok); background:var(--okbg); }
+  .discSave.error { color:var(--danger); background:var(--dangerbg); }
+  .discSave .discRetry { flex:0 0 auto; min-height:44px; padding:8px 12px; font-size:14px; font-weight:750;
+                         background:var(--card); color:var(--danger); border:2px solid var(--danger); border-radius:9px;
+                         visibility:hidden; }
+  .discSave.error .discRetry { visibility:visible; }
   .discIncident { border-left:4px solid #6b7280; margin:5px 0; padding:7px 8px; border-radius:7px;
                   background:var(--field); }
   .discIncident.overdue { border-left-color:var(--danger); background:var(--dangerbg); }
@@ -749,6 +760,7 @@
       <h2 id="discTitle">This month</h2>
       <p class="sub" id="discSub">Loading monthly discipline…</p>
       <div id="discClose" class="homegrid"></div>
+      <div id="discSave" class="discSave" role="status" aria-live="polite"><span class="discSaveMsg" id="discSaveMsg"></span><button type="button" class="discRetry" id="discRetry" tabindex="-1">Tap to retry</button></div>
       <div id="disc"></div>
     </div>
    </section>
@@ -895,7 +907,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-16.5';
+  const SHELL_VERSION = '2026-11-17.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -4877,6 +4889,50 @@
     });
   }
 
+  /* ---- Discipline tick confirmation (17 Nov 2026): the fixed slot above the list says what was saved,
+     only after the server has re-read the Discipline sheet and found the value. Never optimistic. ---- */
+  var DISC_FIELD_WORDS = { finePaid:'fine paid', reflection:'reflection done', sentHome:'sent home' };
+  function discNiceName_(s) {
+    return String(s || '').toLowerCase().replace(/(^|[\s'\-])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); });
+  }
+  function discDayWords_(ymd) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(ymd || ''));
+    if (!m) return String(ymd || '');
+    var d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+    return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()] + ' ' + d.getUTCDate() + ' '
+      + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];
+  }
+  function discSaveWhat_(person, date, field, want) {
+    return discNiceName_(person) + ', ' + discDayWords_(date) + ', ' + DISC_FIELD_WORDS[field] + (want ? '' : ' cleared');
+  }
+  function discConfirmed_(r, field, want) {
+    var c = r && r.savedConfirm;
+    return !!(c && c.ok === true && (field === 'bulk' ? c.bulk === true : (c.field === field && c.value === !!want)));
+  }
+  function setDiscSave_(state, text, retry) {
+    var box = $('discSave'), msg = $('discSaveMsg'), btn = $('discRetry');
+    if (!box) return;
+    box.className = 'discSave ' + state;
+    msg.textContent = text;
+    btn.onclick = null; btn.tabIndex = -1;
+    if (state === 'error' && retry) { btn.onclick = retry; btn.tabIndex = 0; }
+  }
+  function discSend_(send, what, field, want, btnEl) {
+    var again = function () { discSend_(send, what, field, want, null); };
+    if (previewAs) { setDiscSave_('error', 'Not saved \u2717 ' + what, null); return; }
+    setDiscSave_('saving', 'Saving\u2026 ' + what, null);
+    if (btnEl) btnEl.disabled = true;
+    send(what, function (r) {
+      if (discConfirmed_(r, field, want)) setDiscSave_('saved', 'Saved \u2713 ' + what, null);
+      else { setDiscSave_('error', 'Not saved \u2717 ' + what, again); setWriteStatus_('error', what, again); }
+      renderDisc(r);
+    }, function (e) {
+      if (btnEl) btnEl.disabled = false;
+      setDiscSave_('error', 'Not saved \u2717 ' + what, again);
+      $('discSub').textContent = 'Not saved \u00b7 ' + ((e && e.message) || 'try again');
+    });
+  }
+
   function renderDisc(d) {
     discData = d;
     if (!d.summary || !d.filterCounts) recomputeDisc_(d); // old cached payloads remain renderable
@@ -5017,11 +5073,9 @@
         bulk.textContent = discBulkConfirm === p.person ? 'Confirm?' : 'Mark all paid/done';
         bulk.onclick = function () {
           if (discBulkConfirm !== p.person) { discBulkConfirm = p.person; renderDisc(discData); return; }
-          bulk.disabled = true; discBulkConfirm = '';
-          writeRun_('setDisciplineStateBulk', [token, p.person, d.month],
-            'All fines and follow-ups for ' + p.person,
-            function (r) { renderDisc(r); },
-            function (e) { bulk.disabled = false; $('discSub').textContent = 'Not saved · ' + e.message; });
+          discBulkConfirm = '';
+          discSend_(function (w, ok, bad) { writeRun_('setDisciplineStateBulk', [token, p.person, d.month], w, ok, bad); },
+            discNiceName_(p.person) + ', all fines and follow-ups', 'bulk', true, bulk);
         };
         wrap.appendChild(bulk);
       }
@@ -5043,12 +5097,9 @@
             var b = document.createElement('button'); b.className = 'mark Present';
             b.setAttribute('aria-pressed', x[f[0]] ? 'true' : 'false'); b.textContent = f[2];
             b.onclick = function () {
-              var before = x[f[0]]; x[f[0]] = !before; recomputeDisc_(d); renderDisc(d);
-              var discWhat = f[2] + (x[f[0]] ? ' marked' : ' unmarked') + ' for ' + p.person;
-              writeRun_('setDisciplineState', [token, p.person, x.date, x.shift, x.type, f[0], !before], discWhat,
-                function (r) { renderDisc(r); }, function (e) {
-                  x[f[0]] = before; recomputeDisc_(d); renderDisc(d); $('discSub').textContent = 'Not saved · ' + e.message;
-                });
+              var want = !x[f[0]];
+              discSend_(function (w, ok, bad) { writeRun_('setDisciplineState', [token, p.person, x.date, x.shift, x.type, f[0], want], w, ok, bad); },
+                discSaveWhat_(p.person, x.date, f[0], want), f[0], want, b);
             };
             marks.appendChild(b);
           });
