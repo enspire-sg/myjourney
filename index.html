@@ -34,7 +34,7 @@
     .eyebrow{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
     h1{font-size:clamp(28px,7vw,40px);line-height:1.02;margin:8px 0 6px;letter-spacing:-.04em}h2{font-size:18px;margin:0 0 4px}p{line-height:1.55;margin:0}.muted{color:var(--muted)}.small{font-size:12px}
     .chip{display:inline-block;padding:5px 11px;border-radius:99px;font-size:12px;font-weight:800;border:1px solid var(--line);background:rgba(7,15,27,.5)}.chip.gold{border-color:rgba(245,193,79,.5);color:var(--gold)}
-    .btn{border:0;border-radius:13px;padding:12px 18px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-block;text-align:center}.btn.primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#191209;box-shadow:0 10px 28px rgba(245,193,79,.17)}.btn.secondary{background:#1a2940;color:#dfe6ef}.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}.brand .btn[aria-current="page"]{background:rgba(245,193,79,.16);border-color:rgba(245,193,79,.55);color:var(--ink)}.btn:disabled{opacity:.55;cursor:wait}
+    .btn{border:0;border-radius:13px;padding:12px 18px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-block;text-align:center}.btn.primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#191209;box-shadow:0 10px 28px rgba(245,193,79,.17)}.btn.secondary{background:#1a2940;color:#dfe6ef}.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}.btn.ghost.owcbtn{border-color:#4ea1ff;color:#fff;background:#1c3a6b}.brand .btn[aria-current="page"]{background:rgba(245,193,79,.16);border-color:rgba(245,193,79,.55);color:var(--ink)}.btn:disabled{opacity:.55;cursor:wait}
 /* A preview button is not loading, it is somebody else's. Dashed, so it does not read as a control
  * that has failed, and not-allowed rather than wait. */
 .btn.preview-only{cursor:not-allowed;border-style:dashed}.btn.block{width:100%}
@@ -337,7 +337,7 @@ body.bg-modal-open{ overflow: hidden; }
 </head>
 <body>
 <main class="shell">
-  <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><a class="btn ghost mini hidden" id="appsBtn" target="_top" rel="noopener">Enspire Apps</a><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button><button class="btn ghost mini hidden" id="teamPerfBtn" type="button">Team performance</button><button class="btn ghost mini hidden" id="ipoBtn" type="button">IPA overview</button></div></div>
+  <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><button class="btn ghost mini owcbtn hidden" id="owcDashBtn" type="button">OWC dashboard ↗</button><button class="btn ghost mini owcbtn hidden" id="owcAppBtn" type="button">OWC app ↗</button><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button><button class="btn ghost mini hidden" id="teamPerfBtn" type="button">Team performance</button><button class="btn ghost mini hidden" id="ipoBtn" type="button">IPA overview</button></div></div>
   <div id="freshnessSlot" class="freshness-slot" role="status" aria-live="polite"><span id="freshness"></span></div>
 
   <!-- useful links: a top-level page, not another card in the already-long Journey feed -->
@@ -1139,7 +1139,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-17.2';
+  const BUILD='2026-11-18.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1210,7 +1210,7 @@ body.bg-modal-open{ overflow: hidden; }
     catch(e){ msg($('loginMsg'),e.message,'error'); } finally{ $('verifyCode').disabled=false; } };
   $('code').addEventListener('keydown',e=>{ if(e.key==='Enter')$('verifyCode').click(); });
   $('email').addEventListener('keydown',e=>{ if(e.key==='Enter')$('sendCode').click(); });
-  $('signOut').onclick=async()=>{ try{ await run('signOut',token);}catch(e){} clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null; actionData=null; ownActionData=null; viewAs=null; planningAccess=null; resData=null; resourceListWarmStarted=false; team=null; planningData=null; learnerData=null; $('asCard').classList.add('hidden'); showPanel(''); ['quickActions','signOut','viewAsBtn','resBtn','teamBtn','pipeBtn','teamPerfBtn','appsBtn'].forEach(id=>$(id).classList.add('hidden')); showLogin_(); };
+  $('signOut').onclick=async()=>{ try{ await run('signOut',token);}catch(e){} clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null; actionData=null; ownActionData=null; viewAs=null; planningAccess=null; resData=null; resourceListWarmStarted=false; team=null; planningData=null; learnerData=null; $('asCard').classList.add('hidden'); showPanel(''); ['quickActions','signOut','viewAsBtn','resBtn','teamBtn','pipeBtn','teamPerfBtn','owcDashBtn','owcAppBtn'].forEach(id=>$(id).classList.add('hidden')); showLogin_(); };
 
 
   // ---- Team Performance (read-only; server response is already scope-filtered)
@@ -1335,16 +1335,14 @@ body.bg-modal-open{ overflow: hidden; }
   /* The hub link. The server sends '' for anyone who cannot use the launcher, and the
    * button stays hidden - a link to a page that would turn them away is worse than none. */
   /* Your own button only: a View As preview shows what THEY see, and they do not get this. */
-  let launcherUrlOwn_='';
-  function syncLauncher_(){ const a=$('appsBtn'); if(a&&launcherUrlOwn_&&viewAs)a.classList.add('hidden'); else if(a&&launcherUrlOwn_)a.classList.remove('hidden'); }
-  function applyLauncher_(url){ const a=$('appsBtn'); if(!a)return; launcherUrlOwn_=url||'';
-    if(url){ a.setAttribute('href',url); a.classList.remove('hidden'); }
-    else { a.removeAttribute('href'); a.classList.add('hidden'); } }
+  let owcBtnOwn_={dashboard:false,app:false};   /* cosmetic: who SEES the OWC buttons; the OWC apps re-check on redeem */
+  function syncLauncher_(){ const d=$('owcDashBtn'), a=$('owcAppBtn'); if(d)d.classList.toggle('hidden',!(owcBtnOwn_.dashboard&&!viewAs)); if(a)a.classList.toggle('hidden',!(owcBtnOwn_.app&&!viewAs)); }
+  function applyOwcButtons_(o){ owcBtnOwn_={dashboard:!!(o&&o.dashboard),app:!!(o&&o.app)}; syncLauncher_(); }
   function booting_(on){ $('booting').classList.toggle('hidden',!on); }
   function applyJourneyBundle_(bundle,fromCache,keepView){
       planningAccess=bundle.planningAccess;
       applicationsAccess=bundle.applicationsAccess;
-      applyLauncher_(bundle.launcherUrl);
+      applyOwcButtons_(bundle.owc);
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
       data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('ipoBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       warmBoothHandoff_().catch(()=>{});
@@ -2923,7 +2921,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null;
     showPanel('');
     $('devLinkWrap').classList.add('hidden'); $('devLink').value='';
-    ['quickActions','viewAsBtn','resBtn','pipeBtn','teamBtn','signOut','appsBtn'].forEach(id=>$(id).classList.add('hidden'));
+    ['quickActions','viewAsBtn','resBtn','pipeBtn','teamBtn','signOut','owcDashBtn','owcAppBtn'].forEach(id=>$(id).classList.add('hidden'));
     showLogin_(); msg($('loginMsg'),note||'Signed out.','');
   }
   const resourceBodyQueued={};
@@ -3577,7 +3575,21 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       form.appendChild(field); document.body.appendChild(form); form.submit(); form.remove();
     }catch(e){ if(tab)tab.close(); window.alert(e.message||('Could not open '+label+'.')); }
   }
-  if($('appsBtn')) $('appsBtn').onclick=e=>{ e.preventDefault(); openJourneyDestination_('issueLauncherHandoff','Enspire Apps'); };
+  /* OWC buttons: mint a signed one-time pass (90 s, single use, bound to that app), then open the
+   * destination with the pass in the #fragment only. Never an identity in the URL. */
+  async function openOwcDestination_(mint,label){
+    if(viewAs)return;
+    const tab=window.open('about:blank','_blank');
+    try{
+      const result=await mint();
+      const url=String(result&&result.url||'');
+      if(url.indexOf('https://enspire-sg.github.io/myjourney/')!==0)throw new Error('Could not open '+label+'.');
+      const target=url+'#t='+encodeURIComponent(result.assertion);
+      if(tab){ try{ tab.opener=null; }catch(_){} tab.location.href=target; } else window.location.assign(target);
+    }catch(e){ if(tab)tab.close(); window.alert(e.message||('Could not open '+label+'.')); }
+  }
+  if($('owcDashBtn')) $('owcDashBtn').onclick=e=>{ e.preventDefault(); openOwcDestination_(()=>run('issueOwcDashboardHandoff',token),'the OWC dashboard'); };
+  if($('owcAppBtn')) $('owcAppBtn').onclick=e=>{ e.preventDefault(); openOwcDestination_(()=>run('issueOwcAppHandoff',token),'the OWC app'); };
 
   // ---- modal
   function findStep(id){ let f=null; data.quests.forEach(q=>q.phases.forEach(ph=>ph.items.forEach(it=>{ if(it.id===id)f=it; }))); return f; }
