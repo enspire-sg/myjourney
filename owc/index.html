@@ -823,7 +823,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-19.1';
+    const BUILD='2026-11-19.2';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -935,7 +935,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       const today=singaporeDate(),missing=[];for(let day=2;day<8;day++)if(!(s.lotr||[])[day])missing.push({day,due:addDays(sunday,day-1)});if(missing.length){const due=missing.find(item=>item.due<=today)||missing[0];return {type:'lotr',day:due.day,title:'Complete LOTR Day '+due.day,detail:due.due<=today?'This is your next due daily reflection.':'You are on track. This is the next scheduled reflection.',due:due.due}}
       if(Number(s.mentorCoffees||0)<3)return {type:'mentor',title:'Complete '+(3-Number(s.mentorCoffees||0))+' more coffee session'+(3-Number(s.mentorCoffees||0)===1?'':'s'),detail:'Meet an Enspire Entrepreneur and submit your reflection.',due:followingSaturday(s.startDate)};
       if(Number(s.surveyNumbers||0)<100)return {type:'survey',title:'Collect '+(100-Number(s.surveyNumbers||0))+' more verified survey responses',detail:'Duplicate WhatsApp numbers do not count.',due:followingSaturday(s.startDate)};
-      if(Number(s.surveyHours||0)<20)return {type:'tracker',title:'Complete your remaining survey-shift hours',detail:(20-Number(s.surveyHours||0))+' verified hours remaining. Attendance is recorded by leaders.',due:followingSaturday(s.startDate)};
+      if(Number(s.surveyNumbers||0)<100&&Number(s.surveyHours||0)<20)return {type:'tracker',title:'Complete your remaining survey-shift hours',detail:(20-Number(s.surveyHours||0))+' verified hours remaining. Attendance is recorded by leaders.',due:followingSaturday(s.startDate)};
       return {type:'complete',title:'All OWC requirements completed',detail:'Your leaders will review your final outcome.',due:followingSaturday(s.startDate)};
     }
     function openNextActionRequirement(action){
@@ -1066,7 +1066,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     function stateForAuthenticatedParticipant(current,participantId){if(current&&current.participantId===participantId)return current;const fresh=defaults();fresh.participantId=participantId;return fresh}
     function applyAuthoritativeProgress(result){state=mergeAuthoritativeProgress(state,result||{});render()}
     function readState(){return {participantId:state.participantId,name:els.name.value.trim(),contact:els.contact.value.trim(),startDate:els.startDate.value,shiftBooked:els.shiftBooked.checked,lotr:dayInputs.map(i=>i.checked),dreamlist:els.dreamlist.checked,mentorCoffees:number(els.mentorCoffees.value,0,10),mentorNames:state.mentorNames||[],mentorMeetings:state.mentorMeetings||[],surveyNumbers:number(els.surveyNumbers.value,0,9999),surveyHours:number(els.surveyHours.value,0,20),notes:els.notes.value.trim()}}
-    function progress(s){const units=(s.shiftBooked?1:0)+s.lotr.filter(Boolean).length+(s.dreamlist?1:0)+Math.min(1,s.mentorCoffees/3)+Math.min(1,s.surveyNumbers/100)+s.surveyHours/20;return Math.floor(units/13*100)}
+    function progress(s){const units=(s.shiftBooked?1:0)+s.lotr.filter(Boolean).length+(s.dreamlist?1:0)+Math.min(1,s.mentorCoffees/3)+Math.min(1,s.surveyNumbers/100)+(s.surveyNumbers>=100?1:Math.min(1,s.surveyHours/20));return Math.floor(units/13*100)}
 
     function render(){els.name.value=state.name||'';els.contact.value=state.contact||'';els.startDate.value=state.startDate||'';els.shiftBooked.checked=!!state.shiftBooked;els.dreamlist.checked=!!state.dreamlist;els.mentorCoffees.value=state.mentorCoffees||0;els.surveyNumbers.value=state.surveyNumbers||0;els.surveyHours.value=state.surveyHours||0;els.notes.value=state.notes||'';dayInputs.forEach((i,n)=>i.checked=!!(state.lotr||[])[n]);updateUI()}
     let surveyCountLoading=false,surveyCountState='idle',surveyCountUpdated='';
