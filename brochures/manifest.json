@@ -1,0 +1,62 @@
+{
+ "AAI": {
+  "pages": 2,
+  "version": "6ee42f42",
+  "width": 1100
+ },
+ "BAK": {
+  "pages": 8,
+  "version": "8a5ce924",
+  "width": 1100
+ },
+ "CAI": {
+  "pages": 2,
+  "version": "60be74ce",
+  "width": 1100
+ },
+ "DDA": {
+  "pages": 2,
+  "version": "ce71a926",
+  "width": 1100
+ },
+ "FRF": {
+  "pages": 2,
+  "version": "943442cf",
+  "width": 1100
+ },
+ "MPC": {
+  "pages": 2,
+  "version": "1b1134e4",
+  "width": 1100
+ },
+ "PPV": {
+  "pages": 2,
+  "version": "f4a828fa",
+  "width": 1100
+ },
+ "SUP": {
+  "pages": 2,
+  "version": "1ae1aae5",
+  "width": 1100
+ },
+ "TPE": {
+  "pages": 2,
+  "version": "723f497b",
+  "width": 1100
+ },
+ "TTP": {
+  "pages": 2,
+  "version": "e81649e5",
+  "width": 1100
+ },
+ "UPW": {
+  "pages": 2,
+  "version": "e9031155",
+  "width": 1100
+ },
+ "VCW": {
+  "pages": 2,
+  "version": "059e2f0d",
+  "width": 1100
+ }
+}
