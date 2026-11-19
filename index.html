@@ -1036,7 +1036,7 @@ body.bg-modal-open{ overflow: hidden; }
       }
     });
   }
-  let ownPipelineTab=false, ownPreviewTab=false, pipeData=null;
+  let ownPipelineTab=false, ownPreviewTab=false, ownIpoTab=false, pipeData=null;
   let pipeTab='opp', pipeOpp=null, pipeOutcome='', pipeCourse='';
   let fuData=null, fuLoading=false, fuError='', fuBusy=false, fuSeq=0;
   let weekData=null, weekLoading=false, weekError='', weekSeq=0;
@@ -1145,7 +1145,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-19.2';
+  const BUILD='2026-11-19.3';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1350,7 +1350,7 @@ body.bg-modal-open{ overflow: hidden; }
       applicationsAccess=bundle.applicationsAccess;
       applyOwcButtons_(bundle.owc);
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
-      data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('ipoBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
+      data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); ownIpoTab=!!(bundle.tabs&&bundle.tabs.ipaOverview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       warmBoothHandoff_().catch(()=>{});
       if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
@@ -3694,6 +3694,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     $('viewAsBtn').classList.toggle('hidden',!(t&&t.preview));
     $('teamBtn').classList.toggle('hidden',!(t&&t.team));
     $('pipeBtn').classList.toggle('hidden',!(t&&t.pipeline));
+    /* IPA Overview: missing flag (old server) = hidden. Not allowed and sitting on the panel = back home. */
+    $('ipoBtn').classList.toggle('hidden',!(t&&t.ipaOverview));
+    if(!(t&&t.ipaOverview)&&!$('ipaOverview').classList.contains('hidden'))showPanel('journey');
   }
   function ownTabs(){
     const d=(team&&team.duties)||{};
@@ -3703,6 +3706,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
              /* Stage decides this and stage cannot change mid-session, so it is read once at boot
               * rather than recomputed - leaving view-as unable to turn somebody else's tab on. */
              pipeline: ownPipelineTab,
+             ipaOverview: ownIpoTab,
              learners: true,
              team: !!(d.verify||d.certify
                       ||(planningAccess&&planningAccess.allowed)
