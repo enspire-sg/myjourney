@@ -672,6 +672,7 @@ body.bg-modal-open{ overflow: hidden; }
     <section class="card hidden" id="panelCertify">
       <h2>Vouch for someone</h2><p class="muted small" id="certifyHint">Only requests addressed to you are shown.</p>
       <div id="requests"></div>
+      <div id="needsOthers"></div>
 
       <div class="message" id="cMsg" role="status"></div>
     </section>
@@ -1146,7 +1147,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-19.4';
+  const BUILD='2026-11-19.5';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3939,9 +3940,12 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     document.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>decide(b.dataset.approve,'Approved','',b));
     document.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>{ const reason=prompt('Reason the person will see:'); if(reason&&reason.trim())decide(b.dataset.reject,'Rejected',reason.trim(),b); }); }
   async function decide(id,decision,reason,btn){ const r=(team.queue||[]).find(x=>String(x.id)===String(id)),what=(decision==='Approved'?'Approved ':'Rejected ')+(r?r.name+' · '+stepTitle_(r.step):'evidence'); msg($('qMsg'),'',''); if(btn)btn.disabled=true; actionFeedback_(id,'Saving…'); try{ team=await run('decideSubmission',token,id,decision,reason||''); renderTeam(); msg($('qMsg'),'Saved ✓ '+what,'success'); }catch(e){ const retry=()=>decide(id,decision,reason,btn); if(!actionFeedback_(id,'Not saved. '+e.message,retry))globalRetry_($('qMsg'),'Not saved. '+e.message,retry); if(btn)btn.disabled=false; } }
+  /* Read-only labels for people the viewer may see (server: Scope.gs canSee). Label only, no buttons. */
+  function needsOthersHtml_(list){ list=list||[]; if(!list.length)return ''; return '<section class="person-action-group needs-others"><h3>Still needs confirmations</h3><div class="muted small">People you can see. You are not asked to confirm these.</div>'+list.map(g=>'<div class="step" style="flex-direction:column;gap:4px"><div><b>'+esc(g.name)+'</b> <span class="chip">'+esc(g.stage)+'</span></div>'+g.items.map(teamNeedsLabel_).join('')+'</div>').join('')+'</section>'; }
   function renderCertify(){ const reqs=(team.requests||[]);
     $('certifyHint').textContent='Only requests addressed to you are shown.';
     $('requests').innerHTML=reqs.length?groupByPerson_(reqs).map(g=>{ const labels=compactStepLabels_(g.items); return '<section class="person-action-group"><h3>'+esc(g.name)+' <span class="chip">'+esc(g.stage)+'</span><span class="chip">'+g.items.length+' '+(g.items.length===1?'request':'requests')+'</span></h3>'+(labels.common?'<div class="muted small">'+esc(labels.common)+'</div>':'')+g.items.map(r=>'<div class="step" style="flex-direction:column;gap:6px"><div class="row"><span class="muted small">'+esc(askedLine_(r))+'</span>'+waitingLabel_(r)+'</div>'+requestStatusHtml_(r)+teamNeedsLabel_(r)+'<div class="small"><span class="muted">'+esc(r.quest+' · '+r.phase)+'</span><br><b>'+esc(labels.labels[String(r.id)])+'</b></div><div>'+(r.mine?'<span class="chip">You confirmed '+esc(String(r.mine).slice(0,10))+'</span>':r.own?'<span class="chip">Your own request</span>':'<div class="row"><button class="btn primary mini" data-tapp="'+esc(r.personId)+'" data-taps="'+esc(r.stepId)+'">Confirm</button><button class="btn secondary mini" data-decline="'+esc(r.personId)+'" data-declines="'+esc(r.stepId)+'">Decline</button></div>')+'</div>'+saveFeedbackHtml_(r)+'</div>').join('')+'</section>'; }).join(''):'<p class="muted small" style="margin:12px 0">No open requests for you.</p>';
+    if($('needsOthers'))$('needsOthers').innerHTML=needsOthersHtml_(team.needs);
     document.querySelectorAll('[data-tapp]').forEach(b=>b.onclick=()=>{ const r=reqs.find(x=>x.personId===b.dataset.tapp&&x.stepId===b.dataset.taps); tap(b.dataset.tapp,b.dataset.taps,'',r&&r.name,r&&r.step,b); });
     document.querySelectorAll('[data-decline]').forEach(b=>b.onclick=()=>{ const r=reqs.find(x=>x.personId===b.dataset.decline&&x.stepId===b.dataset.declines); decline(b.dataset.decline,b.dataset.declines,r&&r.name,r&&r.step,b); }); }
   async function tap(pid,sid,note,name,step,btn){ const who=name||'this person',what=stepTitle_(step||sid),r=(team.requests||[]).find(x=>x.personId===pid&&x.stepId===sid),id=r&&r.id; if(!confirm('Confirm '+who+' — '+what+'?'))return; msg($('cMsg'),'',''); if(btn)btn.disabled=true; if(id)actionFeedback_(id,'Saving…'); try{ team=await run('tapStep',token,pid,sid,note); renderTeam(); msg($('cMsg'),'Saved ✓ Vouched for '+who+' — '+what+'.','success'); }catch(e){ const retry=()=>tap(pid,sid,note,name,step,btn); if(!id||!actionFeedback_(id,'Not saved. '+e.message,retry))globalRetry_($('cMsg'),'Not saved. '+e.message,retry); if(btn)btn.disabled=false; } }
