@@ -213,7 +213,7 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-modal-card{
       width: min(1040px, 100%); height: min(92vh, 900px); overflow: hidden;
       border-radius: 18px; background: white; box-shadow: 0 30px 80px rgba(0,0,0,.35);
-      display: grid; grid-template-rows: auto 1fr;
+      display: grid; grid-template-rows: auto minmax(0,1fr); grid-template-columns: minmax(0,1fr);
     }
 #bells .bg-modal-bar{
       display: flex; align-items: center; gap: 12px; padding: 11px 14px;
@@ -223,6 +223,11 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-modal-link{ color: white; font-size: .8rem; font-weight: 800; white-space: nowrap; }
 #bells .bg-modal-close{ border: 0; background: rgba(255,255,255,.14); color: white; border-radius: 9px; padding: 7px 10px; font: inherit; font-weight: 900; cursor: pointer; }
 #bells .bg-modal iframe{ width: 100%; height: 100%; border: 0; background: #eef2f6; }
+#bells .bg-modal iframe[hidden]{ display: none; }
+#bells .bg-pages{ min-width: 0; width: 100%; min-height: 0; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; background: #eef2f6; touch-action: pan-x pan-y pinch-zoom; }
+#bells .bg-pages[hidden]{ display: none; }
+#bells .bg-pages img{ display: block; width: 100%; height: auto; margin: 0 0 8px; background: #fff; }
+#bells .bg-pages img:last-child{ margin-bottom: 0; }
 
     @media (max-width: 720px) {
 #bells .bg-shell{ padding: 14px 10px 30px; }
@@ -636,7 +641,8 @@ That form is what creates your My Journey account. Until it is in, you cannot si
         <a id="bgBrochureOpen" class="bg-modal-link" href="#" target="_blank" rel="noopener">Open PDF</a>
         <button id="bgBrochureClose" class="bg-modal-close" type="button" aria-label="Close brochure">Close</button>
       </div>
-      <iframe id="bgBrochureFrame" title="Course brochure PDF" allow="fullscreen"></iframe>
+      <div id="bgBrochurePages" class="bg-pages" role="document" aria-label="Brochure pages" tabindex="0" hidden></div>
+      <iframe id="bgBrochureFrame" title="Course brochure PDF" allow="fullscreen" hidden></iframe>
     </div>
   </div>
     </div>
@@ -817,7 +823,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-13.1';
+    const BUILD='2026-11-19.1';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1479,7 +1485,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     /* Bells EasyGuide: copied from My Journey between the markers; no server calls, no sign-in needed. */
     /* EASYGUIDE_JS_BEGIN */
 (function(){
-  const TECH_SUITABILITY_COURSE_RE=/^(?:Certificate in AI Essentials(?: \(Zoom\))?|Upgrade yourself with Gen AI \(Seniors\/Retirees\)|TikTok with AI \((?:Bundle|TTAI)\)|3D Printing|AI Agents & Automation|Vibe Coding for Web & App Development|Claude AI \(Zoom\))$|data analytic|\bDDA\b/i;
+  const TECH_SUITABILITY_COURSE_RE=/^(?:Certificate in AI Essentials(?: \(Zoom\))?|Upgrade yourself with Gen AI \(Seniors\/Retirees\)|TikTok with AI \((?:Bundle|TTAI)\)|3D Printing|AI Agents & Automation|Vibe Coding for Web & App Development|Claude AI \(Zoom\)|Successful Livestreaming on Shopee)$|data analytic|\bDDA\b/i;
   function isTechSuitabilityCourse_(name,code){ return TECH_SUITABILITY_COURSE_RE.test(String(name||'').trim())||TECH_SUITABILITY_COURSE_RE.test(String(code||'').trim()); }
   window.isTechSuitabilityCourse_=isTechSuitabilityCourse_;
 })();
@@ -1498,6 +1504,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       FRF: '1BFCcPuuG5QbDjs4mMTTVH3-KT6oRaMnH',
       MPC: '1ChfvnBCuEb-sNs65xBBjbYSgMXhBGujT',
       PPV: '1sxyuTjRY3mPR0V1fy7vdkNSuZltnKIaT',
+      SLS: '1GAbZHU2maeNZiBe8ahkW7aEZ0kvoEXUO',
       SUP: '1P3QLN1jxCNr0TkXvcxCEkpn69g6Ezuj7',
       TPE: '1v9KmCyrr4-NLMd6iJqh3D_ywQWX4rVMs',
       TTP: '1gLPzbnhzRu7l-ZLXEKiC4wrzZB7FwMkS',
@@ -1517,6 +1524,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       'Vibe Coding for Web & App Development': 'VCW',
       'Claude AI (Zoom)': 'CAI',
       'AI Agents & Automation': 'AAI',
+      'Successful Livestreaming on Shopee': 'SLS',
       'Communication & Coaching': 'MPC',
       'TikTok with AI (Bundle)': 'TTP'
     };
@@ -1533,6 +1541,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       'Vibe Coding for Web & App Development': 'VCW',
       'Claude AI (Zoom)': 'CLA',
       'AI Agents & Automation': 'ABC',
+      'Successful Livestreaming on Shopee': 'SLS',
       'Communication & Coaching': 'MPC',
       'TikTok with AI (Bundle)': 'TTAI'
     };
@@ -1575,6 +1584,9 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       'AI Agents & Automation': [
         { label: 'View TMS schedule', path: '/course-details/225/tech-ai-agents-and-automation-bootcamp' }
       ],
+      'Successful Livestreaming on Shopee': [
+        { label: 'View TMS schedule', path: '/course-details/253/tech-successful-livestreaming-on-shopee-with-bells' }
+      ],
       'Communication & Coaching': [
         { label: 'View TMS schedule', path: '/course-details/176/pwm-mastering-performance-based-coaching' }
       ],
@@ -1584,8 +1596,8 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     };
     const TMS_BASE = 'https:' + '/' + '/tms.bells.sg';
     const money = new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', currencyDisplay: 'narrowSymbol' });
-    const CATALOGUE_AS_OF = /* CATALOGUE_AS_OF_START */ '2026-11-13' /* CATALOGUE_AS_OF_END */;
-    const INITIAL_DATA = /* CATALOGUE_START */ [{"name":"Cakes & Cookies (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"8 DAYS (48 HRS)","fees":{"full":1264.4,"age2139":684.4,"age40":452.4},"pv":200.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2019503177 + TGS-2019503181"},{"name":"Cafe Style Bread & Tarts (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"9 DAYS (54 HRS)","fees":{"full":1449.7,"age2139":784.7,"age40":518.7},"pv":220.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023019954 + TGS-2019503567"},{"name":"Premium Cakes","category":"Baking","delivery":"Classroom","duration":"5 DAYS (30 HRS)","fees":{"full":1199.0,"age2139":649.0,"age40":429.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023036448"},{"name":"Handphone Apps with Photography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"4 DAYS (32 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061249 + TGS-2021007824"},{"name":"Mobile Photography & Videography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"5 DAYS (38 HRS)","fees":{"full":1035.5,"age2139":560.5,"age40":370.5},"pv":110.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021007824 + TGS-2021009032"},{"name":"Certificate in AI Essentials","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Upgrade yourself with Gen AI (Seniors/Retirees)","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Certificate in AI Essentials (Zoom)","category":"Tech","delivery":"Online","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"3D Printing","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1237.15,"age2139":669.65,"age40":442.655},"pv":120.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061253"},{"name":"Vibe Coding for Web & App Development","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2020503366"},{"name":"Claude AI (Zoom)","category":"Tech","delivery":"Online","duration":"2 DAYS (16 HRS)","fees":{"full":806.6,"age2139":436.6,"age40":288.6},"pv":90.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059941"},{"name":"AI Agents & Automation","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061246"},{"name":"Communication & Coaching","category":"PWM","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1177.2,"age2139":637.2,"age40":421.2},"pv":130.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046246"},{"name":"TikTok with AI (Bundle)","category":"PWM · Bundle","delivery":"Classroom","duration":"6 DAYS (46 HRS)","fees":{"full":2114.6,"age2139":1144.6,"age40":756.5999999999999},"pv":200.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046178 + TGS-2024046177"}] /* CATALOGUE_END */;
+    const CATALOGUE_AS_OF = /* CATALOGUE_AS_OF_START */ '2026-11-19' /* CATALOGUE_AS_OF_END */;
+    const INITIAL_DATA = /* CATALOGUE_START */ [{"name":"Cakes & Cookies (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"8 DAYS (48 HRS)","fees":{"full":1264.4,"age2139":684.4,"age40":452.4},"pv":200.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2019503177 + TGS-2019503181"},{"name":"Cafe Style Bread & Tarts (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"9 DAYS (54 HRS)","fees":{"full":1449.7,"age2139":784.7,"age40":518.7},"pv":220.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023019954 + TGS-2019503567"},{"name":"Premium Cakes","category":"Baking","delivery":"Classroom","duration":"5 DAYS (30 HRS)","fees":{"full":1199.0,"age2139":649.0,"age40":429.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023036448"},{"name":"Handphone Apps with Photography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"4 DAYS (32 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061249 + TGS-2021007824"},{"name":"Mobile Photography & Videography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"5 DAYS (38 HRS)","fees":{"full":1035.5,"age2139":560.5,"age40":370.5},"pv":110.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021007824 + TGS-2021009032"},{"name":"Certificate in AI Essentials","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Upgrade yourself with Gen AI (Seniors/Retirees)","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Certificate in AI Essentials (Zoom)","category":"Tech","delivery":"Online","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"3D Printing","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1237.15,"age2139":669.65,"age40":442.655},"pv":120.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061253"},{"name":"Vibe Coding for Web & App Development","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2020503366"},{"name":"Claude AI (Zoom)","category":"Tech","delivery":"Online","duration":"2 DAYS (16 HRS)","fees":{"full":806.6,"age2139":436.6,"age40":288.6},"pv":90.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059941"},{"name":"AI Agents & Automation","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061246"},{"name":"Successful Livestreaming on Shopee","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1331.44,"age2139":720.69,"age40":476.39},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021008153"},{"name":"Communication & Coaching","category":"PWM","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1177.2,"age2139":637.2,"age40":421.2},"pv":130.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046246"},{"name":"TikTok with AI (Bundle)","category":"PWM · Bundle","delivery":"Classroom","duration":"6 DAYS (46 HRS)","fees":{"full":2114.6,"age2139":1144.6,"age40":756.5999999999999},"pv":200.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046178 + TGS-2024046177"}] /* CATALOGUE_END */;
     window.BELLS_COURSE_NAMES = INITIAL_DATA.map(c=>c.name);
     let allCourses = INITIAL_DATA.slice();
     let visibleCourses = allCourses.slice();
@@ -1622,6 +1634,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       brochureOpen: document.getElementById('bgBrochureOpen'),
       brochureClose: document.getElementById('bgBrochureClose'),
       brochureFrame: document.getElementById('bgBrochureFrame'),
+      brochurePages: document.getElementById('bgBrochurePages'),
       tiktokGuide: document.getElementById('bgTikTokGuide'),
       laptopNote: document.getElementById('bgLaptopNote'),
       tiktokWarning: document.getElementById('bgTikTokWarning')
@@ -1777,6 +1790,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       els.brochureButton.disabled = !brochureFile;
       els.brochureButton.textContent = brochureFile ? 'View brochure' : 'Brochure unavailable';
       els.brochureButton.dataset.fileId = brochureFile || '';
+      els.brochureButton.dataset.code = brochureFile ? brochureCode : '';
       els.tmsLinks.replaceChildren();
       (TMS_BY_COURSE[course.name] || [{ label: 'Search TMS schedule', path: '/agb-courses' }]).forEach(item => {
         const link = document.createElement('a');
@@ -1789,6 +1803,53 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       });
     }
 
+    const BROCHURE_IMG_BASE = 'https:' + '/' + '/enspire-sg.github.io/myjourney/brochures/';
+    let brochureManifest = null;
+    let brochureToken = 0;
+    function loadBrochureManifest() {
+      if (!brochureManifest) {
+        brochureManifest = fetch(BROCHURE_IMG_BASE + 'manifest.json', { cache: 'no-cache' })
+          .then(r => { if (!r.ok) throw new Error('manifest ' + r.status); return r.json(); })
+          .catch(() => { brochureManifest = null; return {}; });
+      }
+      return brochureManifest;
+    }
+    function showBrochureFrame(previewUrl) {
+      els.brochurePages.replaceChildren();
+      els.brochurePages.hidden = true;
+      els.brochureFrame.hidden = false;
+      els.brochureFrame.src = previewUrl;
+    }
+    // Fit-to-width page images (iPhone zooms the Drive preview ~2x and crops it); old Drive iframe is the fallback.
+    function showBrochurePages(code, previewUrl) {
+      const token = ++brochureToken;
+      els.brochureFrame.hidden = true;
+      els.brochurePages.hidden = false;
+      els.brochurePages.replaceChildren();
+      loadBrochureManifest().then(manifest => {
+        if (token !== brochureToken) return;
+        const info = manifest && code && manifest[code];
+        if (!info || !(info.pages > 0)) { showBrochureFrame(previewUrl); return; }
+        const frag = document.createDocumentFragment();
+        let failed = false;
+        for (let n = 1; n <= info.pages; n++) {
+          const img = document.createElement('img');
+          img.alt = 'Brochure page ' + n + ' of ' + info.pages;
+          img.decoding = 'async';
+          if (n > 1) img.loading = 'lazy';
+          img.addEventListener('error', () => {
+            if (failed || token !== brochureToken) return;
+            failed = true;
+            showBrochureFrame(previewUrl);
+          });
+          img.src = BROCHURE_IMG_BASE + code + '/' + n + '.jpg?v=' + encodeURIComponent(info.version || '');
+          frag.appendChild(img);
+        }
+        els.brochurePages.appendChild(frag);
+        els.brochurePages.scrollTop = 0;
+      });
+    }
+
     function openBrochure() {
       const fileId = els.brochureButton.dataset.fileId;
       const course = selectedCourse();
@@ -1796,7 +1857,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       const driveBase = 'https:' + '/' + '/drive.google.com/file/d/' + fileId;
       const previewUrl = driveBase + '/preview';
       els.brochureTitle.textContent = `${course.name} — Brochure`;
-      els.brochureFrame.src = previewUrl;
+      showBrochurePages(els.brochureButton.dataset.code, previewUrl);
       els.brochureOpen.href = driveBase + '/view';
       els.brochureModal.classList.add('bg-open');
       els.brochureModal.setAttribute('aria-hidden', 'false');
@@ -1807,7 +1868,11 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     function closeBrochure() {
       els.brochureModal.classList.remove('bg-open');
       els.brochureModal.setAttribute('aria-hidden', 'true');
+      brochureToken++;
       els.brochureFrame.src = 'about:blank';
+      els.brochureFrame.hidden = true;
+      els.brochurePages.replaceChildren();
+      els.brochurePages.hidden = true;
       document.body.classList.remove('bg-modal-open');
       els.brochureButton.focus();
     }
