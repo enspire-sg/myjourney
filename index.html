@@ -77,6 +77,7 @@
     #qMsg,#cMsg,#mMsg{display:block;min-height:48px;visibility:hidden}#qMsg.error,#qMsg.success,#cMsg.error,#cMsg.success,#mMsg.error,#mMsg.success{visibility:visible}
     .person-action-group{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:15px;background:rgba(11,22,40,.45)}.person-action-group>h3{margin:0 0 8px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}.person-action-group .step{margin-top:8px}.save-feedback{min-height:34px;display:flex;align-items:center;gap:8px}.old-wait{font-weight:700;color:#ffd98a}
     .needs-card{margin:8px 0 2px;padding:12px;border:2px solid var(--gold);border-radius:15px;background:rgba(245,193,79,.07)}.needs-bar{height:10px;border-radius:99px;background:#22314a;overflow:hidden}.needs-bar i{display:block;height:100%;background:var(--green);border-radius:99px}.needs-line{margin-top:9px;font-size:15px;font-weight:850;color:var(--gold);line-height:1.35}.needs-ask{margin-top:10px}.needs-ask .btn{width:100%;min-height:52px;font-size:16px}.needs-stale{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(255,217,138,.12);color:#ffd98a;font-size:13px;line-height:1.45}.needs-stale b{display:block;margin-top:2px}.needs-label{font-size:13px;font-weight:800;color:var(--gold)}
+    .mhn{margin:0 0 14px;padding:14px;border:2px solid var(--gold);border-radius:15px;background:rgba(245,193,79,.07)}.mhn h2{margin:0 0 10px;font-size:18px;line-height:1.3}.mhn-line{margin-top:8px;padding:9px 12px;border-radius:12px;background:rgba(245,193,79,.16);color:var(--gold);font-size:15px;font-weight:850;line-height:1.35}
     .req-people{display:grid;gap:8px;max-height:42vh;overflow:auto;padding:2px}.req-person{display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:#0b1628;cursor:pointer}.req-person:has(input:checked){border-color:var(--gold);background:rgba(245,193,79,.1)}.req-person input{width:22px;height:22px;flex:0 0 22px;accent-color:var(--gold)}.req-person span{display:grid;gap:2px}.req-person small{color:var(--muted)}
     .observe-list{display:grid;gap:12px}.observe-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(138px,.7fr);gap:9px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#0b1628}.observe-row b{grid-column:1/-1;font-size:13px}.observe-row .observe-learned{grid-column:1/-1}.observe-row select,.observe-row input{min-width:0}.observe-error{min-height:20px;color:var(--red);font-size:12px;line-height:1.4}
     @media(max-width:520px){.observe-row{grid-template-columns:1fr}.observe-row b,.observe-row .observe-learned{grid-column:1}}
@@ -890,6 +891,8 @@ body.bg-modal-open{ overflow: hidden; }
       <div class="stagebar" id="stagebar"></div>
     </section>
 
+    <section class="card mhn hidden" id="mentorHomeNeeds" aria-label="Your mentees: still need confirmations"></section>
+
     <section class="card next" id="nextCard">
       <div class="eyebrow">Your next step</div>
       <h2 id="nextTitle"></h2>
@@ -1147,7 +1150,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-19.5';
+  const BUILD='2026-11-20.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1352,7 +1355,7 @@ body.bg-modal-open{ overflow: hidden; }
       applicationsAccess=bundle.applicationsAccess;
       applyOwcButtons_(bundle.owc);
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
-      data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); ownIpoTab=!!(bundle.tabs&&bundle.tabs.ipaOverview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
+      mentorNeedsOwn=bundle.mentorNeeds||[]; data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); ownIpoTab=!!(bundle.tabs&&bundle.tabs.ipaOverview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       warmBoothHandoff_().catch(()=>{});
       if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
@@ -3487,6 +3490,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     $('stageSince').textContent=p.daysInStage==null?'':(p.daysInStage+' days in this stage'+(p.mentor?' · mentor '+p.mentor.replace(/@.*/,''):''));
     const stageList=data.stages||[]; const idx=stageList.indexOf(p.stage); $('stagebar').innerHTML=stageList.map((s,i)=>'<i class="'+(i<idx?'on':i===idx?'cur':'')+'" title="'+esc(s)+'"></i>').join('');
     renderActionNeeded_();
+    renderMentorHomeNeeds_();
     // next
     const n=data.next;
     if(n){ $('nextTitle').textContent=n.title; $('nextNote').textContent=n.note||''; let a='';
@@ -3928,6 +3932,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   function compactStepLabels_(items){ const out={},titles=(items||[]).map(r=>stepTitle_(r.step||'')),words=titles.map(t=>t.split(/\s+/)); if(!titles.length)return {common:'',labels:out}; let n=Math.min.apply(null,words.map(w=>w.length)); for(let i=0;i<n;i++)if(words.some(w=>w[i].toLowerCase()!==words[0][i].toLowerCase())){n=i;break;} let common=words[0].slice(0,n).join(' ').replace(/[\s:—–-]+$/,''); if(common.length<16)common=''; items.forEach((r,i)=>{ let label=titles[i]; if(common){ label=titles[i].slice(common.length).replace(/^[\s:—–-]+/,''); if(!label)label=String(r.stepId||r.phase||titles[i]); } out[String(r.id||r.personId+'|'+r.stepId)]=label; }); return {common:common,labels:out}; }
   function formatShortDate_(at){ const d=new Date(String(at||'').replace(' ','T')); return isNaN(d.getTime())?String(at||''):d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; }
   function needsCardHtml_(it,action){ const need=Math.max(1,Number(it.need||1)),have=Math.max(0,Math.min(need,Number(it.have||0))),d=Number(it.staleDays||0); return '<div class="needs-card"><div class="needs-bar" role="progressbar" aria-valuemin="0" aria-valuemax="'+need+'" aria-valuenow="'+have+'"><i style="width:'+Math.round(have/need*100)+'%"></i></div><div class="needs-line">'+esc(it.needsLine||'')+'</div><div class="needs-ask">'+action+'</div></div>'+(d>=7?'<div class="needs-stale">Asked '+d+' day'+(d===1?'':'s')+' ago, still '+have+' of '+need+'.<b>Ask someone else.</b></div>':''); }
+  let mentorNeedsOwn=[];
+  function mentorHomeNeedsHtml_(list){ list=list||[]; const lines=[]; list.forEach(g=>{ (g.items||[]).forEach(i=>{ const need=Number(i.need||0),have=Number(i.have||0); if(!(need>have))return; const t=String(i.step||'').split(':')[0].trim(); lines.push('<div class="mhn-line">'+esc(String(g.name||'Your mentee')+': '+(t||'A step')+' needs '+(need-have)+' more')+'</div>'); }); }); if(!lines.length)return ''; return '<h2>Your mentees: still need confirmations</h2>'+lines.join(''); }
+  function renderMentorHomeNeeds_(){ const box=$('mentorHomeNeeds'); if(!box)return; const html=(data&&data.viewingAs)?'':mentorHomeNeedsHtml_(mentorNeedsOwn); box.innerHTML=html; box.classList.toggle('hidden',!html); }
   function teamNeedsLabel_(r){ const need=Number(r.need||0),have=Number(r.have||0); if(!(need>have))return ''; const t=String(r.step||'').split(':')[0].trim(); return '<div class="needs-label">'+esc((t||'This step')+' needs '+(need-have)+' more')+'</div>'; }
   function waitingLabel_(r){ return Number(r.waitingDays)>7?'<span class="old-wait">waiting '+Number(r.waitingDays)+' days</span>':''; }
   function saveFeedbackHtml_(r){ return '<div class="save-feedback small" role="status" data-save-for="'+esc(r.id||r.personId+'|'+r.stepId)+'"></div>'; }
