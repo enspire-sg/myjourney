@@ -139,6 +139,16 @@
 #bells .bg-tiktok-guide ol{ margin: 12px 0; padding-left: 22px; }
 #bells .bg-tiktok-guide li{ margin: 9px 0; }
 #bells .bg-tiktok-guide p{ margin: 9px 0 0; }
+#bells .bg-pwm-guide{ margin: 0 0 18px; padding: 18px; border: 2px solid #d7a928; border-radius: 16px; background: #fff9df; color: #142033; }
+#bells .bg-pwm-guide h2{ margin: 0 0 8px; font-size: 1.35rem; color: var(--bg-navy); }
+#bells .bg-pwm-guide h3{ margin: 14px 0 6px; font-size: 1rem; color: #8a5a00; }
+#bells .bg-pwm-guide ol{ margin: 8px 0; padding-left: 22px; }
+#bells .bg-pwm-guide ul{ margin: 8px 0; padding-left: 20px; }
+#bells .bg-pwm-guide li{ margin: 8px 0; }
+#bells .bg-pwm-guide .bg-pwm-no{ margin: 14px 0 0; padding: 12px 14px; border: 2px solid #c74435; border-radius: 14px; background: #fff0ed; color: #6d1b14; line-height: 1.45; }
+#bells .bg-pwm-guide .bg-pwm-no p{ margin: 4px 0 0; }
+#bells .bg-pwm-guide .bg-pwm-check{ margin: 12px 0 0; padding: 12px 14px; border: 2px solid #d7a928; border-radius: 14px; background: #fff; }
+#bells .bg-pwm-guide .bg-pwm-check h3{ margin: 0 0 6px; color: var(--bg-navy); }
 #bells .bg-tiktok-warning{ margin: 0 0 18px; padding: 14px 16px; border: 2px solid #c74435; border-radius: 14px; background: #fff0ed; color: #6d1b14; line-height: 1.45; }
 #bells .bg-tiktok-warning a{ color: inherit; font-weight: 900; }
 .learner-tiktok-confirm{ padding: 14px; border: 1px solid rgba(245,193,79,.55); border-radius: 14px; background: rgba(245,193,79,.09); }
@@ -614,6 +624,34 @@ That form is what creates your My Journey account. Until it is in, you cannot si
           <p class="muted small">Applies to all Tech courses: SUP, UPW, TTAI, 3D Printing, AAI.</p>
         </section>
 
+        <section class="bg-pwm-guide" id="bgPwmGuide" aria-labelledby="bgPwmGuideHeading" style="display:none">
+          <h2 id="bgPwmGuideHeading">Pitching a PWM course</h2>
+          <h3>Say in this order</h3>
+          <ol>
+            <li>What the course is about.</li>
+            <li>It is a PWM course (Progressive Wage Model).</li>
+            <li>Then the S$4k SFC (mid-career).</li>
+          </ol>
+          <h3>Cover all 5 points</h3>
+          <ul>
+            <li>PWM = Progressive Wage Model.</li>
+            <li>It sets minimum wages for selected industries, with training requirements.</li>
+            <li>Our PWM courses are approved WSQ modules in the Retail sector.</li>
+            <li>Graduates can explore Retail jobs with what they learn.</li>
+            <li>Because they are PWM courses, learners can use the $4k SFC (mid-career).</li>
+          </ul>
+          <div class="bg-pwm-no"><b>Do NOT open with:</b>
+            <p>the $4k, SFC or government funding, free gifts, or anything not about the course. Never ask 'do you know about the $4,000 SFC?'</p>
+          </div>
+          <div class="bg-pwm-check"><h3>Check before enrolling</h3>
+            <ul>
+              <li>In Retail, or willing to explore Retail jobs (no proof of applications needed).</li>
+              <li>Above 70: do NOT push PWM. Recommend other suitable courses instead. Officially SWDA has no age limit (so as not to be ageist), but PWM extra funding is there to support the retail industry's transformation (traditional to modern, TikTok branding, live selling). Signing up a learner above 70 is frowned upon, and BELLS blocks PWM sign-up above 70.</li>
+              <li>Be ready to explain: PWM's intention is very much to support the retail industry.</li>
+            </ul>
+          </div>
+        </section>
+
         <div id="bgTikTokWarning" class="bg-tiktok-warning" style="display:none"><b>Check before enrolling:</b> any “no” or doubt on the 4 suitability checks means do NOT enrol. Offer Handphone course instead. Unsuitable enrolments lose their PV. <a href="#bgTikTokGuide">Read the full checks above.</a></div>
 
         <div id="bgBundleBreakdown" class="bg-bundle-breakdown" style="display:none">
@@ -823,7 +861,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-21.2';
+    const BUILD='2026-11-21.3';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1636,6 +1674,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       brochureFrame: document.getElementById('bgBrochureFrame'),
       brochurePages: document.getElementById('bgBrochurePages'),
       tiktokGuide: document.getElementById('bgTikTokGuide'),
+      pwmGuide: document.getElementById('bgPwmGuide'),
       laptopNote: document.getElementById('bgLaptopNote'),
       tiktokWarning: document.getElementById('bgTikTokWarning')
     };
@@ -1758,6 +1797,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
         els.result.style.display = 'none';
         els.empty.style.display = 'block';
         els.tiktokGuide.style.display = 'none';
+        els.pwmGuide.style.display = 'none';
         els.laptopNote.style.display = 'none';
         els.tiktokWarning.style.display = 'none';
         return;
@@ -1771,6 +1811,7 @@ That form is what creates your My Journey account. Until it is in, you cannot si
       els.techTag.style.display = needsTechCheck ? 'inline-block' : 'none';
       els.tiktokGuide.style.display = needsTechCheck ? 'block' : 'none';
       els.laptopNote.style.display = needsTechCheck ? 'block' : 'none';
+      els.pwmGuide.style.display = String(course.category || '').startsWith('PWM') ? 'block' : 'none';
       els.tiktokWarning.style.display = 'none';
       els.catalogueAsOf.textContent = 'Prices as of ' + formatCatalogueDate(CATALOGUE_AS_OF);
       els.category.textContent = course.category;
