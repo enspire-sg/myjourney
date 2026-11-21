@@ -926,7 +926,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-21.1';
+  const SHELL_VERSION = '2026-11-21.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -4956,7 +4956,7 @@
     });
   }
 
-  /* ---- Late actions box (21 Nov 2026). Everything shown comes from the server's derived Discipline
+  /* ---- Late actions box (21 Nov 2026; also No-show, same day). Everything shown comes from the server's derived Discipline
      data (occurrence, consequence, needs flags, rule scope, canResolve); the ladder is not copied here.
      Ticks go through the existing setDisciplineState and say Saved only after savedConfirm. ---- */
   var LATE_ACTIONS = [['finePaid', 'needsFine', 'Fine collected'],
@@ -4964,12 +4964,13 @@
                       ['sentHome', 'needsSentHome', 'Sent home']];
   var lateBoxFeedback_ = {};
   function lateIncidentFor_(d, s, p) {
+    if (p.outcome !== 'Late' && p.outcome !== 'No-show') return null;
     if (!discData || !discData.people) return null;
     var want = String(p.name || '').trim().toLowerCase(), hit = null;
     discData.people.forEach(function (q) {
       if (String(q.person || '').trim().toLowerCase() !== want) return;
       (q.incidents || []).forEach(function (x) {
-        if (x.type === 'Late' && x.when === d.date && String(x.shift || '') === String(s.shift || '')) {
+        if (x.type === p.outcome && x.when === d.date && String(x.shift || '') === String(s.shift || '')) {
           hit = { person: q.person, x: x };
         }
       });
@@ -4977,12 +4978,12 @@
     return hit;
   }
   function lateHasOpenActions_(d, s, p) {
-    if (p.outcome !== 'Late') return false;
+    if (p.outcome !== 'Late' && p.outcome !== 'No-show') return false;
     var hit = lateIncidentFor_(d, s, p);
     if (!hit) return false;
     return LATE_ACTIONS.some(function (f) { return !!hit.x[f[1]] && !hit.x[f[0]]; });
   }
-  function lateBoxKey_(hit) { return [hit.person, hit.x.date, hit.x.shift || ''].join('|'); }
+  function lateBoxKey_(hit) { return [hit.person, hit.x.date, hit.x.shift || '', hit.x.type].join('|'); }
   function setLateBox_(hit, state, what, retry) {
     lateBoxFeedback_[lateBoxKey_(hit)] = { state: state, what: what, retry: retry || null };
   }
@@ -5006,14 +5007,14 @@
     });
   }
   function lateActionsBox_(a, d, b, s, p) {
-    if (p.outcome !== 'Late' || p.saving) return null;
+    if ((p.outcome !== 'Late' && p.outcome !== 'No-show') || p.saving) return null;
     var hit = lateIncidentFor_(d, s, p);
     if (!hit) return null;
     var x = hit.x, fb = lateBoxFeedback_[lateBoxKey_(hit)] || null;
     var box = document.createElement('div'); box.className = 'lateActions';
     box.setAttribute('data-late-box', lateBoxKey_(hit));
     var head = document.createElement('div'); head.className = 'laHead';
-    head.textContent = 'Late #' + x.occurrence + ' this month \u2192 ' + (x.consequence || 'no rule set yet');
+    head.textContent = x.type + ' #' + x.occurrence + ' this month \u2192 ' + (x.consequence || 'no rule set yet');
     box.appendChild(head);
     var rule = document.createElement('div'); rule.className = 'laRule';
     rule.textContent = (x.ruleAppliesTo ? x.ruleAppliesTo : 'Standard') + ' rule';
