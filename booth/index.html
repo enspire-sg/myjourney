@@ -1227,7 +1227,7 @@
     $('grid').style.opacity = on ? '.55' : '';
     $('grid').style.pointerEvents = on ? 'none' : '';
     $('note').disabled = on;
-    shiftRemarkInputs.forEach(function (input) { input.disabled = on || input.style.visibility === 'hidden'; });
+    shiftRemarkInputs.forEach(function (input) { input.disabled = on || input.style.visibility === 'hidden' || input.getAttribute('data-consec') === '1'; });
     $('ack').disabled = on;
     $('ack2').disabled = on;
     var box = $('deadline');
@@ -1306,6 +1306,7 @@
           var on = (picked[d.day] || []).indexOf(sh) >= 0;
           var next = on ? bookingConsecutiveNext_(picked[d.day], sh) : '';
           c.leave.disabled = !on || !!next || !!data.locked || !!data.preview;
+          c.leave.setAttribute('data-consec', next ? '1' : '');
           if (next) {
             c.leave.value = '';
             c.leave.classList.remove('missing');
