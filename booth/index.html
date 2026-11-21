@@ -153,6 +153,12 @@
   .writeStatus.saved { color:var(--ok); background:var(--okbg); }
   .writeStatus.error { color:var(--danger); background:var(--dangerbg); text-decoration:underline;
                        cursor:pointer; }
+  /* A refused save shows the real reason (up to 3 lines). The slot keeps its 48px; extra lines are
+     taken back from the bottom margin (--wsx, set in setWriteStatus_) so nothing below moves. */
+  .writeStatus.reason { font-size:13px; line-height:1.2; padding:6px 12px; text-decoration:none; cursor:default;
+                        margin-bottom:calc(8px - var(--wsx, 0px)); }
+  .ack.ackMissing { outline:3px solid var(--danger); outline-offset:3px; border-radius:6px; }
+  .ack.ackMissing span::before { content:'\26A0 Tick: '; font-weight:800; color:var(--danger); }
   .backToBackWarning { display:none; position:fixed; z-index:60; top:64px; left:50%;
                        transform:translateX(-50%); width:min(520px,calc(100vw - 24px));
                        padding:14px; border:1px solid var(--edge); border-radius:12px;
@@ -926,7 +932,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-21.2';
+  const SHELL_VERSION = '2026-11-21.3';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1558,6 +1564,7 @@
   $('save').onclick = function () {
     $('err').textContent = '';
     $('bookingEmailNotice').textContent = '';
+    markAckMissing_('');
     var why = $('weekNoteWrap').style.display === 'none' ? '' : $('note').value.trim();
     if (count(picks).h < data.target && !why) {
       $('err').textContent = 'You are under the ' + data.target
@@ -1583,7 +1590,7 @@
         $('saved').innerHTML = '<div class="note ok">Saved \u2713 Booking — ' + r.saved
           + ' shifts.' + (timesText ? ' Your times: ' + timesText + '.' : '') + ' You can change this until the deadline.</div>';
         showEmailNotice_(r);
-      }, function (e) { $('err').textContent = e.message; self.disabled = false; });
+      }, function (e) { $('err').textContent = e.message; markAckMissing_(e.message); self.disabled = false; });
   };
 
   // Shown after every booking save, in the reserved slot so nothing moves. Green when the
@@ -1686,15 +1693,54 @@
   }
   function loadSaturday() { run('getSaturdayCycle', [token], renderSaturday); }
 
+  /* save-reason:begin */
+  // Why a booking save failed, in words. Empty = network / timeout / unknown (retry is useful);
+  // non-empty = the server refused on a rule (retry is pointless, the person must change something).
+  function saveFailReason_(error) {
+    var m = error && error.message ? String(error.message) : '';
+    m = m.replace(/^\s*(Error|Exception):\s*/i, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    if (!m) return '';
+    if (/could not reach|request failed|failed to fetch|network|timed? ?out|timeout|load failed|still refreshing|could not save|could not obtain lock|lock timeout|server is busy|try again|too many times|service invoked/i.test(m)) return '';
+    return m.length > 140 ? m.slice(0, 137).replace(/\s+\S*$/, '') + '\u2026' : m;
+  }
+  function scrollToWriteStatus_() {
+    var s = $('writeStatus');
+    if (s && s.scrollIntoView) s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function unmarkAck_(id) {
+    var b = $(id), l = b && b.parentNode;
+    if (l && typeof l.className === 'string') l.className = l.className.replace(/\s*\backMissing\b/g, '');
+  }
+  function markAckMissing_(message) {
+    unmarkAck_('ack'); unmarkAck_('ack2');
+    if (!/tick both boxes/i.test(String(message || ''))) return;
+    ['ack', 'ack2'].forEach(function (id) {
+      var b = $(id), l = b && b.parentNode;
+      if (b && !b.checked && l && typeof l.className === 'string') l.className += ' ackMissing';
+    });
+  }
+  ['ack', 'ack2'].forEach(function (id) {
+    var b = $(id);
+    if (b && b.addEventListener) b.addEventListener('change', function () { unmarkAck_(id); });
+  });
+  /* save-reason:end */
+
   var writeStatusTimer = null;
-  function setWriteStatus_(state, what, retry) {
+  function setWriteStatus_(state, what, retry, reason) {
     var writeStatus = $('writeStatus');
     if (writeStatusTimer) { clearTimeout(writeStatusTimer); writeStatusTimer = null; }
-    writeStatus.className = 'writeStatus ' + state;
+    writeStatus.className = 'writeStatus ' + state + (state === 'error' && reason ? ' reason' : '');
     writeStatus.onclick = null; writeStatus.onkeydown = null;
     writeStatus.setAttribute('role', 'status'); writeStatus.tabIndex = -1;
     if (state === 'saved') writeStatus.textContent = 'Saved \u2713 ' + what;
-    else if (state === 'error') {
+    else if (state === 'error' && reason) {
+      // Rule refusal: say why, no retry.
+      writeStatus.textContent = 'Not saved: ' + reason;
+      if (writeStatus.style && writeStatus.style.setProperty) {
+        writeStatus.style.setProperty('--wsx', '0px');
+        writeStatus.style.setProperty('--wsx', Math.max(0, (writeStatus.offsetHeight || 0) - 48) + 'px');
+      }
+    } else if (state === 'error') {
       writeStatus.textContent = 'Not saved \u2014 tap to retry';
       writeStatus.setAttribute('role', 'button'); writeStatus.tabIndex = 0;
       writeStatus.onclick = retry;
@@ -1742,7 +1788,9 @@
           next();
         }, function (error) {
           if (failed && failed(error) === true) { next(); return; }
-          setWriteStatus_('error', label, attempt);
+          var failReason = fn === 'saveBooking' ? saveFailReason_(error) : '';
+          setWriteStatus_('error', label, attempt, failReason);
+          if (fn === 'saveBooking') scrollToWriteStatus_();
           if (!failed) $('err').textContent = (error && error.message) ? error.message : String(error || 'Could not save.');
           if (queued && q.held && !q.jobs.length) { var h = q.held; q.held = null; h.after(h.result); }
           next();
