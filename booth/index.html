@@ -932,7 +932,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-21.4';
+  const SHELL_VERSION = '2026-11-21.5';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1362,7 +1362,7 @@
             return sel;
           };
           arrive = timeBox('arrives', 'Arriving at', (startMin || 0) - 15, Math.min((startMin || 0) + 60, (endMin || 0) - 15), saved.arrives);
-          leave = timeBox('leaves', 'Leaving at', (startMin || 0) + 15, (endMin || 0) + 60, saved.leaves);
+          leave = timeBox('leaves', 'Leaving at', Math.max((startMin || 0) + 15, (endMin || 0) - 60), (endMin || 0) + 60, saved.leaves);
           slot.appendChild(timesRow);
           shiftRemarkInputs.push(arrive); shiftRemarkInputs.push(leave);
         }
