@@ -122,12 +122,13 @@
   .chip[aria-pressed=true] small { color:#c9d4ea; }
   .bookingShiftPick { flex:1 1 calc(50% - 4px); min-width:220px; }
   .bookingShiftPick .chip { width:100%; min-height:56px; border-radius:12px; }
-  .shiftRemarkSlot { min-height:176px; padding-top:5px; }
+  .shiftRemarkSlot { min-height:206px; padding-top:5px; }
   .shiftRemarkSlot select { width:100%; margin-top:0; padding:8px 9px; font-size:14px; }
   .shiftTimes { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
   .shiftTimes label { font-weight:700; }
   .shiftTimesHelp { display:block; margin-top:6px; }
   .shiftEitherOr { display:block; margin-top:6px; min-height:18px; line-height:18px; color:#555; }
+  .shiftConsecNote { display:block; margin-top:6px; min-height:18px; line-height:18px; color:#555; }
   .shiftTimes select.missing { border-color:var(--danger); outline:2px solid var(--danger); }
   .shiftRemarkSlot label { margin:0 0 3px; font-size:11px; line-height:1.2; }
   .shiftRemarkSlot input { padding:8px 9px; font-size:14px; }
@@ -933,7 +934,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-21.8';
+  const SHELL_VERSION = '2026-11-21.9';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1295,6 +1296,27 @@
       wrap.appendChild(h);
       var row = document.createElement('div');
       row.className = 'shifts';
+      var shiftCtl = {};   // per shift: the Leaving at box + its note, so consecSync can lock it live
+      /* Consecutive shifts on one day (Li Wei, 21 Nov 2026): the FIRST shift's Leaving at is off and
+         cleared (they carry on into the next shift). Recomputed for the whole day on every toggle. */
+      function consecSync() {
+        (d.shifts || []).forEach(function (sh) {
+          var c = shiftCtl[sh];
+          if (!c || !c.leave) return;
+          var on = (picked[d.day] || []).indexOf(sh) >= 0;
+          var next = on ? bookingConsecutiveNext_(picked[d.day], sh) : '';
+          c.leave.disabled = !on || !!next || !!data.locked || !!data.preview;
+          if (next) {
+            c.leave.value = '';
+            c.leave.classList.remove('missing');
+            if (shiftClock[d.day] && shiftClock[d.day][sh]) shiftClock[d.day][sh].leaves = '';
+            c.note.textContent = 'Leaving at is off: you are on the next shift too.';
+          } else {
+            c.note.textContent = '';
+          }
+          c.sync();
+        });
+      }
       d.shifts.forEach(function (s) {
         var item = document.createElement('div');
         item.className = store_ === 'booth' ? 'bookingShiftPick' : '';
@@ -1382,6 +1404,10 @@
               o.disabled = m !== null && l !== null && l < endMin && m > startMin;
             });
           };
+          var consecNote = document.createElement('small');
+          consecNote.className = 'shiftConsecNote';
+          slot.appendChild(consecNote);
+          shiftCtl[s] = {leave: leave, note: consecNote, sync: function () { eitherOrSync(); }};
           eitherOrSync();
           shiftRemarkInputs.push(arrive); shiftRemarkInputs.push(leave);
         }
@@ -1402,6 +1428,7 @@
               if (!selected) box.classList.remove('missing');
             });
           }
+          consecSync();
           if (store_ === 'booth') tally();
         };
         item.appendChild(b);
@@ -1410,6 +1437,7 @@
       });
       wrap.appendChild(row);
       host.appendChild(wrap);
+      consecSync();
     });
   }
 
@@ -1485,6 +1513,16 @@
     var m = /^(\d{1,2}):(\d{2})$/.exec(String(v || ''));
     return m ? Number(m[1]) * 60 + Number(m[2]) : null;
   }
+  /* The shift in `list` that starts exactly when shift `s` ends (read from data.shiftTimes, never
+     hardcoded names), or ''. Used to lock Leaving at on the first of two consecutive shifts. */
+  function bookingConsecutiveNext_(list, s) {
+    var en = arriveEndMinutes_((data.shiftTimes || {})[s]), found = '';
+    if (en === null) return '';
+    (list || []).forEach(function (o) {
+      if (!found && o !== s && arriveStartMinutes_((data.shiftTimes || {})[o]) === en) found = o;
+    });
+    return found;
+  }
   /* With a reason, at least one of Arriving at / Leaving at is needed; either alone is fine
      (blank Leaving = stays to the end). No reason and both blank = nothing stored. Returns '' when fine,
      otherwise one plain sentence naming the first problem shift (and marks the box). */
@@ -1498,8 +1536,9 @@
         var boxes = shiftRemarkInputs.filter(function (b) { return b.getAttribute && b.getAttribute('aria-label') && b.getAttribute('aria-label').indexOf(', ' + label) > 0 && b.getAttribute('data-times'); });
         function mark(which) { boxes.forEach(function (b) { if (b.getAttribute('data-times') === which) { b.classList.add('missing'); b.focus(); } }); }
         var reason = String(((shiftNotes[d.day] || {})[s]) || '').trim() !== '';
+        var locked = bookingConsecutiveNext_(picks[d.day], s) !== '';   // Leaving at is off for this shift
         if (a === null && l === null) {
-          if (reason) { problem = label + ': you gave a reason, so choose a late arrival or an early leave.'; mark('arrives'); }
+          if (reason) { problem = label + ': you gave a reason, so choose a late arrival' + (locked ? '.' : ' or an early leave.'); mark('arrives'); }
           return;
         }
         var st = arriveStartMinutes_(data.shiftTimes[s]), en = arriveEndMinutes_(data.shiftTimes[s]);
