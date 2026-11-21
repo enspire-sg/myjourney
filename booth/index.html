@@ -933,7 +933,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-21.7';
+  const SHELL_VERSION = '2026-11-21.8';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1325,7 +1325,7 @@
           shiftRemarkInputs.push(input);
           var timesHelp = document.createElement('small');
           timesHelp.className = 'shiftTimesHelp';
-          timesHelp.textContent = 'Times: only needed if you give a reason for this shift.';
+          timesHelp.textContent = 'With a reason: choose when you arrive late OR when you leave early.';
           slot.appendChild(timesHelp);
           var timesRow = document.createElement('div');
           timesRow.className = 'shiftTimes';
@@ -1365,11 +1365,11 @@
             return sel;
           };
           arrive = timeBox('arrives', 'Arriving at', (startMin || 0) - 15, Math.min((startMin || 0) + 60, (endMin || 0) - 15), saved.arrives);
-          leave = timeBox('leaves', 'Leaving at', Math.max((startMin || 0) + 15, (endMin || 0) - 60), (endMin || 0), saved.leaves);
+          leave = timeBox('leaves', 'Leaving at', Math.max((startMin || 0) + 15, (endMin || 0) - 60), (endMin || 0) - 15, saved.leaves);
           slot.appendChild(timesRow);
           var eitherNote = document.createElement('small');
           eitherNote.className = 'shiftEitherOr';
-          eitherNote.textContent = 'Either arrive late or leave early, not both.';
+          eitherNote.textContent = 'Either arrive late or leave early, not both. Leave the other box blank.';
           slot.appendChild(eitherNote);
           eitherOrSync = function () {
             var a = arriveParse_(arrive.value), l = arriveParse_(leave.value);
@@ -1485,8 +1485,8 @@
     var m = /^(\d{1,2}):(\d{2})$/.exec(String(v || ''));
     return m ? Number(m[1]) * 60 + Number(m[2]) : null;
   }
-  /* Times are compulsory ONLY for a shift with a reason typed in its remark box; otherwise both
-     blank is fine (on time, full shift) but a half-filled pair is not. Returns '' when fine,
+  /* With a reason, at least one of Arriving at / Leaving at is needed; either alone is fine
+     (blank Leaving = stays to the end). No reason and both blank = nothing stored. Returns '' when fine,
      otherwise one plain sentence naming the first problem shift (and marks the box). */
   function bookingTimesProblem_() {
     var problem = '';
@@ -1498,15 +1498,15 @@
         var boxes = shiftRemarkInputs.filter(function (b) { return b.getAttribute && b.getAttribute('aria-label') && b.getAttribute('aria-label').indexOf(', ' + label) > 0 && b.getAttribute('data-times'); });
         function mark(which) { boxes.forEach(function (b) { if (b.getAttribute('data-times') === which) { b.classList.add('missing'); b.focus(); } }); }
         var reason = String(((shiftNotes[d.day] || {})[s]) || '').trim() !== '';
-        if (!reason && a === null && l === null) return;
-        if (reason && (a === null || l === null)) { problem = label + ': you gave a reason, so add when you arrive and when you leave.'; mark(a === null ? 'arrives' : 'leaves'); }
-        else if (a === null || l === null) { problem = label + ': choose both Arriving at and Leaving at, or leave both blank.'; mark(a === null ? 'arrives' : 'leaves'); }
-        else if (l <= a) { problem = 'Leaving at for ' + label + ' must be after Arriving at.'; mark('leaves'); }
-        else {
-          var st = arriveStartMinutes_(data.shiftTimes[s]), en = arriveEndMinutes_(data.shiftTimes[s]);
-          if (st !== null && en !== null && a > st && l < en) {
-            problem = label + ': choose either a late arrival (up to ' + arriveClock_(st + 60) + ') or an early leave (from ' + arriveClock_(en - 60) + '), not both.'; mark('leaves');
-          }
+        if (a === null && l === null) {
+          if (reason) { problem = label + ': you gave a reason, so choose a late arrival or an early leave.'; mark('arrives'); }
+          return;
+        }
+        var st = arriveStartMinutes_(data.shiftTimes[s]), en = arriveEndMinutes_(data.shiftTimes[s]);
+        if (a !== null && l !== null && l <= a) { problem = 'Leaving at for ' + label + ' must be after Arriving at.'; mark('leaves'); }
+        else if (l !== null && en !== null && l >= en) { problem = 'Leaving at for ' + label + ' must be before the shift ends (' + arriveClock_(en) + '). Leave it blank if you stay to the end.'; mark('leaves'); }
+        else if (a !== null && l !== null && st !== null && en !== null && a > st && l < en) {
+          problem = label + ': choose either a late arrival (up to ' + arriveClock_(st + 60) + ') or an early leave (from ' + arriveClock_(en - 60) + '), not both.'; mark('leaves');
         }
       });
     });
@@ -1518,8 +1518,10 @@
       (d.shifts || []).forEach(function (s) {
         if ((picks[d.day] || []).indexOf(s) < 0) return;
         var t = (shiftClock[d.day] || {})[s] || {};
-        if (arriveParse_(t.arrives) === null || arriveParse_(t.leaves) === null) return;
-        out.push(d.day.slice(0, 3) + ' ' + s + ' ' + arriveClock_(arriveParse_(t.arrives)) + '\u2013' + arriveClock_(arriveParse_(t.leaves)));
+        var ta = arriveParse_(t.arrives), tl = arriveParse_(t.leaves);
+        if (ta === null && tl === null) return;
+        out.push(d.day.slice(0, 3) + ' ' + s + ' ' + (ta !== null && tl !== null ? arriveClock_(ta) + '\u2013' + arriveClock_(tl)
+          : ta !== null ? 'arrives ' + arriveClock_(ta) : 'leaves ' + arriveClock_(tl)));
       });
     });
     return out.join(', ');
@@ -3761,8 +3763,10 @@
     var line = document.createElement('small');
     line.className = 'bookingRemark bookingArrive';
     if (arrive.kind === 'exact') {
-      line.textContent = '\u23f0 Arrives ' + arrive.arrives + (arrive.late ? ' (late)' : '')
-        + ' \u00b7 Leaves ' + arrive.leaves + (arrive.early ? ' (leaves early)' : '');
+      var bits = [];
+      if (arrive.arrives) bits.push('Arrives ' + arrive.arrives + (arrive.late ? ' (late)' : ''));
+      if (arrive.leaves) bits.push('Leaves ' + arrive.leaves + (arrive.early ? ' (leaves early)' : ''));
+      line.textContent = '\u23f0 ' + bits.join(' \u00b7 ');
     } else {
       line.textContent = '\u23f0 Latest arrival ' + arrive.time + ' (' + arrive.label + ')';
     }
