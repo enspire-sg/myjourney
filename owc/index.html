@@ -283,8 +283,8 @@ body.bg-modal-open{ overflow: hidden; }
           <option value="alldone">All requirements done</option>
           <option value="pp1">Passed — 1. Onboarding preparation</option>
           <option value="pp2">Passed — 2. Admin matters</option>
-          <option value="pp3">Passed — 3. Booth script</option>
-          <option value="pp4">Passed — 4. Feedback questions</option>
+          <option value="pp3">Passed — 3. Feedback questions</option>
+          <option value="pp4">Passed — 4. Booth script</option>
           <option value="ppdone">Passed — submitted, with the script</option>
         </select>
       </label>
@@ -523,18 +523,7 @@ Password: Your Phone Number
 <a href="https://tms.bells.sg/application/signin" target="_blank" rel="noopener">BELL TMS LINK</a> (Save this link to log into your Bells Account to check for the schedule of the classes)</div>
         <div class="field wide"><label for="postPassTravel">Upcoming Travel dates (for next 6 months) - if don’t have, type Nil</label><p class="field-help">To give you the best possible start in Sales as it requires time and effort to learn the skill at the start, so we will recommend not to book any trips in the first 3-6 months of starting Enspire</p><textarea id="postPassTravel" required placeholder="Type Nil if you have no upcoming travel."></textarea></div>
       </div></section>
-      <section class="post-pass-step"><div class="post-pass-step-head"><span class="post-pass-step-number">3</span><div><h2>Booth script</h2><p>Memorise the booth script before coming for Momentum Monday tomorrow (as there would be roleplay)</p></div></div><div class="post-pass-body">
-        <p class="field-help">The full script opens on the next screen once you submit, so you can give it your full attention.</p>
-        <label class="post-pass-check"><input id="postPassScriptReady" type="checkbox" required> I will go and memorise the script straight after this</label>
-        <div class="info-block">One last thing: the New Intrapreneur form
-
-Fill it in after BELLS + Enspire Onboarding. Use the same Enspire Gmail you created in step 2.
-
-That form is what creates your My Journey account. Until it is in, you cannot sign in — so do not skip it.
-
-The link opens on the next screen, after you submit this page and once Bells Onboarding is done.</div>
-      </div></section>
-      <section class="post-pass-step"><div class="post-pass-step-head"><span class="post-pass-step-number">4</span><div><h2>Feedbacks</h2><p>We are always working to grow and improve. Your honest feedback is important and will help us create a better environment for everyone in Enspire. Please share your thoughts below – all answers are kept strictly confidential.</p><p style="margin-top:7px">Please share any feedback (good or bad) on the following areas below</p></div></div><div class="post-pass-body"><div class="post-pass-fields">
+      <section class="post-pass-step"><div class="post-pass-step-head"><span class="post-pass-step-number">3</span><div><h2>Feedbacks</h2><p>We are always working to grow and improve. Your honest feedback is important and will help us create a better environment for everyone in Enspire. Please share your thoughts below – all answers are kept strictly confidential.</p><p style="margin-top:7px">Please share any feedback (good or bad) on the following areas below</p></div></div><div class="post-pass-body"><div class="post-pass-fields">
         <div class="field wide"><label for="postPassFeedbackOperations">Survey Operations</label><p class="field-help">– Are there any parts of the system or processes that are confusing or inefficient?<br>– What can we do to make things smoother for you?</p><textarea id="postPassFeedbackOperations" required></textarea></div>
         <div class="field wide"><label for="postPassFeedbackCommunication">Communication</label><p class="field-help">– Do you feel well-informed about important updates, team events, or training?<br>– Any suggestions to improve how information is shared?</p><textarea id="postPassFeedbackCommunication" required></textarea></div>
         <div class="field wide"><label for="postPassFeedbackSeniors">Mentors / Seniors (that you interacted with)</label><p class="field-help">– Are they supportive and clear in their guidance?<br>– What can be improved in the way they teach, coach, or communicate?</p><textarea id="postPassFeedbackSeniors" required></textarea></div>
@@ -542,6 +531,17 @@ The link opens on the next screen, after you submit this page and once Bells Onb
         <div class="field wide"><label for="postPassFeedbackApp">This App / Website</label><p class="field-help">– Is this site easy to use and understand?<br>– Anything confusing, slow or broken that we should fix?</p><textarea id="postPassFeedbackApp" required></textarea></div>
         <div class="field wide"><label for="postPassFeedbackOther">Anything else?</label><p class="field-help">– Other feedback that can help make your experience in Enspire better.</p><textarea id="postPassFeedbackOther" required placeholder="Type Nil if you have nothing else to add."></textarea></div>
       </div></div></section>
+      <section class="post-pass-step"><div class="post-pass-step-head"><span class="post-pass-step-number">4</span><div><h2>Booth script</h2><p>Memorise the booth script before coming for Momentum Monday tomorrow (as there would be roleplay)</p></div></div><div class="post-pass-body">
+        <p class="field-help">The full script opens on the next screen once you submit, so you can give it your full attention.</p>
+        <label class="post-pass-check"><input id="postPassScriptReady" type="checkbox" required> I will go and memorise the script straight after this</label>
+        <div class="info-block">Last step: the New Intrapreneur form
+
+After you finish BELLS + Enspire Onboarding, fill in the New Intrapreneur form. Use the same Enspire Gmail you created in Admin Matters (step 2).
+
+That form creates your My Journey account. Until it is in, you cannot sign in, so do not skip it.
+
+Submit this page now. The form link appears on the next screen and unlocks once Bells Onboarding is over.</div>
+      </div></section>
       <div class="wizard-nav"><button id="postPassBack" class="btn btn-soft" type="button">Back</button><button id="postPassNext" class="btn btn-primary" type="button">Next</button><button id="postPassSubmit" class="post-pass-submit" type="submit">Submit</button></div>
       <p id="postPassStatus" class="post-pass-status">Your answers are saved on this device as you go.</p>
 
@@ -862,7 +862,7 @@ The link opens on the next screen, after you submit this page and once Bells Onb
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-22.1';
+    const BUILD='2026-11-22.2';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
