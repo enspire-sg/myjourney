@@ -473,6 +473,11 @@
   #weekGridShow { flex:0 0 auto; width:min(230px,52vw); min-height:44px; padding:8px 11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #weekGridWeekStatus { flex:1 1 auto; min-width:0; font-size:13px; line-height:1.25; color:var(--muted); max-height:2.5em; overflow:hidden; }
   #weekGridWeekStatus.wgErr { color:#b3261e; font-weight:700; }
+  /* Allocation card week picker: same reserved confirm slot (fixed height, visibility-hidden button). */
+  .allocWeekConfirm { display:flex; align-items:center; gap:10px; height:48px; margin:2px 0 6px; overflow:hidden; }
+  #allocShow { flex:0 0 auto; width:min(230px,52vw); min-height:44px; padding:8px 11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #allocWeekStatus { flex:1 1 auto; min-width:0; font-size:13px; line-height:1.25; color:var(--muted); max-height:2.5em; overflow:hidden; }
+  #allocWeekStatus.wgErr { color:#b3261e; font-weight:700; }
   .weekGridBooth { margin-top:18px; }
   .weekGridBooth > h3 { margin:0; padding:9px 12px; font-size:18px; font-weight:800;
                         color:#e6ebf5; background:#1a2440; border:1px solid #2c3a5e;
@@ -882,6 +887,7 @@
       <h2>Allocate shifts</h2>
       <div class="slot"><span class="lbl">Week</span><select id="wkPick"></select>
         <span class="tag" id="wkTag"></span></div>
+      <div class="allocWeekConfirm"><button id="allocShow" class="ghost" type="button" style="visibility:hidden" disabled></button><span id="allocWeekStatus" role="status" aria-live="polite"></span></div>
       <p class="sub">Shows gaps first. Assign ICs and unallocated people.</p>
       <p></p><button class="ghost" id="autoBtn">Auto-assign (re-shuffles the week)</button>
       <button class="ghost" id="allToggle">Show everyone</button>
@@ -942,7 +948,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-22.2';
+  const SHELL_VERSION = '2026-11-22.3';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1924,8 +1930,9 @@
     $('boothWeekNext').textContent = 'Next week · ' + shortWeekDate_(a.nextWeek);
     $('boothWeekThis').setAttribute('aria-pressed', a.weekStart === a.currentWeek ? 'true' : 'false');
     $('boothWeekNext').setAttribute('aria-pressed', a.weekStart === a.nextWeek ? 'true' : 'false');
-    $('boothWeekThis').onclick = function () { if (allocWeek !== a.currentWeek) setAllocationWeek_(a.currentWeek); };
-    $('boothWeekNext').onclick = function () { if (allocWeek !== a.nextWeek) setAllocationWeek_(a.nextWeek); };
+    // This week / Next week stay one tap (already an explicit choice); ignored only while a confirmed switch is loading.
+    $('boothWeekThis').onclick = function () { if (apSwitch_ && !apSwitch_.failed) return; if (allocWeek !== a.currentWeek || apPending_) setAllocationWeek_(a.currentWeek); };
+    $('boothWeekNext').onclick = function () { if (apSwitch_ && !apSwitch_.failed) return; if (allocWeek !== a.nextWeek || apPending_) setAllocationWeek_(a.nextWeek); };
     var host = $('booths');
     host.innerHTML = '';
     if (!a.locations.length) {
@@ -2939,26 +2946,92 @@
     setTimeout(function () { self.disabled = false; }, 8000);
   };
 
+  /* Allocation week picker: choosing in #wkPick only records a pending week (no server call).
+     "Show <week>" then loads it; status says Loading… / Showing ✓ <week> (only once data arrived) /
+     Not loaded ✗ + Retry (failure or 60s). This week / Next week stay one-tap. */
+  var apPending_ = '', apShown_ = '', apLabels_ = {}, apSwitch_ = null;
+  function apLabel_(week) { return apLabels_[week] || week; }
+  function apStatus_(text, bad) {
+    var el = $('allocWeekStatus'); if (!el) return;
+    el.textContent = text; el.className = bad ? 'wgErr' : '';
+  }
+  function apRefresh_() {
+    var btn = $('allocShow'), pick = $('wkPick'); if (!btn) return;
+    var busy = !!(apSwitch_ && !apSwitch_.failed);
+    var failed = !!(apSwitch_ && apSwitch_.failed);
+    var can = !!apPending_ && (apPending_ !== apShown_ || failed) && !busy;
+    btn.textContent = failed ? 'Retry \u2014 ' + apLabel_(apPending_) : 'Show ' + apLabel_(apPending_);
+    btn.style.visibility = can ? 'visible' : 'hidden';
+    btn.disabled = !can;
+    if (pick) pick.disabled = busy;
+  }
+  function apPick_(week) {
+    if (apSwitch_ && !apSwitch_.failed) return;
+    apSwitch_ = null;
+    apPending_ = week === apShown_ ? '' : week;
+    if (apPending_) apStatus_('Still showing ' + apLabel_(apShown_) + ' \u2014 press Show to switch.');
+    else apStatus_('Showing \u2713 ' + apLabel_(apShown_));
+    apRefresh_();
+  }
+  function apSwitchFail_(sw) {
+    if (apSwitch_ !== sw || sw.failed) return;
+    sw.failed = true; clearTimeout(sw.timer); apPending_ = sw.week;
+    allocWeek = apShown_;   // the screen still shows the old week, so saves must keep targeting it
+    $('boothWeekThis').setAttribute('aria-pressed', apShown_ === allocationWeeks_.current ? 'true' : 'false');
+    $('boothWeekNext').setAttribute('aria-pressed', apShown_ === allocationWeeks_.next ? 'true' : 'false');
+    apStatus_('Not loaded \u2717 ' + apLabel_(sw.week) + '. Press Retry.', true);
+    apRefresh_();
+  }
+  function apSwitchDone_() {
+    var sw = apSwitch_; if (!sw) return;   // only called when the week's data really arrived (even late, after a Not loaded)
+    clearTimeout(sw.timer); apSwitch_ = null; apPending_ = '';
+    apStatus_('Showing \u2713 ' + apLabel_(sw.week));
+    apRefresh_();
+  }
+  function apConfirm_() {
+    var week = apPending_;
+    if (!week || (apSwitch_ && !apSwitch_.failed)) return;
+    if (week === apShown_ && !apSwitch_) { apPending_ = ''; apRefresh_(); return; }
+    var sw = { week: week, failed: false, timer: 0 };
+    apSwitch_ = sw;
+    apStatus_('Loading\u2026 ' + apLabel_(week));
+    apRefresh_();
+    sw.timer = setTimeout(function () { apSwitchFail_(sw); }, 60000);
+    var started = setAllocationWeek_(week, function () { apSwitchFail_(sw); });
+    if (!started) apSwitchFail_(sw);
+  }
+
   function renderWeeks(a) {
     allocWeek = a.weekStart;
     allocationWeeks_.current = a.currentWeek;
     allocationWeeks_.next = a.nextWeek;
     var sel = $('wkPick');
     sel.innerHTML = '';
+    apLabels_ = {};
     a.weeks.forEach(function (w) {
       var o = document.createElement('option');
-      o.value = w.value;
-      o.textContent = w.label + (w.value === a.bookingWeek ? ' — booking now'
-        : (w.value === a.currentWeek ? ' — current week' : ''));
+      o.value = w.value; apLabels_[w.value] = w.label;
+      o.textContent = w.label + (w.value === a.bookingWeek ? ' \u2014 booking now'
+        : (w.value === a.currentWeek ? ' \u2014 current week' : ''));
       if (w.value === a.weekStart) o.selected = true;
       sel.appendChild(o);
     });
-    sel.onchange = function () { setAllocationWeek_(sel.value); };
+    // A choice made but not yet confirmed survives refreshes of the shown week (saves re-render);
+    // it is dropped only when the shown week really changed under it.
+    if (apSwitch_ && apSwitch_.failed && a.weekStart !== apShown_ && a.weekStart !== apSwitch_.week) apSwitch_ = null;
+    if (apShown_ !== a.weekStart && !(apSwitch_ && apSwitch_.week === a.weekStart)) apPending_ = '';
+    apShown_ = a.weekStart;
+    if (apPending_ === apShown_ && !(apSwitch_ && apSwitch_.failed)) apPending_ = '';
+    sel.value = apPending_ && apLabels_[apPending_] ? apPending_ : a.weekStart;
+    sel.onchange = function () { apPick_(sel.value); };
+    $('allocShow').onclick = apConfirm_;
     var status = a.weekStart === a.bookingWeek ? 'open'
       : (a.weekStart === a.currentWeek ? 'current week'
          : (a.weekStart < a.currentWeek ? 'past week' : 'upcoming'));
     $('wkTag').textContent = status;
     $('wkTag').className = 'tag' + (status === 'open' ? '' : ' manual');
+    if (apSwitch_ && apSwitch_.week === a.weekStart) apSwitchDone_();
+    else { if (!apPending_ && !(apSwitch_ && apSwitch_.failed)) apStatus_(''); apRefresh_(); }
   }
 
   var bookedPersonOpen_ = {};
@@ -3218,7 +3291,7 @@
       place.textContent = 'Place';
       if (x.suspended && !a.canOverrideSuspension) place.disabled = true;
       place.onclick = function () {
-        $('wkPick').value = a.weekStart || '';
+        if (a.weekStart) { $('wkPick').value = a.weekStart; apPick_(a.weekStart); }
         mbOpen('plan');
       };
       row.appendChild(place);
@@ -3425,6 +3498,7 @@
   }
 
   function renderAll(a) {
+    if (apSwitch_ && !apSwitch_.failed && a.weekStart !== apSwitch_.week) return;   // stale reply for the week being left
     renderWeeks(a);
     renderBookings(a);
     if (data.canAllocate) {
@@ -3451,7 +3525,7 @@
     if (loaded.attendance) loadAttendance();
   }
 
-  function loadAllocation(failed) { run('getAllocation', [token, allocWeek], renderAll, failed); }
+  function loadAllocation(failed) { return run('getAllocation', [token, allocWeek], renderAll, failed); }
 
   var weekGridDay = '';
   var weekGridAction = '';
