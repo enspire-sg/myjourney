@@ -466,6 +466,13 @@
   .wg-notMarked { background:var(--soft); color:var(--muted); }
   .wg-future, .weekGridLegend .future { background:transparent; color:var(--ink); border:1px solid var(--line); }
   #weekGridPick { width:min(260px,60vw); min-width:min(260px,60vw); }
+  /* Reserved slot: the Show button and its status always occupy the same space, so nothing moves
+     when the button appears or the message changes ("Paging controls do not move"). The page
+     already reserves the scrollbar with html{scrollbar-gutter:stable}. */
+  .weekGridConfirm { display:flex; align-items:center; gap:10px; height:48px; margin:2px 0 6px; overflow:hidden; }
+  #weekGridShow { flex:0 0 auto; width:min(230px,52vw); min-height:44px; padding:8px 11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #weekGridWeekStatus { flex:1 1 auto; min-width:0; font-size:13px; line-height:1.25; color:var(--muted); max-height:2.5em; overflow:hidden; }
+  #weekGridWeekStatus.wgErr { color:#b3261e; font-weight:700; }
   .weekGridBooth { margin-top:18px; }
   .weekGridBooth > h3 { margin:0; padding:9px 12px; font-size:18px; font-weight:800;
                         color:#e6ebf5; background:#1a2440; border:1px solid #2c3a5e;
@@ -861,6 +868,7 @@
     <div class="card" id="weekGridCard" data-g="grid" style="display:none">
       <h2>Week grid</h2>
       <div class="slot"><span class="lbl">Week</span><select id="weekGridPick"></select></div>
+      <div class="weekGridConfirm"><button id="weekGridShow" class="ghost" type="button" style="visibility:hidden" disabled></button><span id="weekGridWeekStatus" role="status" aria-live="polite"></span></div>
       <p class="sub">Add a booth for the whole week, add submitted bookers, and check attendance. Tap a name to move or remove them.</p>
       <div class="weekGridLegend" id="weekGridLegend"></div>
       <div id="weekGridDays" class="weekGridPager" aria-label="Choose day">
@@ -934,7 +942,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-22.1';
+  const SHELL_VERSION = '2026-11-22.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1878,7 +1886,7 @@
     var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     return date.toLocaleDateString('en-SG', {day:'numeric', month:'short'});
   }
-  function setAllocationWeek_(weekStart) {
+  function setAllocationWeek_(weekStart, failed) {
     allocWeek = weekStart;
     ['wkPick', 'weekGridPick'].forEach(function (id) {
       var select = $(id);
@@ -1888,7 +1896,7 @@
     });
     $('boothWeekThis').setAttribute('aria-pressed', weekStart === allocationWeeks_.current ? 'true' : 'false');
     $('boothWeekNext').setAttribute('aria-pressed', weekStart === allocationWeeks_.next ? 'true' : 'false');
-    loadAllocation();
+    return loadAllocation(failed);
   }
   function savedBooth(name) {
     var q = String(name || '').trim().toLowerCase();
@@ -3436,12 +3444,14 @@
     renderBooths(a);
     renderAlloc(a);
     mbBadges();
-    loadWeekGrid();
+    // A confirmed Week grid switch already fetched this week's grid in parallel: do not fetch it twice.
+    if (wgSkipGridFor_ && wgSkipGridFor_ === a.weekStart) wgSkipGridFor_ = ''; else loadWeekGrid();
+    if (wgSwitch_ && wgSwitch_.week === a.weekStart) { wgSwitch_.alloc = true; wgSwitchDone_(); }
     // Allocation changes who stands where, so a loaded attendance view is now stale.
     if (loaded.attendance) loadAttendance();
   }
 
-  function loadAllocation() { run('getAllocation', [token, allocWeek], renderAll); }
+  function loadAllocation(failed) { run('getAllocation', [token, allocWeek], renderAll, failed); }
 
   var weekGridDay = '';
   var weekGridAction = '';
@@ -3906,17 +3916,84 @@
     return controls;
   }
 
+  /* Week grid week picker: choosing only records a pending week (no server call). The grid keeps
+     showing the current week until "Show <week>" is pressed; then ONE getWeekGrid + ONE
+     getAllocation run in parallel (the allocation card follows the grid) and the status says
+     exactly what happened: Loading… / Showing ✓ <week> / Not loaded + Retry. */
+  var wgPending_ = '', wgShown_ = '', wgLabels_ = {}, wgSwitch_ = null, wgSkipGridFor_ = '';
+  function wgLabel_(week) { return wgLabels_[week] || week; }
+  function wgStatus_(text, bad) {
+    var el = $('weekGridWeekStatus'); if (!el) return;
+    el.textContent = text; el.className = bad ? 'wgErr' : '';
+  }
+  function wgRefresh_() {
+    var btn = $('weekGridShow'), pick = $('weekGridPick'); if (!btn) return;
+    var busy = !!(wgSwitch_ && !wgSwitch_.failed);
+    var failed = !!(wgSwitch_ && wgSwitch_.failed);
+    var can = !!wgPending_ && (wgPending_ !== wgShown_ || failed) && !busy;
+    btn.textContent = wgSwitch_ && wgSwitch_.failed ? 'Retry \u2014 ' + wgLabel_(wgPending_) : 'Show ' + wgLabel_(wgPending_);
+    btn.style.visibility = can ? 'visible' : 'hidden';
+    btn.disabled = !can;
+    if (pick) pick.disabled = busy;
+  }
+  function wgPick_(week) {
+    if (wgSwitch_ && !wgSwitch_.failed) return;
+    wgSwitch_ = null;
+    wgPending_ = week === wgShown_ ? '' : week;
+    if (wgPending_) wgStatus_('Still showing ' + wgLabel_(wgShown_) + ' \u2014 press Show to switch.');
+    else wgStatus_('Showing \u2713 ' + wgLabel_(wgShown_));
+    wgRefresh_();
+  }
+  function wgSwitchFail_(sw) {
+    if (wgSwitch_ !== sw || sw.failed) return;
+    sw.failed = true; clearTimeout(sw.timer); wgSkipGridFor_ = ''; wgPending_ = sw.week;
+    wgStatus_('Not loaded \u2717 ' + wgLabel_(sw.week) + '. Press Retry.', true);
+    wgRefresh_();
+  }
+  function wgSwitchDone_() {
+    var sw = wgSwitch_; if (!sw || !sw.grid || !sw.alloc) return;   // both halves really arrived, even if one came late after a Not loaded
+    clearTimeout(sw.timer); wgSwitch_ = null; wgSkipGridFor_ = ''; wgPending_ = '';
+    wgStatus_('Showing \u2713 ' + wgLabel_(sw.week));
+    wgRefresh_();
+  }
+  function wgConfirm_() {
+    var week = wgPending_;
+    if (!week || (wgSwitch_ && !wgSwitch_.failed)) return;
+    if (week === wgShown_ && !wgSwitch_) { wgPending_ = ''; wgRefresh_(); return; }
+    var sw = { week: week, grid: false, alloc: false, failed: false, timer: 0 };
+    wgSwitch_ = sw; wgSkipGridFor_ = week;
+    wgStatus_('Loading\u2026 ' + wgLabel_(week));
+    wgRefresh_();
+    sw.timer = setTimeout(function () { wgSwitchFail_(sw); }, 60000);
+    var gridStarted = run('getWeekGrid', [token, week], function (g) {
+      if (wgSwitch_ !== sw || sw.failed) return;
+      renderWeekGrid(g);
+    }, function () { wgSwitchFail_(sw); });
+    var allocStarted = setAllocationWeek_(week, function () { wgSwitchFail_(sw); });
+    if (!gridStarted || !allocStarted) wgSwitchFail_(sw);
+  }
+
   function renderWeekGrid(a) {
+    if (wgSwitch_ && !wgSwitch_.failed && a.weekStart !== wgSwitch_.week) return;   // stale reply for the week being left
     $('weekGridCard').style.display = '';
     var select = $('weekGridPick');
     select.innerHTML = '';
+    wgLabels_ = {};
     a.weekChoices.forEach(function (w) {
       var option = document.createElement('option');
-      option.value = w.value; option.textContent = w.label;
-      if (w.value === a.weekStart) option.selected = true;
+      option.value = w.value; option.textContent = w.label; wgLabels_[w.value] = w.label;
       select.appendChild(option);
     });
-    select.onchange = function () { setAllocationWeek_(select.value); };
+    // The grid is now showing a.weekStart. A choice made but not yet confirmed survives re-renders
+    // (saves refresh the grid); it is dropped only when the week really changed under it.
+    if (wgShown_ !== a.weekStart && !(wgSwitch_ && wgSwitch_.week === a.weekStart)) wgPending_ = '';
+    wgShown_ = a.weekStart;
+    if (wgPending_ === wgShown_ && !(wgSwitch_ && wgSwitch_.failed && !wgSwitch_.grid)) wgPending_ = '';
+    select.value = wgPending_ && wgLabels_[wgPending_] ? wgPending_ : a.weekStart;
+    select.onchange = function () { wgPick_(select.value); };
+    $('weekGridShow').onclick = wgConfirm_;
+    if (wgSwitch_ && wgSwitch_.week === a.weekStart) { wgSwitch_.grid = true; wgSwitchDone_(); }
+    else { if (!wgPending_ && !(wgSwitch_ && wgSwitch_.failed)) wgStatus_(''); wgRefresh_(); }
 
     var legend = $('weekGridLegend'); legend.innerHTML = '';
     [{state:'marked', label:'\u2713 Marked'}, {state:'notMarked', label:'Plain name = not marked yet'}].forEach(function (item) {
