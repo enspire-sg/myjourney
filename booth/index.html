@@ -934,7 +934,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-21.9';
+  const SHELL_VERSION = '2026-11-22.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -2042,12 +2042,19 @@
     save.style.display = 'none';
     sel.onchange = function () { save.style.display = ''; };
     save.onclick = function () {
-      sel.disabled = true; save.disabled = true;
       var chosenName = sel.value;
-      backToBackWriteRun_('setIC', [token, loc, day, placementShift || shift, role, chosenName, allocWeek],
-          (chosenName ? role + ' ' + chosenName : 'Cleared ' + role) + ' for ' + day + ' ' + shift + ' at ' + label(loc),
-          function (a) { sel.disabled = false; renderAll(a); },
-          function () { sel.disabled = false; save.disabled = false; });
+      function doSave(waivedFirst) {
+        sel.disabled = true; save.disabled = true;
+        backToBackWriteRun_('setIC', [token, loc, day, placementShift || shift, role, chosenName, allocWeek],
+            (waivedFirst ? 'Waived suspension and placed ' : '') + (chosenName ? role + ' ' + chosenName : 'Cleared ' + role) + ' for ' + day + ' ' + shift + ' at ' + label(loc),
+            function (a) { sel.disabled = false; renderAll(a); },
+            function () { sel.disabled = false; save.disabled = false; });
+      }
+      if (chosenName && hqSuspended_(allocationState_, chosenName)) {
+        waiveThenPlace_(allocationState_, chosenName, role, function () { doSave(true); }, function () {});
+        return;
+      }
+      doSave(false);
     };
     wrap.appendChild(sel);
     wrap.appendChild(save);
@@ -2106,9 +2113,9 @@
           function (reason, failed) {
             var after_ = function (fresh) { renderAll(fresh); if (typeof loadWeekGrid === 'function') loadWeekGrid(); };
             if (waived) {
-              writeRun_('revokeSuspensionWaiver', [token, name, a.weekStart], 'Waiver undone for ' + name, after_, failed);
+              writeRun_('revokeSuspensionWaiver', [token, name, a.weekStart], 'Waiver cancelled for ' + name + ' (week of ' + a.weekStart + ')', after_, failed);
             } else {
-              writeRun_('waiveSuspension', [token, name, a.weekStart, reason], 'Waived suspension for ' + name + ' this week', after_, failed);
+              writeRun_('waiveSuspension', [token, name, a.weekStart, reason], 'Waiver for ' + name + ' saved (week of ' + a.weekStart + ')', after_, failed);
             }
           },
           draw_,
@@ -2120,6 +2127,32 @@
     }
     draw_();
     return slot;
+  }
+
+  /* HQ one step (Li Wei, 22 Nov 2026): picking a suspended person asks "Waive and place?" with a
+     required reason. The waiver is saved first (the server re-reads Unlocks to prove it, else
+     "Not saved" + Retry), and only then is the person placed. Retrying the waiver is safe (a second
+     tap writes nothing). The panel lives in the fixed overlay, so no control on the page moves.
+     Non-HQ never reach this: they stay blocked exactly as before. */
+  function waiveThenPlace_(a, name, roleText, place, cancel) {
+    var host = $('backToBackWarning');
+    host.innerHTML = ''; host.style.display = 'block';
+    var wk = (a && a.weekStart) || allocWeek;
+    host.appendChild(actionConfirmPanel(
+      name + ' is suspended this week. Waive and place as ' + roleText + '?',
+      'Yes, waive and place',
+      function (reason, failed) {
+        writeRun_('waiveSuspension', [token, name, wk, reason],
+          'Waiver for ' + name + ' saved (week of ' + wk + ')',
+          function () { clearBackToBackWarning_(); place(); },
+          failed);
+      },
+      function () { clearBackToBackWarning_(); if (cancel) cancel(); },
+      {reasonRequired:true, placeholder:'Why is HQ waiving this suspension?',
+       id:'waive-place-' + String(name).replace(/[^a-z0-9]/gi, '-')}));
+  }
+  function hqSuspended_(a, name) {
+    return !!(a && a.canOverrideSuspension && a.suspendedNames && a.suspendedNames[name]);
   }
 
   function actionConfirmPanel(message, yesText, action, cancel, options) {
@@ -2281,16 +2314,20 @@
       if (allocationSuspended_(name, a) && !a.canOverrideSuspension) {
         addErrors[key] = 'Suspended this week — only HQ may place this person.'; renderAlloc(a); return;
       }
-      var oldPeople = s.people.slice(), oldRoles = Object.assign({}, s.roles || {});
-      s.people.push(name); s.people.sort(); (s.roles || (s.roles = {}))[name] = role.value;
-      addOpen[key] = false; delete addErrors[key]; renderAlloc(a);
-      backToBackWriteRun_('addPersonToShift', [token, b.location, d.day, s.shift, name, role.value, allocWeek],
-        'Added ' + name + ' to ' + label(b.location) + ' ' + d.day + ' ' + s.shift,
-        function (fresh) { renderAll(fresh); },
-        function (e) {
-          s.people = oldPeople; s.roles = oldRoles; addOpen[key] = true;
-          addErrors[key] = e.message; renderAlloc(a);
-        });
+      function doAdd(waivedFirst) {
+        var oldPeople = s.people.slice(), oldRoles = Object.assign({}, s.roles || {});
+        s.people.push(name); s.people.sort(); (s.roles || (s.roles = {}))[name] = role.value;
+        addOpen[key] = false; delete addErrors[key]; renderAlloc(a);
+        backToBackWriteRun_('addPersonToShift', [token, b.location, d.day, s.shift, name, role.value, allocWeek],
+          (waivedFirst ? 'Waived suspension and added ' : 'Added ') + name + ' to ' + label(b.location) + ' ' + d.day + ' ' + s.shift,
+          function (fresh) { renderAll(fresh); },
+          function (e) {
+            s.people = oldPeople; s.roles = oldRoles; addOpen[key] = true;
+            addErrors[key] = e.message; renderAlloc(a);
+          });
+      }
+      if (hqSuspended_(a, name)) { waiveThenPlace_(a, name, role.value, function () { doAdd(true); }, function () {}); return; }
+      doAdd(false);
     };
     wrap.appendChild(add);
     var err = document.createElement('span');
@@ -3637,14 +3674,21 @@
     var error = document.createElement('div'); error.className = 'weekGridICError';
     select.onchange = function () {
       var chosen = select.value;
-      select.disabled = true; error.textContent = '';
-      backToBackWriteRun_('setIC', [token, booth.name, day.day, shift.shift, role, chosen, a.weekStart, 'weekGrid'],
-        (chosen ? role + ' ' + chosen : 'Cleared ' + role) + ' for ' + booth.label + ' ' + day.day + ' ' + shift.shift,
-        function (fresh) { select.disabled = false; renderAll(fresh); },
-        function (e) {
-          select.disabled = false; select.value = current || '';
-          error.textContent = (e && e.message) ? e.message : String(e || 'Could not save.');
-        });
+      function doSet(waivedFirst) {
+        select.disabled = true; error.textContent = '';
+        backToBackWriteRun_('setIC', [token, booth.name, day.day, shift.shift, role, chosen, a.weekStart, 'weekGrid'],
+          (waivedFirst ? 'Waived suspension and placed ' : '') + (chosen ? role + ' ' + chosen : 'Cleared ' + role) + ' for ' + booth.label + ' ' + day.day + ' ' + shift.shift,
+          function (fresh) { select.disabled = false; renderAll(fresh); },
+          function (e) {
+            select.disabled = false; select.value = current || '';
+            error.textContent = (e && e.message) ? e.message : String(e || 'Could not save.');
+          });
+      }
+      if (chosen && hqSuspended_(a, chosen)) {
+        waiveThenPlace_(a, chosen, role, function () { doSet(true); }, function () { select.value = current || ''; });
+        return;
+      }
+      doSet(false);
     };
     line.appendChild(select); line.appendChild(error);
     return line;
@@ -3774,12 +3818,16 @@
     var error = document.createElement('div'); error.className = 'weekGridICError';
     add.onclick = function () {
       if (!select.value) { error.textContent = 'Choose a submitted booker.'; return; }
-      add.disabled = true; select.disabled = true;
       var addedName = select.value;
-      backToBackWriteRun_('addPersonToShift', [token, booth.name, day.day, shift.shift, addedName, 'Working', a.weekStart, 'weekGrid'],
-        'Added ' + addedName + ' to ' + booth.label + ' ' + day.day + ' ' + shift.shift,
-        function (fresh) { renderAll(fresh); },
-        function (e) { add.disabled = false; select.disabled = false; error.textContent = e.message; });
+      function doWgAdd(waivedFirst) {
+        add.disabled = true; select.disabled = true;
+        backToBackWriteRun_('addPersonToShift', [token, booth.name, day.day, shift.shift, addedName, 'Working', a.weekStart, 'weekGrid'],
+          (waivedFirst ? 'Waived suspension and added ' : 'Added ') + addedName + ' to ' + booth.label + ' ' + day.day + ' ' + shift.shift,
+          function (fresh) { renderAll(fresh); },
+          function (e) { add.disabled = false; select.disabled = false; error.textContent = e.message; });
+      }
+      if (hqSuspended_(a, addedName)) { waiveThenPlace_(a, addedName, 'Working', function () { doWgAdd(true); }, function () {}); return; }
+      doWgAdd(false);
     };
     wrap.appendChild(select); wrap.appendChild(add); wrap.appendChild(error); return wrap;
   }
