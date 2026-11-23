@@ -318,6 +318,53 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-modal-card{ width: 100%; height: 100dvh; border-radius: 0; }
 #bells .bg-modal-bar{ padding-top: max(11px, env(safe-area-inset-top, 0px)); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
     }
+    /* Upcoming classes card (23 Nov 2026). html{scrollbar-gutter:stable} is set by the page; the Copy bar is sticky and a fixed
+       size, with a reserved line for "Copied ✓", so nothing makes the button move. */
+@supports (overflow: clip){ #bells .bg-panel{ overflow: clip; } }
+#bells .bg-classes{ margin-top: 18px; padding: 16px 14px 12px; border: 1px solid var(--bg-line); border-radius: 16px; background: #fff; color: var(--bg-ink); }
+#bells .bg-classes h3{ margin: 0; font-size: 1.25rem; color: var(--bg-navy-2); }
+#bells .bg-cls-updated{ min-height: 20px; margin: 2px 0 8px; font-size: .8rem; color: var(--bg-muted); }
+#bells .bg-cls-fallback{ padding: 12px; border-radius: 12px; background: #fff7e0; border: 1px solid #f0d58a; font-size: .92rem; }
+#bells .bg-cls-label{ margin: 10px 0 5px; font-size: .85rem; font-weight: 700; color: var(--bg-muted); display: block; }
+#bells .bg-cls-where{ display: flex; gap: 8px; }
+#bells .bg-cls-where input{ flex: 1 1 auto; min-width: 0; min-height: 46px; padding: 8px 12px; border: 2px solid var(--bg-navy-2); border-radius: 12px; font: inherit; font-size: 16px; background: #f6f9fc; color: var(--bg-ink); }
+#bells .bg-cls-find{ flex: 0 0 auto; min-width: 112px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--bg-navy-2); color: #fff; font: inherit; font-weight: 800; }
+#bells .bg-cls-find:disabled{ opacity: .6; }
+#bells .bg-cls-note{ margin-top: 6px; font-size: .8rem; color: var(--bg-muted); }
+#bells .bg-cls-geomsg{ min-height: 36px; margin: 4px 0; font-size: .85rem; font-weight: 600; color: var(--bg-navy); }
+#bells .bg-cls-venues, #bells .bg-cls-months{ display: flex; flex-wrap: wrap; gap: 7px; }
+#bells .bg-cls-months{ min-height: 44px; align-content: flex-start; }
+#bells .bg-cls-ranked{ display: grid; gap: 8px; width: 100%; margin-top: 4px; }
+#bells .bg-cls-venue{ position: relative; display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 2px solid #d5e0ec; border-radius: 14px; background: #f6f9fc; font: inherit; font-size: .88rem; color: var(--bg-ink); }
+#bells .bg-cls-venue b{ color: var(--bg-navy-2); font-size: .95rem; padding-right: 74px; }
+#bells .bg-cls-venue[aria-pressed="true"]{ border-color: var(--bg-navy-2); background: #eaf3ff; }
+#bells .bg-cls-venue:disabled{ opacity: .6; }
+#bells .bg-cls-near{ position: absolute; top: 9px; right: 10px; font-style: normal; font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: #1f8a4c; color: #fff; }
+#bells .bg-cls-none{ color: #c74435; font-weight: 700; }
+#bells .bg-cls-count{ margin: 10px 0 2px; font-size: .88rem; color: var(--bg-muted); min-height: 20px; }
+#bells .bg-cls-hint{ margin: 0 0 8px; font-size: .8rem; color: var(--bg-muted); }
+#bells .bg-cls-row{ display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; padding: 11px 10px; border: 2px solid #d5e0ec; border-radius: 14px; background: #f6f9fc; }
+#bells .bg-cls-row.on{ border-color: var(--bg-navy-2); background: #eaf3ff; }
+#bells .bg-cls-tick{ flex: 0 0 auto; display: grid; place-items: center; width: 44px; height: 44px; margin: -4px 0 0 -4px; }
+#bells .bg-cls-tick input{ width: 26px; height: 26px; accent-color: var(--bg-navy-2); }
+#bells .bg-cls-main{ flex: 1 1 auto; min-width: 0; }
+#bells .bg-cls-top{ display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+#bells .bg-cls-top b{ color: var(--bg-navy-2); font-size: 1rem; }
+#bells .bg-slots{ font-size: .84rem; font-weight: 800; white-space: nowrap; }
+#bells .bg-slots.green{ color: #1b7a42; } #bells .bg-slots.orange{ color: #c26a00; } #bells .bg-slots.red{ color: #c0392b; }
+#bells .bg-cls-dates{ margin-top: 3px; font-size: .95rem; line-height: 1.4; overflow-wrap: anywhere; }
+#bells .bg-cls-meta{ margin-top: 2px; font-size: .8rem; color: var(--bg-muted); }
+#bells .bg-cls-enrol{ display: block; width: 112px; margin: 8px 0 0 auto; min-height: 40px; line-height: 40px; text-align: center; border-radius: 12px; background: var(--bg-navy-2); color: #fff; font-weight: 800; text-decoration: none; }
+#bells .bg-cls-empty{ padding: 14px 4px; color: var(--bg-muted); }
+#bells .bg-cls-multi{ margin: 8px 0; padding: 10px 12px; border-radius: 12px; background: #fff7e0; border: 1px solid #f0d58a; font-size: .88rem; }
+#bells .bg-cls-copy2{ display: block; width: 100%; margin-top: 8px; min-height: 44px; border: 2px solid #1f8a4c; border-radius: 12px; background: #fff; color: #1b7a42; font: inherit; font-weight: 800; }
+#bells .bg-cls-bar{ position: sticky; bottom: 0; z-index: 3; margin: 10px -14px -12px; padding: 8px 14px 10px; background: rgba(255,255,255,.97); border-top: 1px solid var(--bg-line); border-radius: 0 0 16px 16px; }
+#bells .bg-cls-copy{ display: block; width: 100%; height: 50px; padding: 0 6px; border: 0; border-radius: 14px; background: #1f8a4c; color: #fff; font: inherit; font-size: .93rem; font-weight: 800; white-space: nowrap; }
+#bells .bg-cls-copy:disabled{ background: #9bbfa9; }
+#bells .bg-cls-copymsg{ min-height: 22px; overflow-wrap: anywhere; margin-top: 4px; font-size: .85rem; font-weight: 700; color: #1b7a42; }
+#bells .bg-cls-foot{ display: flex; justify-content: space-between; align-items: center; gap: 8px; height: 32px; white-space: nowrap; font-size: .78rem; color: var(--bg-muted); }
+#bells .bg-cls-link{ min-height: 32px; padding: 0 6px; border: 0; background: none; color: var(--bg-blue); font: inherit; font-size: .8rem; font-weight: 700; text-decoration: underline; }
+#bells .bg-cls-link:disabled{ color: #aab4c0; text-decoration: none; }
   
     .appcard{padding:12px 0;border-top:1px solid rgba(42,59,86,.6)}.appcard .ah{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.appcard .ah b{font-size:14px}.appcard .ah small{color:var(--muted);font-size:11px}.qa{margin-top:10px}.qa .q{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;line-height:1.35}.qa .a{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
     /* Paging controls must not move: the month name varies in width, so reserve
@@ -847,6 +894,33 @@ body.bg-modal-open{ overflow: hidden; }
           <div class="bg-bundle-total"><span>Total</span><strong id="bgBundleTotal"></strong></div>
         </div>
 
+        <section id="bgClasses" class="bg-classes" aria-label="Upcoming classes" style="display:none">
+          <h3>Upcoming classes</h3>
+          <div id="bgClsUpdated" class="bg-cls-updated" aria-live="polite"></div>
+          <div id="bgClsFallback" class="bg-cls-fallback" style="display:none"></div>
+          <div id="bgClsBody">
+            <label class="bg-cls-label" for="bgClsWhere">Where does the learner stay?</label>
+            <div class="bg-cls-where">
+              <input id="bgClsWhere" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Area, MRT or postal code">
+              <button id="bgClsFind" type="button" class="bg-cls-find">Find nearest</button>
+            </div>
+            <div class="bg-cls-note">Type the area or MRT, not the full home address. Not saved; looked up on OpenStreetMap.</div>
+            <div id="bgClsGeoMsg" class="bg-cls-geomsg" aria-live="polite"></div>
+            <div id="bgClsVenues" class="bg-cls-venues"></div>
+            <div class="bg-cls-label">Month</div>
+            <div id="bgClsMonths" class="bg-cls-months"></div>
+            <div id="bgClsCount" class="bg-cls-count"></div>
+            <div id="bgClsEnrolHint" class="bg-cls-hint">Tick classes to copy. Enrol opens Bells TMS (sign-in needed).</div>
+            <div id="bgClsList"></div>
+          </div>
+          <div id="bgClsMulti" class="bg-cls-multi" style="display:none"></div>
+          <div id="bgClsBar" class="bg-cls-bar">
+            <button id="bgClsCopy" type="button" class="bg-cls-copy" disabled>Copy WhatsApp message (0 selected)</button>
+            <div id="bgClsCopyMsg" class="bg-cls-copymsg" aria-live="polite"></div>
+            <div class="bg-cls-foot"><span id="bgClsStamp"></span><button id="bgClsClear" type="button" class="bg-cls-link" disabled>Clear ticks</button></div>
+          </div>
+        </section>
+
         <div class="bg-facts">
           <div class="bg-fact"><span class="bg-k">Duration</span><span id="bgDuration" class="bg-v"></span></div>
           <div class="bg-fact"><span class="bg-k">PV</span><span id="bgPv" class="bg-v"></span></div>
@@ -1188,7 +1262,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-23.1';
+  const BUILD='2026-11-23.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -4334,6 +4408,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         els.pwmGuide.style.display = 'none';
         els.laptopNote.style.display = 'none';
         els.tiktokWarning.style.display = 'none';
+        renderClasses();
         return;
       }
       els.result.style.display = 'block';
@@ -4376,7 +4451,404 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         link.rel = 'noopener';
         els.tmsLinks.appendChild(link);
       });
+      renderClasses();
     }
+
+    /* EG_CLASSES_LOGIC_BEGIN (Upcoming classes card, 23 Nov 2026; pure helpers, no DOM, no network) */
+    const CLASSES_URL = 'https:' + '/' + '/enspire-sg.github.io/myjourney/classes/runs.json';
+    const GEOCODE_URL = 'https:' + '/' + '/nominatim.openstreetmap.org/search';
+    // Editable: which TMS course id(s) feed each EasyGuide course. [] = no TMS schedule (Claude AI).
+    const CLASSES_BY_COURSE = {
+      'Cakes & Cookies (Bundle)': [107, 109],
+      'Cafe Style Bread & Tarts (Bundle)': [214],
+      'Premium Cakes': [153],
+      'Handphone Apps with Photography (Bundle)': [229],
+      'Mobile Photography & Videography (Bundle)': [77],
+      'Certificate in AI Essentials': [245],
+      'Upgrade yourself with Gen AI (Seniors/Retirees)': [213],
+      'Certificate in AI Essentials (Zoom)': [246],
+      '3D Printing': [230],
+      'Vibe Coding for Web & App Development': [249],
+      'Claude AI (Zoom)': [],
+      'AI Agents & Automation': [225],
+      'Successful Livestreaming on Shopee': [253],
+      'Communication & Coaching': [176],
+      'TikTok with AI (Bundle)': [202]
+    };
+    // Editable class time for the WhatsApp message. TMS has no class times, so this is a constant.
+    const DEFAULT_CLASS_TIME = '9am - 6pm';
+    const CLASS_TIME_BY_COURSE = {};                       // e.g. {'Premium Cakes': '9am - 5pm'}
+    const SPLIT_SESSION_IDS = [107, 109, 153, 214];        // baking: TMS code ending A / B = Morning / Afternoon
+    const SPLIT_SESSION_TIMES = { A: '8am - 2pm', B: '2pm - 8pm' };
+    // Editable friendly names + approximate coordinates (straight-line distance only).
+    // AMF/AMK/IPZ/JEM/STC/TAM/TAP/LLI geocoded on OpenStreetMap (AMF from its postcode 560712).
+    // AWD (Wings of Dawn) could not be geocoded: approximate Ang Mo Kio town centre.
+    const VENUES = {
+      AMF: { name: 'Ang Mo Kio FairPrice Finest (AMF)', lat: 1.3713, lon: 103.8471 },
+      AMK: { name: 'Ang Mo Kio Broadway Plaza', lat: 1.3719, lon: 103.8460 },
+      AWD: { name: 'Ang Mo Kio Wings of Dawn', lat: 1.3700, lon: 103.8480, approx: true },
+      IPZ: { name: 'International Plaza', lat: 1.2758, lon: 103.8459 },
+      JEM: { name: 'Jurong Gateway (JEM Office Tower)', lat: 1.3333, lon: 103.7434 },
+      STC: { name: 'Suntec City (Tower 5)', lat: 1.2945, lon: 103.8580 },
+      TAM: { name: 'Tampines Central 1', lat: 1.3554, lon: 103.9430 },
+      TAP: { name: 'Tampines Plaza 2', lat: 1.3532, lon: 103.9427 },
+      LLI: { name: 'Lifelong Learning Institute', lat: 1.3196, lon: 103.8928 },
+      VCR: { name: 'Zoom (online)', online: true }
+    };
+    const EG_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const EG_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    function egParts(iso) {
+      const p = String(iso || '').split('-').map(Number);
+      return p.length === 3 && p[0] && p[1] && p[2] ? p : null;
+    }
+    function egDate(iso) {                                  // '2026-11-27' -> '27-Nov'
+      const p = egParts(iso);
+      return p ? String(p[2]).padStart(2, '0') + '-' + EG_MONTHS[p[1] - 1] : String(iso || '');
+    }
+    function egWeekday(iso) {                               // '2026-11-27' -> 'Friday'
+      const p = egParts(iso);
+      return p ? EG_DAYS[new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay()] : '';
+    }
+    function egDates(list) { return (list || []).map(egDate).join(', '); }   // never truncated
+    function egMonthKey(iso) { return String(iso || '').slice(0, 7); }       // class counts under its START month
+    function egMonthLabel(key, firstKey) {
+      const p = String(key).split('-').map(Number);
+      const label = EG_MONTHS[p[1] - 1] || key;
+      return String(key).slice(0, 4) === String(firstKey).slice(0, 4) ? label : label + ' ' + String(key).slice(0, 4);
+    }
+    function egSgtParts(ms) {                               // deterministic SGT (UTC+8) clock, no Intl quirks
+      const d = new Date(ms + 8 * 3600 * 1000);
+      return { y: d.getUTCFullYear(), mo: d.getUTCMonth(), d: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes() };
+    }
+    function egStamp(generatedIso) {                        // '23 Nov 2026, 2:30am SGT'
+      const ms = Date.parse(generatedIso);
+      if (!isFinite(ms)) return '';
+      const t = egSgtParts(ms);
+      const h12 = t.h % 12 === 0 ? 12 : t.h % 12;
+      return t.d + ' ' + EG_MONTHS[t.mo] + ' ' + t.y + ', ' + h12 + ':' + String(t.mi).padStart(2, '0') + (t.h < 12 ? 'am' : 'pm') + ' SGT';
+    }
+    function egTodaySgt(nowMs) {
+      const t = egSgtParts(nowMs);
+      return t.y + '-' + String(t.mo + 1).padStart(2, '0') + '-' + String(t.d).padStart(2, '0');
+    }
+    function egSlotsClass(n) { return n <= 3 ? 'red' : (n <= 5 ? 'orange' : 'green'); }
+    function egSlotsText(n) { return n + (n === 1 ? ' slot left' : ' slots left'); }
+    function egEvery(run) {                                 // 'Every Friday' (pattern) or the weekday of the first date
+      const m = /EVERY\s+([A-Za-z]+)/i.exec(String(run.every || ''));
+      if (m) return 'Every ' + m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+      return egWeekday(run.start);
+    }
+    function egClassTime(courseName, courseId, run) {
+      if (SPLIT_SESSION_IDS.indexOf(Number(courseId)) >= 0 && run.session && SPLIT_SESSION_TIMES[run.session]) {
+        return SPLIT_SESSION_TIMES[run.session];
+      }
+      return CLASS_TIME_BY_COURSE[courseName] || DEFAULT_CLASS_TIME;
+    }
+    function egVenue(code, rawName) {
+      const v = VENUES[code];
+      return v ? Object.assign({ code }, v) : { code: code || '?', name: rawName || code || 'Venue to be confirmed' };
+    }
+    // Open (bookable, not started, not full) runs for a course, from the slim published JSON.
+    function egOpenRuns(data, courseName, todayIso) {
+      const ids = CLASSES_BY_COURSE[courseName] || [];
+      const out = [];
+      ids.forEach(id => {
+        const list = data && data.courses && data.courses[String(id)];
+        (list || []).forEach(r => {
+          if (!r || r.full || !(r.slots > 0) || !r.dates || !r.dates.length) return;
+          if (r.start < todayIso) return;
+          out.push({
+            key: String(r.enroll_id), courseId: id, start: r.start, dates: r.dates.slice(), slots: r.slots,
+            enroll_id: r.enroll_id, every: r.every || '', session: r.session || '',
+            venue: egVenue(r.venue_code, data.venues && data.venues[r.venue_code]),
+            time: egClassTime(courseName, id, r)
+          });
+        });
+      });
+      out.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : (a.key < b.key ? -1 : 1));
+      return out;
+    }
+    function egMonths(runs) {                               // [{key,label,count}] in date order
+      const keys = [];
+      const count = {};
+      runs.forEach(r => { const k = egMonthKey(r.start); if (!count[k]) { count[k] = 0; keys.push(k); } count[k]++; });
+      keys.sort();
+      return keys.map(k => ({ key: k, label: egMonthLabel(k, keys[0]), count: count[k] }));
+    }
+    function egKm(a, b) {                                   // straight-line (haversine) km
+      const R = 6371, rad = x => x * Math.PI / 180;
+      const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+    // Rank every known venue: with open classes first (nearest first), then those with none (nearest first),
+    // online venues last. point = {lat,lon}; with no point the order is just the list order (unranked).
+    function egRankVenues(runs, point) {
+      const by = {};
+      runs.forEach(r => { (by[r.venue.code] = by[r.venue.code] || []).push(r); });
+      const codes = Object.keys(VENUES);
+      Object.keys(by).forEach(c => { if (codes.indexOf(c) < 0) codes.push(c); });
+      const rows = codes.map(code => {
+        const v = egVenue(code, by[code] && by[code][0].venue.name);
+        const rs = by[code] || [];
+        const km = point && isFinite(v.lat) ? egKm(point, v) : null;
+        return { code, name: v.name, online: !!v.online, km, approx: !!v.approx, count: rs.length,
+                 next: rs.length ? rs[0] : null };
+      });
+      if (!point) return rows.filter(r => r.count).sort((a, b) => a.name < b.name ? -1 : 1);
+      const group = r => r.online ? 2 : 0;
+      return rows.sort((a, b) => {
+        const ga = (a.count ? 0 : 1) + group(a) * 2, gb = (b.count ? 0 : 1) + group(b) * 2;
+        if (ga !== gb) return ga - gb;
+        return (a.km === null ? 1e9 : a.km) - (b.km === null ? 1e9 : b.km);
+      });
+    }
+    function egKmText(km) { return 'About ' + (Math.round(km * 10) / 10).toFixed(1) + ' km away'; }
+    function egGeocodeUrls(text) {                          // tries the text, then 'MRT' -> 'MRT Station'
+      const t = String(text || '').trim().replace(/\s+/g, ' ');
+      if (!t) return [];
+      const qs = [t];
+      if (/\bmrt\b/i.test(t) && !/station/i.test(t)) qs.push(t.replace(/\bmrt\b/i, 'MRT Station'));
+      return qs.map(q => GEOCODE_URL + '?format=jsonv2&limit=1&countrycodes=sg&q=' + encodeURIComponent(q));
+    }
+    function egInSingapore(p) { return p && p.lat > 1.15 && p.lat < 1.48 && p.lon > 103.6 && p.lon < 104.1; }
+    // fetchJson(url) -> Promise<array>. Never stores or logs the text.
+    function egGeocode(text, fetchJson) {
+      const urls = egGeocodeUrls(text);
+      let chain = Promise.resolve(null);
+      urls.forEach(url => {
+        chain = chain.then(found => found || fetchJson(url).then(arr => {
+          const f = arr && arr[0];
+          const p = f ? { lat: Number(f.lat), lon: Number(f.lon) } : null;
+          return egInSingapore(p) ? p : null;
+        }));
+      });
+      return chain;
+    }
+    // Option letters follow tick order. One message per venue (and per class time).
+    function egGroups(runs, tickOrder) {
+      const groups = [], idx = {};
+      tickOrder.forEach(key => {
+        const r = runs.find(x => x.key === key);
+        if (!r) return;
+        const gk = r.venue.code + '|' + r.time;
+        if (!(gk in idx)) { idx[gk] = groups.length; groups.push({ venue: r.venue, time: r.time, runs: [] }); }
+        groups[idx[gk]].runs.push(r);
+      });
+      return groups;
+    }
+    function egMessage(courseName, group) {
+      const lines = ['Here\u2019s our updated classes for: \uD83D\uDC47\uD83C\uDFFB', '', '\u2728 *' + courseName + '* \u2728', ''];
+      group.runs.forEach((r, i) => {
+        lines.push('*Option ' + String.fromCharCode(65 + i) + ' - ' + egSlotsText(r.slots) + '*');
+        lines.push(egDates(r.dates) + ' (' + egWeekday(r.start) + ')');
+        lines.push('');
+      });
+      lines.push('Time: ' + group.time + ' (Breaks & Refreshments included)', '');
+      lines.push('\uD83D\uDCCD Venue: ' + group.venue.name, '');
+      lines.push('As there\u2019s limited slots left - which *option* would you like me to help you secure a slot for? \uD83D\uDE01');
+      return lines.join('\n');
+    }
+    window.BellsClassesLogic_ = { egDate, egWeekday, egDates, egMonthKey, egMonths, egStamp, egTodaySgt, egSlotsClass,
+      egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage,
+      egClassTime, VENUES, CLASSES_BY_COURSE };
+    /* EG_CLASSES_LOGIC_END */
+
+    /* EG_CLASSES_UI_BEGIN */
+    const egState = { data: null, loading: false, failed: false, venue: 'all', month: 'all', ticks: [], point: null,
+      geoBusy: false, geoMsg: '', copyMsg: '', courseName: '' };
+    const egEl = id => document.getElementById(id);
+    const egEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // The OWC copy has no TMS sign-in: it shows dates, slots and venue ranking, but no Enrol, ticks or Copy.
+    const egIsOwc = () => !!egEl('owcEasyGuideView');
+    function egFetchJson(url) {
+      return fetch(url, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+    }
+    function egFetchGeo(url) {                              // the typed text is only in this URL: never saved or logged
+      return fetch(url).then(r => { if (!r.ok) throw new Error('geo ' + r.status); return r.json(); });
+    }
+    function egLoad() {
+      if (egState.data || egState.loading) return;
+      if (typeof fetch !== 'function') { egState.failed = true; return; }
+      egState.loading = true;
+      egFetchJson(CLASSES_URL).then(d => {
+        if (!d || !d.courses) throw new Error('bad data');
+        egState.data = d; egState.loading = false; renderClasses();
+      }).catch(() => { egState.failed = true; egState.loading = false; renderClasses(); });
+    }
+    function egSet(id, text) { const el = egEl(id); if (el) el.textContent = text; }
+    function egHtml(id, html) { const el = egEl(id); if (el) el.innerHTML = html; }
+    function egShow(id, on) { const el = egEl(id); if (el) el.style.display = on ? '' : 'none'; }
+
+    function renderClasses() {
+      const box = egEl('bgClasses');
+      if (!box) return;
+      const course = selectedCourse();
+      if (!course) { box.style.display = 'none'; return; }
+      box.style.display = 'block';
+      if (egState.courseName !== course.name) {
+        egState.courseName = course.name; egState.venue = 'all'; egState.month = 'all'; egState.ticks = []; egState.copyMsg = '';
+      }
+      const owc = egIsOwc();
+      const ids = CLASSES_BY_COURSE[course.name] || [];
+      let fallback = '';
+      if (!ids.length) fallback = 'No Bells TMS schedule is listed for this course here. Open TMS with the button above.';
+      else if (egState.failed) fallback = 'Class schedule not available right now. Open TMS with the button above.';
+      else if (!egState.data) { fallback = 'Loading upcoming classes…'; egLoad(); }
+      egShow('bgClsBody', !fallback);
+      egShow('bgClsBar', !fallback && !owc);
+      egShow('bgClsMulti', false);
+      egSet('bgClsFallback', fallback);
+      egShow('bgClsFallback', !!fallback);
+      egShow('bgClsEnrolHint', !fallback && !owc);
+      if (fallback) { egSet('bgClsUpdated', ''); return; }
+
+      const data = egState.data;
+      const stamp = egStamp(data.generated);
+      const ageH = (Date.now() - Date.parse(data.generated)) / 3600000;
+      egSet('bgClsUpdated', stamp ? 'Updated ' + stamp + (ageH > 72 ? ' (old: check TMS)' : '') : '');
+      const all = egOpenRuns(data, course.name, egTodaySgt(Date.now()));
+      egState.ticks = egState.ticks.filter(k => all.some(r => r.key === k));
+      const rows = egRankVenues(all, egState.point);
+      if (egState.venue !== 'all' && !all.some(r => r.venue.code === egState.venue)) egState.venue = 'all';
+      let runs = egState.venue === 'all' ? all : all.filter(r => r.venue.code === egState.venue);
+      const months = egMonths(runs);
+      if (egState.month !== 'all' && !months.some(m => m.key === egState.month)) egState.month = 'all';
+      if (egState.month !== 'all') runs = runs.filter(r => egMonthKey(r.start) === egState.month);
+      if (egState.point && egState.venue === 'all') {
+        const rank = {}; rows.forEach((r, i) => { rank[r.code] = i; });
+        runs = runs.slice().sort((a, b) => (rank[a.venue.code] - rank[b.venue.code]) || (a.start < b.start ? -1 : 1));
+      }
+
+      // Venues: ranked cards when a place was found, else plain chips (the fallback).
+      let vh = '<button type="button" class="bg-filter-chip" data-cls-venue="all" aria-pressed="' + (egState.venue === 'all') + '">All venues</button>';
+      if (egState.point) {
+        vh += '<div class="bg-cls-ranked">';
+        rows.forEach((r, i) => {
+          const dist = r.online ? 'Online, no distance' : (r.km === null ? '' : egKmText(r.km) + (r.approx ? ' (approx.)' : ''));
+          const nxt = r.next ? 'Next class ' + egDate(r.next.start) + ' · ' + egSlotsText(r.next.slots) + ' · ' + r.count + (r.count === 1 ? ' class' : ' classes')
+            : '<span class="bg-cls-none">No open classes</span>';
+          vh += '<button type="button" class="bg-cls-venue" data-cls-venue="' + egEsc(r.code) + '" aria-pressed="' + (egState.venue === r.code) + '"' + (r.count ? '' : ' disabled') + '>'
+            + '<b>' + egEsc(r.name) + '</b>' + (i === 0 && r.count && !r.online ? '<em class="bg-cls-near">Nearest</em>' : '')
+            + '<span>' + egEsc(dist) + '</span><span>' + nxt + '</span></button>';
+        });
+        vh += '</div>';
+      } else {
+        rows.forEach(r => {
+          vh += '<button type="button" class="bg-filter-chip" data-cls-venue="' + egEsc(r.code) + '" aria-pressed="' + (egState.venue === r.code) + '">' + egEsc(r.name) + '</button>';
+        });
+      }
+      egHtml('bgClsVenues', vh);
+      egSet('bgClsGeoMsg', egState.geoMsg);
+      const find = egEl('bgClsFind'); if (find) find.disabled = !!egState.geoBusy;
+
+      egHtml('bgClsMonths', '<button type="button" class="bg-filter-chip" data-cls-month="all" aria-pressed="' + (egState.month === 'all') + '">All</button>'
+        + months.map(m => '<button type="button" class="bg-filter-chip" data-cls-month="' + egEsc(m.key) + '" aria-pressed="' + (egState.month === m.key) + '">' + egEsc(m.label) + '</button>').join(''));
+      const mlabel = (months.find(m => m.key === egState.month) || {}).label;
+      egSet('bgClsCount', runs.length + (runs.length === 1 ? ' class' : ' classes') + (mlabel ? ' starting in ' + mlabel : '')
+        + (egState.venue !== 'all' ? ' at ' + egVenue(egState.venue).name : ''));
+      egHtml('bgClsList', runs.length ? runs.map(r => {
+        const on = egState.ticks.indexOf(r.key) >= 0;
+        const tick = owc ? '' : '<label class="bg-cls-tick"><input type="checkbox" data-cls-tick="' + egEsc(r.key) + '"' + (on ? ' checked' : '') + ' aria-label="Select this class"></label>';
+        const enrol = owc ? '' : '<a class="bg-cls-enrol" href="' + egEsc(TMS_BASE + '/partner-enroll/' + r.enroll_id) + '" target="_blank" rel="noopener">Enrol</a>';
+        return '<div class="bg-cls-row' + (on ? ' on' : '') + (owc ? ' owc' : '') + '">' + tick
+          + '<div class="bg-cls-main"><div class="bg-cls-top"><b>' + egEsc(egEvery(r)) + '</b><span class="bg-slots ' + egSlotsClass(r.slots) + '">' + egSlotsText(r.slots) + '</span></div>'
+          + '<div class="bg-cls-dates">' + egEsc(egDates(r.dates)) + '</div>'
+          + '<div class="bg-cls-meta">' + egEsc(r.venue.name) + (r.session ? ' · ' + egEsc(r.time) : '') + ' · ' + r.dates.length + ' sessions</div>'
+          + enrol + '</div></div>';
+      }).join('') : '<div class="bg-cls-empty">No open classes for this choice.</div>');
+      renderClassesBar(all, course.name);
+    }
+
+    function renderClassesBar(all, courseName) {
+      const groups = egGroups(all, egState.ticks);
+      const n = egState.ticks.length;
+      const copy = egEl('bgClsCopy');
+      if (copy) { copy.textContent = 'Copy WhatsApp message (' + n + ' selected)'; copy.disabled = n === 0; }
+      egSet('bgClsCopyMsg', egState.copyMsg);
+      const stamp = egState.data ? egStamp(egState.data.generated) : '';
+      egSet('bgClsStamp', stamp ? 'Slots as of ' + stamp : '');
+      const clear = egEl('bgClsClear'); if (clear) clear.disabled = n === 0;
+      if (groups.length > 1) {
+        egHtml('bgClsMulti', '<b>These classes are at ' + groups.length + ' venues.</b> Each venue gets its own message. Copy them one at a time:'
+          + groups.map((g, i) => '<button type="button" class="bg-cls-copy2" data-cls-copy-group="' + i + '">Copy: ' + egEsc(g.venue.name) + ' (' + g.runs.length + ')</button>').join(''));
+        egShow('bgClsMulti', true);
+      } else { egShow('bgClsMulti', false); }
+    }
+
+    function egCopyText(text) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+      return new Promise((resolve, reject) => {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          ok ? resolve() : reject(new Error('copy refused'));
+        } catch (e) { reject(e); }
+      });
+    }
+    function egDoCopy(onlyIndex) {
+      const course = selectedCourse();
+      if (!course || !egState.data) return;
+      const all = egOpenRuns(egState.data, course.name, egTodaySgt(Date.now()));
+      const groups = egGroups(all, egState.ticks);
+      if (!groups.length) return;
+      const picked = onlyIndex == null ? groups : [groups[onlyIndex]];
+      const text = picked.map(g => egMessage(course.name, g)).join('\n\n———\n\n');
+      egCopyText(text).then(() => {
+        egState.copyMsg = 'Copied ✓ ' + (picked.length > 1 ? picked.length + ' messages, one per venue' : picked[0].runs.length + (picked[0].runs.length === 1 ? ' option' : ' options') + ' · ' + picked[0].venue.name);
+        renderClassesBar(all, course.name);
+      }).catch(() => { egState.copyMsg = 'Not copied. Tap Copy again.'; renderClassesBar(all, course.name); });
+    }
+    function egFind() {
+      const input = egEl('bgClsWhere');
+      const text = input ? String(input.value || '').trim() : '';
+      if (!text) { egState.point = null; egState.geoMsg = ''; renderClasses(); return; }
+      if (typeof fetch !== 'function') { egState.point = null; egState.geoMsg = 'Could not look that up. Showing all venues, not ranked.'; renderClasses(); return; }
+      egState.geoBusy = true; egState.geoMsg = 'Looking…'; renderClasses();
+      egGeocode(text, egFetchGeo).then(p => {
+        egState.geoBusy = false; egState.point = p;
+        egState.geoMsg = p ? 'Venues are shown nearest first (straight-line distance).' : 'Could not find that place. Showing all venues, not ranked.';
+        renderClasses();
+      }).catch(() => {
+        egState.geoBusy = false; egState.point = null;
+        egState.geoMsg = 'Could not look that up. Showing all venues, not ranked.';
+        renderClasses();
+      });
+    }
+    function egBind() {
+      const box = egEl('bgClasses');
+      if (!box) return;
+      box.addEventListener('click', event => {
+        const t = event.target && event.target.closest ? event.target : null;
+        if (!t) return;
+        let b;
+        if ((b = t.closest('[data-cls-venue]'))) { egState.venue = b.dataset.clsVenue; egState.copyMsg = ''; renderClasses(); }
+        else if ((b = t.closest('[data-cls-month]'))) { egState.month = b.dataset.clsMonth; egState.copyMsg = ''; renderClasses(); }
+        else if ((b = t.closest('[data-cls-copy-group]'))) { egDoCopy(Number(b.dataset.clsCopyGroup)); }
+        else if (t.closest('#bgClsCopy')) { egDoCopy(null); }
+        else if (t.closest('#bgClsClear')) { egState.ticks = []; egState.copyMsg = ''; renderClasses(); }
+        else if (t.closest('#bgClsFind')) { egFind(); }
+        else if (t.closest('#bgClsForget')) { const i = egEl('bgClsWhere'); if (i) i.value = ''; egState.point = null; egState.geoMsg = ''; renderClasses(); }
+      });
+      box.addEventListener('change', event => {
+        const t = event.target;
+        if (!t || !t.dataset || t.dataset.clsTick == null) return;
+        const k = t.dataset.clsTick, i = egState.ticks.indexOf(k);
+        if (t.checked && i < 0) egState.ticks.push(k);
+        if (!t.checked && i >= 0) egState.ticks.splice(i, 1);
+        egState.copyMsg = '';
+        renderClasses();
+      });
+      box.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && event.target && event.target.id === 'bgClsWhere') { event.preventDefault(); egFind(); }
+      });
+    }
+    window.BellsClassesUi_ = { state: egState, renderClasses, egFind, egDoCopy };
+    /* EG_CLASSES_UI_END */
 
     const BROCHURE_IMG_BASE = 'https:' + '/' + '/enspire-sg.github.io/myjourney/brochures/';
     let brochureManifest = null;
@@ -4466,6 +4938,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && els.brochureModal.classList.contains('bg-open')) closeBrochure();
     });
+    egBind();
     if (INITIAL_DATA.length) {
       els.loading.style.display = 'none';
       applyCategoryFilter('all', INITIAL_DATA[0].name);
