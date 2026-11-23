@@ -179,23 +179,34 @@
 #bells .bg-tms-btn:hover{ background: #ffd75f; }
 #bells .bg-tms-btn:focus-visible{ outline: 3px solid rgba(47,111,167,.55); outline-offset: 2px; }
 /* One size for every course - see the Easy Guide, which carries the same rule. */
-#bells .bg-price{
-      flex: 0 0 300px; width: 300px; min-height: 96px;
-      background: var(--bg-gold); color: var(--bg-navy-2); border-radius: 16px;
-      padding: 14px 16px; text-align: right;
-    }
-#bells .bg-result-head > div:first-child{ min-width: 0; }
-#bells .bg-price small{ display: block; font-size: .72rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
-#bells .bg-price .bg-as-of{ margin-bottom: 5px; color: #5b6676; font-size: 12px; font-weight: 700; letter-spacing: 0; text-transform: none; }
-#bells .bg-price strong{ display: block; margin-top: 2px; font-size: 1.85rem; line-height: 1.1; letter-spacing: -.04em; }
+#bells .bg-summary{ margin: 0 0 12px; padding: 14px 16px; min-width: 0; border: 2px solid #d7a928; border-radius: 16px; background: #fff8e1; color: var(--bg-navy-2); }
+#bells .bg-summary small{ display: block; }
+#bells .bg-summary .bg-as-of{ margin-bottom: 4px; color: #5b6676; font-size: 12px; font-weight: 700; }
+#bells .bg-summary .bg-pay{ color: #6b5200; font-size: .95rem; font-weight: 800; }
+#bells .bg-summary strong#bgFee{ display: block; margin: 0 0 2px; font-size: 2.2rem; line-height: 1.1; letter-spacing: -.04em; overflow-wrap: anywhere; }
+#bells .bg-summary .bg-sum-line{ margin-top: 8px; color: #142033; font-size: 1rem; font-weight: 850; overflow-wrap: anywhere; }
+#bells .bg-summary .bg-sum-line .bg-dot{ margin: 0 .45em; color: #8a5a00; }
+#bells .bg-summary .bg-sum-small{ margin-top: 4px; color: #5b6676; font-size: .82rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
 #bells .bg-laptop-note{ margin-top: 10px; padding: 8px 10px; border: 1px solid #8fb3da; border-radius: 10px; background: #e8f1fb; color: #142033; font-size: 13px; line-height: 1.35; text-align: left; }
-#bells .bg-facts{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--bg-line); border-radius: 16px; overflow: hidden; }
-#bells .bg-fact{ min-width: 0; padding: 14px 15px; background: var(--bg-paper); border-right: 1px solid var(--bg-line); border-bottom: 1px solid var(--bg-line); }
-#bells .bg-fact:nth-child(3n){ border-right: 0; }
-#bells .bg-fact:nth-last-child(-n+3){ border-bottom: 0; }
-#bells .bg-fact .bg-k{ display: block; margin-bottom: 4px; color: var(--bg-muted); font-size: .71rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
-#bells .bg-fact .bg-v{ display: block; overflow-wrap: anywhere; font-size: .95rem; font-weight: 800; }
-#bells .bg-fact.bg-location .bg-v{ color: #8a5a00; }
+#bells .bg-actions .bg-brochure-btn, #bells .bg-actions .bg-copydates-btn{ flex: 1 1 0; min-width: 0; min-height: 46px; }
+#bells .bg-copydates-btn{ border: 0; border-radius: 11px; background: #1f8a4c; color: #fff; padding: 10px 14px; font: inherit; font-size: .84rem; font-weight: 850; cursor: pointer; }
+#bells .bg-copydates-btn:hover{ background: #187040; }
+#bells .bg-copydates-btn:focus-visible{ outline: 3px solid rgba(244,197,66,.75); outline-offset: 2px; }
+#bells .bg-actions .bg-tms-links{ flex: 1 1 100%; min-width: 0; }
+#bells .bg-actions .bg-tms-btn{ flex: 1 1 100%; min-height: 46px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; }
+#bells .bg-profile-chips{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+#bells .bg-profile-chip{ min-width: 0; min-height: 48px; padding: 6px 4px; border: 1px solid #9fb1c7; border-radius: 999px; background: #fff; color: var(--bg-navy-2); font: inherit; font-size: .8rem; font-weight: 800; line-height: 1.15; text-align: center; cursor: pointer; }
+#bells .bg-profile-chip[aria-pressed="true"]{ background: var(--bg-gold); border-color: var(--bg-gold); color: var(--bg-navy-2); }
+#bells .bg-profile-chip:focus-visible{ outline: 3px solid rgba(244,197,66,.75); outline-offset: 2px; }
+#bells .bg-profile-full{ min-height: 2.7em; }
+#bells select.bg-sr{ position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; margin: -1px; border: 0; overflow: hidden; clip: rect(0 0 0 0); opacity: 0; pointer-events: none; }
+#bells .bg-field{ position: relative; }
+#bells .bg-panel, #bells .bg-result{ min-width: 0; max-width: 100%; box-sizing: border-box; }
+/* 360px: the classes card's slot badge and sticky footer must wrap/shrink, never push the page wider */
+#bells .bg-cls-top{ flex-wrap: wrap; }
+#bells .bg-cls-foot > span{ min-width: 0; }
+#bells .bg-cls-foot > button{ flex: 0 0 auto; }
+#bells .bg-result > *{ max-width: 100%; box-sizing: border-box; }
 #bells .bg-bundle-breakdown{
       margin: 0 0 18px; border: 1px solid #d7b038; border-radius: 16px; overflow: hidden;
       background: #fffaf0;
@@ -246,18 +257,9 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-controls{ grid-template-columns: 1fr; padding: 16px; }
 #bells .bg-result{ padding: 17px; }
 #bells .bg-result-head{ display: block; }
-#bells .bg-price{ margin-top: 14px; width: 100%; text-align: left; }
-#bells .bg-facts{ grid-template-columns: 1fr 1fr; }
-#bells .bg-fact:nth-child(3n){ border-right: 1px solid var(--bg-line); }
-#bells .bg-fact:nth-child(2n){ border-right: 0; }
-#bells .bg-fact:nth-last-child(-n+3){ border-bottom: 1px solid var(--bg-line); }
-#bells .bg-fact:nth-last-child(-n+2){ border-bottom: 0; }
     }
 
     @media (max-width: 430px) {
-#bells .bg-facts{ grid-template-columns: 1fr; }
-#bells .bg-fact, #bells .bg-fact:nth-child(2n), #bells .bg-fact:nth-child(3n){ border-right: 0; border-bottom: 1px solid var(--bg-line); }
-#bells .bg-fact:last-child{ border-bottom: 0; }
 #bells .bg-modal{ padding: 0; }
 #bells .bg-modal-card{ width: 100%; height: 100dvh; border-radius: 0; }
 #bells .bg-modal-bar{ padding-top: max(11px, env(safe-area-inset-top, 0px)); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
@@ -303,10 +305,10 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-cls-multi{ margin: 8px 0; padding: 10px 12px; border-radius: 12px; background: #fff7e0; border: 1px solid #f0d58a; font-size: .88rem; }
 #bells .bg-cls-copy2{ display: block; width: 100%; margin-top: 8px; min-height: 44px; border: 2px solid #1f8a4c; border-radius: 12px; background: #fff; color: #1b7a42; font: inherit; font-weight: 800; }
 #bells .bg-cls-bar{ position: sticky; bottom: 0; z-index: 3; margin: 10px -14px -12px; padding: 8px 14px 10px; background: rgba(255,255,255,.97); border-top: 1px solid var(--bg-line); border-radius: 0 0 16px 16px; }
-#bells .bg-cls-copy{ display: block; width: 100%; height: 50px; padding: 0 6px; border: 0; border-radius: 14px; background: #1f8a4c; color: #fff; font: inherit; font-size: .93rem; font-weight: 800; white-space: nowrap; }
+#bells .bg-cls-copy{ display: block; width: 100%; height: 50px; padding: 0 10px; border: 0; border-radius: 14px; background: #1f8a4c; color: #fff; font: inherit; font-size: .9rem; line-height: 1.2; font-weight: 800; white-space: normal; }
 #bells .bg-cls-copy:disabled{ background: #9bbfa9; }
 #bells .bg-cls-copymsg{ min-height: 22px; overflow-wrap: anywhere; margin-top: 4px; font-size: .85rem; font-weight: 700; color: #1b7a42; }
-#bells .bg-cls-foot{ display: flex; justify-content: space-between; align-items: center; gap: 8px; height: 32px; white-space: nowrap; font-size: .78rem; color: var(--bg-muted); }
+#bells .bg-cls-foot{ display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 32px; white-space: normal; font-size: .78rem; color: var(--bg-muted); }
 #bells .bg-cls-link{ min-height: 32px; padding: 0 6px; border: 0; background: none; color: var(--bg-blue); font: inherit; font-size: .8rem; font-weight: 700; text-decoration: underline; }
 #bells .bg-cls-link:disabled{ color: #aab4c0; text-decoration: none; }
     /* EASYGUIDE_CSS_END */
@@ -628,11 +630,17 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         </div>
         <div class="bg-field">
           <label for="bgProfileSelect">Learner profile</label>
-          <select id="bgProfileSelect">
+          <select id="bgProfileSelect" class="bg-sr" tabindex="-1" aria-hidden="true">
             <option value="full">Full Fee</option>
             <option value="age2139" selected>SG Age 21–39 / PR Age 21 &amp; above</option>
             <option value="age40">SG Age 40 &amp; above</option>
           </select>
+          <div id="bgProfileChips" class="bg-profile-chips" role="group" aria-label="Learner profile">
+            <button class="bg-profile-chip" type="button" data-bg-profile="age2139" aria-pressed="true">21-39 SG/PR</button>
+            <button class="bg-profile-chip" type="button" data-bg-profile="age40" aria-pressed="false">40+ SG</button>
+            <button class="bg-profile-chip" type="button" data-bg-profile="full" aria-pressed="false">Full fee</button>
+          </div>
+          <div id="bgProfileFull" class="bg-helper bg-profile-full">SG Age 21–39 / PR Age 21 &amp; above</div>
         </div>
       </div>
 
@@ -646,18 +654,53 @@ Submit this page now. The form link appears on the next screen and unlocks once 
               <span id="bgCategory" class="bg-tag"></span>
               <span id="bgDelivery" class="bg-tag"></span>
             </div>
-            <div class="bg-actions">
-              <button id="bgBrochureButton" class="bg-brochure-btn" type="button">View brochure</button>
-              <div id="bgTmsLinks" class="bg-tms-links"></div>
-            </div>
-          </div>
-          <div class="bg-price">
-            <small id="bgCatalogueAsOf" class="bg-as-of"></small>
-            <small id="bgPriceLabel">SG Age 21–39 / PR Age 21 &amp; above</small>
-            <strong id="bgFee"></strong>
-            <div id="bgLaptopNote" class="bg-laptop-note" style="display:none"><b>Bring a laptop.</b> No laptop? They can borrow one.</div>
           </div>
         </div>
+
+        <div class="bg-summary" id="bgSummary">
+          <small id="bgCatalogueAsOf" class="bg-as-of"></small>
+          <small class="bg-pay">You pay</small>
+          <strong id="bgFee"></strong>
+          <div id="bgPriceLabel" class="bg-sum-small">SG Age 21–39 / PR Age 21 &amp; above</div>
+          <div class="bg-sum-line"><span id="bgDuration"></span><span class="bg-dot" aria-hidden="true">·</span><span>PV <span id="bgPv"></span></span></div>
+          <div class="bg-sum-small">Credit: <span id="bgCredit"></span></div>
+          <div class="bg-sum-small">SkillsFuture course code: <span id="bgCourseCode"></span></div>
+          <div class="bg-sum-small">Delivery: <span id="bgDeliveryFact"></span><span id="bgLocationWrap"> · Location: <span id="bgLocation"></span></span></div>
+          <div id="bgLaptopNote" class="bg-laptop-note" style="display:none"><b>Bring a laptop.</b> No laptop? They can borrow one.</div>
+        </div>
+
+        <div class="bg-actions">
+          <button id="bgBrochureButton" class="bg-brochure-btn" type="button">View brochure</button>
+          <button id="bgCopyDates" class="bg-copydates-btn" type="button">Copy dates</button>
+          <div id="bgTmsLinks" class="bg-tms-links"></div>
+        </div>
+
+        <section id="bgClasses" class="bg-classes" aria-label="Upcoming classes" style="display:none">
+          <h3>Upcoming classes</h3>
+          <div id="bgClsUpdated" class="bg-cls-updated" aria-live="polite"></div>
+          <div id="bgClsFallback" class="bg-cls-fallback" style="display:none"></div>
+          <div id="bgClsBody">
+            <label class="bg-cls-label" for="bgClsWhere">Where does the learner stay?</label>
+            <div class="bg-cls-where">
+              <input id="bgClsWhere" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Area, MRT or postal code">
+              <button id="bgClsFind" type="button" class="bg-cls-find">Find nearest</button>
+            </div>
+            <div class="bg-cls-note">Type the area or MRT, not the full home address. Not saved; looked up on OpenStreetMap.</div>
+            <div id="bgClsGeoMsg" class="bg-cls-geomsg" aria-live="polite"></div>
+            <div id="bgClsVenues" class="bg-cls-venues"></div>
+            <div class="bg-cls-label">Month</div>
+            <div id="bgClsMonths" class="bg-cls-months"></div>
+            <div id="bgClsCount" class="bg-cls-count"></div>
+            <div id="bgClsEnrolHint" class="bg-cls-hint">Tick classes to copy. Enrol opens Bells TMS (sign-in needed).</div>
+            <div id="bgClsList"></div>
+          </div>
+          <div id="bgClsMulti" class="bg-cls-multi" style="display:none"></div>
+          <div id="bgClsBar" class="bg-cls-bar">
+            <button id="bgClsCopy" type="button" class="bg-cls-copy" disabled>Copy WhatsApp message (0 selected)</button>
+            <div id="bgClsCopyMsg" class="bg-cls-copymsg" aria-live="polite"></div>
+            <div class="bg-cls-foot"><span id="bgClsStamp"></span><button id="bgClsClear" type="button" class="bg-cls-link" disabled>Clear ticks</button></div>
+          </div>
+        </section>
 
         <section class="bg-tiktok-guide" id="bgTikTokGuide" aria-labelledby="bgTikTokGuideHeading" style="display:none">
           <h2 id="bgTikTokGuideHeading">Is your learner suitable to go for Tech courses?</h2>
@@ -708,42 +751,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
           <div id="bgBundleComponentRows"></div>
           <div class="bg-bundle-total"><span>Total</span><strong id="bgBundleTotal"></strong></div>
         </div>
-
-        <div class="bg-facts">
-          <div class="bg-fact"><span class="bg-k">Duration</span><span id="bgDuration" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">PV</span><span id="bgPv" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">Delivery</span><span id="bgDeliveryFact" class="bg-v"></span></div>
-          <div class="bg-fact bg-location"><span class="bg-k">Location</span><span id="bgLocation" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">Eligible credit</span><span id="bgCredit" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">SkillsFuture course code</span><span id="bgCourseCode" class="bg-v"></span></div>
-        </div>
-
-        <section id="bgClasses" class="bg-classes" aria-label="Upcoming classes" style="display:none">
-          <h3>Upcoming classes</h3>
-          <div id="bgClsUpdated" class="bg-cls-updated" aria-live="polite"></div>
-          <div id="bgClsFallback" class="bg-cls-fallback" style="display:none"></div>
-          <div id="bgClsBody">
-            <label class="bg-cls-label" for="bgClsWhere">Where does the learner stay?</label>
-            <div class="bg-cls-where">
-              <input id="bgClsWhere" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Area, MRT or postal code">
-              <button id="bgClsFind" type="button" class="bg-cls-find">Find nearest</button>
-            </div>
-            <div class="bg-cls-note">Type the area or MRT, not the full home address. Not saved; looked up on OpenStreetMap.</div>
-            <div id="bgClsGeoMsg" class="bg-cls-geomsg" aria-live="polite"></div>
-            <div id="bgClsVenues" class="bg-cls-venues"></div>
-            <div class="bg-cls-label">Month</div>
-            <div id="bgClsMonths" class="bg-cls-months"></div>
-            <div id="bgClsCount" class="bg-cls-count"></div>
-            <div id="bgClsEnrolHint" class="bg-cls-hint">Tick classes to copy. Enrol opens Bells TMS (sign-in needed).</div>
-            <div id="bgClsList"></div>
-          </div>
-          <div id="bgClsMulti" class="bg-cls-multi" style="display:none"></div>
-          <div id="bgClsBar" class="bg-cls-bar">
-            <button id="bgClsCopy" type="button" class="bg-cls-copy" disabled>Copy WhatsApp message (0 selected)</button>
-            <div id="bgClsCopyMsg" class="bg-cls-copymsg" aria-live="polite"></div>
-            <div class="bg-cls-foot"><span id="bgClsStamp"></span><button id="bgClsClear" type="button" class="bg-cls-link" disabled>Clear ticks</button></div>
-          </div>
-        </section>
       </div>
       <div id="bgEmpty" class="bg-empty">No courses available.</div>
     </section>
@@ -937,7 +944,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-24.2';
+    const BUILD='2026-11-24.3';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1742,6 +1749,10 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     const els = {
       course: document.getElementById('bgCourseSelect'),
       profile: document.getElementById('bgProfileSelect'),
+      profileChips: document.getElementById('bgProfileChips'),
+      profileFull: document.getElementById('bgProfileFull'),
+      locationWrap: document.getElementById('bgLocationWrap'),
+      copyDates: document.getElementById('bgCopyDates'),
       loading: document.getElementById('bgLoading'),
       result: document.getElementById('bgResult'),
       empty: document.getElementById('bgEmpty'),
@@ -1899,6 +1910,8 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         els.pwmGuide.style.display = 'none';
         els.laptopNote.style.display = 'none';
         els.tiktokWarning.style.display = 'none';
+        els.tmsLinks.style.display = '';
+        els.copyDates.style.display = 'none';
         renderClasses();
         return;
       }
@@ -1924,6 +1937,10 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       els.pv.textContent = course.pv;
       els.deliveryFact.textContent = course.delivery;
       els.location.textContent = course.location;
+      // 'See classes below' (and the bundled 'Search in TMS' placeholder) only point elsewhere, so it adds nothing in the summary; Online / Zoom still shows.
+      els.locationWrap.style.display = (course.location === 'See classes below' || course.location === 'Search in TMS') ? 'none' : '';
+      Array.from(els.profileChips.querySelectorAll('[data-bg-profile]')).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.bgProfile === profile)));
+      els.profileFull.textContent = PROFILE_LABELS[profile];
       els.credit.textContent = course.credit;
       els.courseCode.textContent = course.courseCode;
       const brochureCode = BROCHURE_BY_COURSE[course.name];
@@ -2183,6 +2200,11 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       }
       const owc = egIsOwc();
       const ids = CLASSES_BY_COURSE[course.name] || [];
+      // TMS button only when the card cannot show classes (no TMS list, or the schedule failed to load).
+      // Copy dates points at the card, so it is hidden when the card is a fallback or in OWC (no Copy there).
+      const noList = !ids.length || egState.failed;
+      els.tmsLinks.style.display = noList ? '' : 'none';
+      els.copyDates.style.display = (noList || owc) ? 'none' : '';
       let fallback = '';
       if (!ids.length) fallback = 'No Bells TMS schedule is listed for this course here. Open TMS with the button above.';
       else if (egState.failed) fallback = 'Class schedule not available right now. Open TMS with the button above.';
@@ -2423,6 +2445,21 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     };
     els.course.addEventListener('change', render);
     els.profile.addEventListener('change', render);
+    // Chips only drive the (visually hidden) select, so every existing path that reads/writes it keeps working.
+    els.profileChips.addEventListener('click', event => {
+      const chip = event.target.closest('[data-bg-profile]');
+      if (!chip || els.profile.value === chip.dataset.bgProfile) return;
+      els.profile.value = chip.dataset.bgProfile;
+      els.profile.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    // Copy dates cannot copy without ticks, so it takes you to the Upcoming classes card.
+    els.copyDates.addEventListener('click', () => {
+      const box = document.getElementById('bgClasses');
+      if (!box) return;
+      if (box.scrollIntoView) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const where = document.getElementById('bgClsWhere');
+      if (where && where.focus) { try { where.focus({ preventScroll: true }); } catch (e) { where.focus(); } }
+    });
     els.categoryFilters.addEventListener('click', event => {
       const chip = event.target.closest('[data-bg-filter]');
       if (chip) applyCategoryFilter(chip.dataset.bgFilter, els.course.value);
