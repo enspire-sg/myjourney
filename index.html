@@ -801,7 +801,6 @@ body.bg-modal-open{ overflow: hidden; }
           <button class="bg-filter-chip" type="button" data-bg-filter="all" aria-pressed="true">All</button>
           <button class="bg-filter-chip" type="button" data-bg-filter="baking" aria-pressed="false">Baking</button>
           <button class="bg-filter-chip" type="button" data-bg-filter="tech" aria-pressed="false">Tech</button>
-          <button class="bg-filter-chip" type="button" data-bg-filter="bundles" aria-pressed="false">Bundles</button>
         </div>
         <div class="bg-field">
           <label for="bgCourseSelect">Course</label>
@@ -813,11 +812,11 @@ body.bg-modal-open{ overflow: hidden; }
           <select id="bgProfileSelect" class="bg-sr" tabindex="-1" aria-hidden="true">
             <option value="full">Full Fee</option>
             <option value="age2139" selected>SG Age 21–39 / PR Age 21 &amp; above</option>
-            <option value="age40">SG Age 40 &amp; above</option>
+            <option value="age40">SG Age 40–75</option>
           </select>
           <div id="bgProfileChips" class="bg-profile-chips" role="group" aria-label="Learner profile">
             <button class="bg-profile-chip" type="button" data-bg-profile="age2139" aria-pressed="true">21-39 SG/PR</button>
-            <button class="bg-profile-chip" type="button" data-bg-profile="age40" aria-pressed="false">40+ SG</button>
+            <button class="bg-profile-chip" type="button" data-bg-profile="age40" aria-pressed="false">40-75 SG</button>
             <button class="bg-profile-chip" type="button" data-bg-profile="full" aria-pressed="false">Full fee</button>
           </div>
           <div id="bgProfileFull" class="bg-helper bg-profile-full">SG Age 21–39 / PR Age 21 &amp; above</div>
@@ -1263,7 +1262,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-23.5';
+  const BUILD='2026-11-23.7';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -4143,8 +4142,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const PROFILE_LABELS = {
       full: 'Full Fee',
       age2139: 'SG Age 21–39 / PR Age 21 & above',
-      age40: 'SG Age 40 & above'
+      age40: 'SG Age 40\u201375'
     };
+    function profileLabel_(profile, course) { return profile === 'age40' && course && /Communication & Coaching|PWM/i.test(String(course.name || '')) ? 'SG Age 40\u201370' : PROFILE_LABELS[profile]; }
     const BROCHURE_FILES = {
       AAI: '12yv5NZc58FCRGGTd-KF0vwdGc81SxeMc',
       BAK: '1KOxwhb2FvKOdZxSYgkHiIMt25P4lT9RZ',
@@ -4442,7 +4442,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       els.delivery.textContent = course.delivery;
       els.delivery.className = `bg-tag${course.delivery.toLowerCase() === 'online' ? ' bg-online' : ''}`;
       const isBundle = renderBundleBreakdown(course, profile);
-      els.priceLabel.textContent = `${PROFILE_LABELS[profile]}${isBundle ? ' · Total' : ''}`;
+      els.priceLabel.textContent = `${profileLabel_(profile, course)}${isBundle ? ' · Total' : ''}`;
       els.fee.textContent = money.format(course.fees[profile]);
       els.duration.textContent = course.duration;
       els.pv.textContent = course.pv;
@@ -4451,7 +4451,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       // 'See classes below' (and the bundled 'Search in TMS' placeholder) only point elsewhere, so it adds nothing in the summary; Online / Zoom still shows.
       els.locationWrap.style.display = (course.location === 'See classes below' || course.location === 'Search in TMS') ? 'none' : '';
       Array.from(els.profileChips.querySelectorAll('[data-bg-profile]')).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.bgProfile === profile)));
-      els.profileFull.textContent = PROFILE_LABELS[profile];
+      els.profileFull.textContent = profileLabel_(profile, course);
+      const c40 = Array.from(els.profileChips.querySelectorAll('[data-bg-profile]')).filter(b => b.dataset.bgProfile === 'age40')[0]; if (c40) c40.textContent = profileLabel_('age40', course) === PROFILE_LABELS.age40 ? '40-75 SG' : '40-70 SG';
       els.credit.textContent = course.credit;
       els.courseCode.textContent = course.courseCode;
       const brochureCode = BROCHURE_BY_COURSE[course.name];
@@ -4665,7 +4666,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       (groups || []).forEach(g => {
         lines.push('\uD83D\uDCCD Venue: ' + g.venue.name, '');
         g.runs.forEach(r => {
-          lines.push('*Option ' + String.fromCharCode(65 + n++) + ' - ' + egSlotsText(r.slots) + '*');
+          lines.push('*Option ' + String.fromCharCode(65 + n++) + (r.slots <= 5 ? ' - ' + egSlotsText(r.slots) : '') + '*');
           lines.push('Time: ' + r.time);
           lines.push(egDates(r.dates) + ' (' + egRunWeekday(r) + ')');
           lines.push('');
