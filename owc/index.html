@@ -188,10 +188,7 @@
 #bells .bg-summary .bg-sum-line .bg-dot{ margin: 0 .45em; color: #8a5a00; }
 #bells .bg-summary .bg-sum-small{ margin-top: 4px; color: #5b6676; font-size: .82rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
 #bells .bg-laptop-note{ margin-top: 10px; padding: 8px 10px; border: 1px solid #8fb3da; border-radius: 10px; background: #e8f1fb; color: #142033; font-size: 13px; line-height: 1.35; text-align: left; }
-#bells .bg-actions .bg-brochure-btn, #bells .bg-actions .bg-copydates-btn{ flex: 1 1 0; min-width: 0; min-height: 46px; }
-#bells .bg-copydates-btn{ border: 0; border-radius: 11px; background: #1f8a4c; color: #fff; padding: 10px 14px; font: inherit; font-size: .84rem; font-weight: 850; cursor: pointer; }
-#bells .bg-copydates-btn:hover{ background: #187040; }
-#bells .bg-copydates-btn:focus-visible{ outline: 3px solid rgba(244,197,66,.75); outline-offset: 2px; }
+#bells .bg-actions .bg-brochure-btn{ flex: 1 1 100%; min-width: 0; min-height: 46px; }
 #bells .bg-actions .bg-tms-links{ flex: 1 1 100%; min-width: 0; }
 #bells .bg-actions .bg-tms-btn{ flex: 1 1 100%; min-height: 46px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; }
 #bells .bg-profile-chips{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
@@ -302,8 +299,6 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-cls-meta{ margin-top: 2px; font-size: .8rem; color: var(--bg-muted); }
 #bells .bg-cls-enrol{ display: block; width: 112px; margin: 8px 0 0 auto; min-height: 40px; line-height: 40px; text-align: center; border-radius: 12px; background: var(--bg-navy-2); color: #fff; font-weight: 800; text-decoration: none; }
 #bells .bg-cls-empty{ padding: 14px 4px; color: var(--bg-muted); }
-#bells .bg-cls-multi{ margin: 8px 0; padding: 10px 12px; border-radius: 12px; background: #fff7e0; border: 1px solid #f0d58a; font-size: .88rem; }
-#bells .bg-cls-copy2{ display: block; width: 100%; margin-top: 8px; min-height: 44px; border: 2px solid #1f8a4c; border-radius: 12px; background: #fff; color: #1b7a42; font: inherit; font-weight: 800; }
 #bells .bg-cls-bar{ position: sticky; bottom: 0; z-index: 3; margin: 10px -14px -12px; padding: 8px 14px 10px; background: rgba(255,255,255,.97); border-top: 1px solid var(--bg-line); border-radius: 0 0 16px 16px; }
 #bells .bg-cls-copy{ display: block; width: 100%; height: 50px; padding: 0 10px; border: 0; border-radius: 14px; background: #1f8a4c; color: #fff; font: inherit; font-size: .9rem; line-height: 1.2; font-weight: 800; white-space: normal; }
 #bells .bg-cls-copy:disabled{ background: #9bbfa9; }
@@ -669,9 +664,14 @@ Submit this page now. The form link appears on the next screen and unlocks once 
           <div id="bgLaptopNote" class="bg-laptop-note" style="display:none"><b>Bring a laptop.</b> No laptop? They can borrow one.</div>
         </div>
 
+        <div id="bgBundleBreakdown" class="bg-bundle-breakdown" style="display:none">
+          <h3>Course price breakdown</h3>
+          <div id="bgBundleComponentRows"></div>
+          <div class="bg-bundle-total"><span>Total</span><strong id="bgBundleTotal"></strong></div>
+        </div>
+
         <div class="bg-actions">
           <button id="bgBrochureButton" class="bg-brochure-btn" type="button">View brochure</button>
-          <button id="bgCopyDates" class="bg-copydates-btn" type="button">Copy dates</button>
           <div id="bgTmsLinks" class="bg-tms-links"></div>
         </div>
 
@@ -694,7 +694,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
             <div id="bgClsEnrolHint" class="bg-cls-hint">Tick classes to copy. Enrol opens Bells TMS (sign-in needed).</div>
             <div id="bgClsList"></div>
           </div>
-          <div id="bgClsMulti" class="bg-cls-multi" style="display:none"></div>
           <div id="bgClsBar" class="bg-cls-bar">
             <button id="bgClsCopy" type="button" class="bg-cls-copy" disabled>Copy WhatsApp message (0 selected)</button>
             <div id="bgClsCopyMsg" class="bg-cls-copymsg" aria-live="polite"></div>
@@ -746,11 +745,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
 
         <div id="bgTikTokWarning" class="bg-tiktok-warning" style="display:none"><b>Check before enrolling:</b> any “no” or doubt on the 4 suitability checks means do NOT enrol. Offer Handphone course instead. Unsuitable enrolments lose their PV. <a href="#bgTikTokGuide">Read the full checks above.</a></div>
 
-        <div id="bgBundleBreakdown" class="bg-bundle-breakdown" style="display:none">
-          <h3>Course price breakdown</h3>
-          <div id="bgBundleComponentRows"></div>
-          <div class="bg-bundle-total"><span>Total</span><strong id="bgBundleTotal"></strong></div>
-        </div>
       </div>
       <div id="bgEmpty" class="bg-empty">No courses available.</div>
     </section>
@@ -944,7 +938,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-24.3';
+    const BUILD='2026-11-24.4';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1621,7 +1615,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     /* Bells EasyGuide: copied from My Journey between the markers; no server calls, no sign-in needed. */
     /* EASYGUIDE_JS_BEGIN */
 (function(){
-  const TECH_SUITABILITY_COURSE_RE=/^(?:Certificate in AI Essentials(?: \(Zoom\))?|Upgrade yourself with Gen AI \(Seniors\/Retirees\)|TikTok with AI \((?:Bundle|TTAI)\)|3D Printing|AI Agents & Automation|Vibe Coding for Web & App Development|Claude AI \(Zoom\)|Successful Livestreaming on Shopee)$|data analytic|\bDDA\b/i;
+  const TECH_SUITABILITY_COURSE_RE=/^(?:Certificate in AI Essentials(?: \(Zoom\))?|Upgrade yourself with Gen AI \(Seniors\/Retirees\)|TikTok with AI(?: \((?:Bundle|TTAI)\))?|3D Printing|AI Agents & Automation|Vibe Coding for Web & App Development|Claude AI \(Zoom\)|Successful Livestreaming on Shopee)$|data analytic|\bDDA\b/i;
   function isTechSuitabilityCourse_(name,code){ return TECH_SUITABILITY_COURSE_RE.test(String(name||'').trim())||TECH_SUITABILITY_COURSE_RE.test(String(code||'').trim()); }
   window.isTechSuitabilityCourse_=isTechSuitabilityCourse_;
 })();
@@ -1648,11 +1642,11 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       VCW: '1ByGq6GkhAkSn8vqIrEwtQovsiGYjbvut'
     };
     const BROCHURE_BY_COURSE = {
-      'Cakes & Cookies (Bundle)': 'BAK',
-      'Cafe Style Bread & Tarts (Bundle)': 'BAK',
+      'Cakes & Cookies': 'BAK',
+      'Cafe Style Bread & Tarts': 'BAK',
       'Premium Cakes': 'BAK',
-      'Handphone Apps with Photography (Bundle)': 'FRF',
-      'Mobile Photography & Videography (Bundle)': 'PPV',
+      'Handphone Apps with Photography': 'FRF',
+      'Mobile Photography & Videography': 'PPV',
       'Certificate in AI Essentials': 'SUP',
       'Upgrade yourself with Gen AI (Seniors/Retirees)': 'UPW',
       'Certificate in AI Essentials (Zoom)': 'SUP',
@@ -1662,14 +1656,14 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       'AI Agents & Automation': 'AAI',
       'Successful Livestreaming on Shopee': 'SLS',
       'Communication & Coaching': 'MPC',
-      'TikTok with AI (Bundle)': 'TTP'
+      'TikTok with AI': 'TTP'
     };
     const TMS_CODE_BY_COURSE = {
-      'Cakes & Cookies (Bundle)': 'MBC COO',
-      'Cafe Style Bread & Tarts (Bundle)': 'CBD TSP',
+      'Cakes & Cookies': 'MBC COO',
+      'Cafe Style Bread & Tarts': 'CBD TSP',
       'Premium Cakes': 'ACK',
-      'Handphone Apps with Photography (Bundle)': 'DLF DPS',
-      'Mobile Photography & Videography (Bundle)': 'DPS VTS',
+      'Handphone Apps with Photography': 'DLF DPS',
+      'Mobile Photography & Videography': 'DPS VTS',
       'Certificate in AI Essentials': 'SUP',
       'Upgrade yourself with Gen AI (Seniors/Retirees)': 'UPW',
       'Certificate in AI Essentials (Zoom)': 'SUP',
@@ -1679,24 +1673,24 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       'AI Agents & Automation': 'ABC',
       'Successful Livestreaming on Shopee': 'SLS',
       'Communication & Coaching': 'MPC',
-      'TikTok with AI (Bundle)': 'TTAI'
+      'TikTok with AI': 'TTAI'
     };
-    const BUNDLE_COMPONENTS = /* BUNDLE_COMPONENTS_START */ {"Cakes & Cookies (Bundle)":[{"name":"Make Basic Cakes","fees":{"full":632.2,"age2139":342.2,"age40":226.2}},{"name":"Make Cookies","fees":{"full":632.2,"age2139":342.2,"age40":226.2}}],"Cafe Style Bread & Tarts (Bundle)":[{"name":"Make Café Style Bread","fees":{"full":817.5,"age2139":442.5,"age40":292.5}},{"name":"Make Tarts and Short-Crust Pastries","fees":{"full":632.2,"age2139":342.2,"age40":226.2}}],"Handphone Apps with Photography (Bundle)":[{"name":"Digital Literacy Fundamentals","fees":{"full":872.0,"age2139":472.0,"age40":312.0}},{"name":"Digital Photography with Smartphones","fees":{"full":436.0,"age2139":236.0,"age40":156.0}}],"Mobile Photography & Videography (Bundle)":[{"name":"Digital Photography with Smartphones","fees":{"full":436.0,"age2139":236.0,"age40":156.0}},{"name":"Videography Techniques for Social Media Platforms","fees":{"full":599.5,"age2139":324.5,"age40":214.5}}],"TikTok with AI (Bundle)":[{"name":"Apply Generative AI Tools for Productivity Improvement","fees":{"full":1177.2,"age2139":637.2,"age40":421.2}},{"name":"E-Commerce Promotion Management","fees":{"full":937.4,"age2139":507.4,"age40":335.4}}]} /* BUNDLE_COMPONENTS_END */;
+    const BUNDLE_COMPONENTS = /* BUNDLE_COMPONENTS_START */ {"Cakes & Cookies":[{"name":"Make Basic Cakes","fees":{"full":632.2,"age2139":342.2,"age40":226.2}},{"name":"Make Cookies","fees":{"full":632.2,"age2139":342.2,"age40":226.2}}],"Cafe Style Bread & Tarts":[{"name":"Make Café Style Bread","fees":{"full":817.5,"age2139":442.5,"age40":292.5}},{"name":"Make Tarts and Short-Crust Pastries","fees":{"full":632.2,"age2139":342.2,"age40":226.2}}],"Handphone Apps with Photography":[{"name":"Digital Literacy Fundamentals","fees":{"full":872.0,"age2139":472.0,"age40":312.0}},{"name":"Digital Photography with Smartphones","fees":{"full":436.0,"age2139":236.0,"age40":156.0}}],"Mobile Photography & Videography":[{"name":"Digital Photography with Smartphones","fees":{"full":436.0,"age2139":236.0,"age40":156.0}},{"name":"Videography Techniques for Social Media Platforms","fees":{"full":599.5,"age2139":324.5,"age40":214.5}}],"TikTok with AI":[{"name":"Apply Generative AI Tools for Productivity Improvement","fees":{"full":1177.2,"age2139":637.2,"age40":421.2}},{"name":"E-Commerce Promotion Management","fees":{"full":937.4,"age2139":507.4,"age40":335.4}}]} /* BUNDLE_COMPONENTS_END */;
     const TMS_BY_COURSE = {
-      'Cakes & Cookies (Bundle)': [
+      'Cakes & Cookies': [
         { label: 'TMS weekdays', path: '/course-details/107/baking-cake-cookies-weekdays' },
         { label: 'TMS weekends', path: '/course-details/109/baking-cake-cookies-weekends' }
       ],
-      'Cafe Style Bread & Tarts (Bundle)': [
+      'Cafe Style Bread & Tarts': [
         { label: 'View TMS schedule', path: '/course-details/214/baking-tarts-cafe-style-bread' }
       ],
       'Premium Cakes': [
         { label: 'View TMS schedule', path: '/course-details/153/baking-prepare-advanced-cakes' }
       ],
-      'Handphone Apps with Photography (Bundle)': [
+      'Handphone Apps with Photography': [
         { label: 'TMS handphone', path: '/course-details/229/tech-future-ready-fundamentals' }
       ],
-      'Mobile Photography & Videography (Bundle)': [
+      'Mobile Photography & Videography': [
         { label: 'View TMS schedule', path: '/course-details/77/tech-professional-photography-videography' }
       ],
       'Certificate in AI Essentials': [
@@ -1726,14 +1720,14 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       'Communication & Coaching': [
         { label: 'View TMS schedule', path: '/course-details/176/pwm-mastering-performance-based-coaching' }
       ],
-      'TikTok with AI (Bundle)': [
+      'TikTok with AI': [
         { label: 'View TMS schedule', path: '/course-details/202/tik-tok-promotion-bundle' }
       ]
     };
     const TMS_BASE = 'https:' + '/' + '/tms.bells.sg';
     const money = new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', currencyDisplay: 'narrowSymbol' });
     const CATALOGUE_AS_OF = /* CATALOGUE_AS_OF_START */ '2026-11-24' /* CATALOGUE_AS_OF_END */;
-    const INITIAL_DATA = /* CATALOGUE_START */ [{"name":"Cakes & Cookies (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"8 DAYS (48 HRS)","fees":{"full":1264.4,"age2139":684.4,"age40":452.4},"pv":200.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2019503177 + TGS-2019503181"},{"name":"Cafe Style Bread & Tarts (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"9 DAYS (54 HRS)","fees":{"full":1449.7,"age2139":784.7,"age40":518.7},"pv":220.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023019954 + TGS-2019503567"},{"name":"Premium Cakes","category":"Baking","delivery":"Classroom","duration":"5 DAYS (30 HRS)","fees":{"full":1199.0,"age2139":649.0,"age40":429.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023036448"},{"name":"Handphone Apps with Photography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"4 DAYS (32 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061249 + TGS-2021007824"},{"name":"Mobile Photography & Videography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"5 DAYS (38 HRS)","fees":{"full":1035.5,"age2139":560.5,"age40":370.5},"pv":110.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021007824 + TGS-2021009032"},{"name":"Certificate in AI Essentials","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Upgrade yourself with Gen AI (Seniors/Retirees)","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Certificate in AI Essentials (Zoom)","category":"Tech","delivery":"Online","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"3D Printing","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1237.15,"age2139":669.65,"age40":442.65},"pv":120.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061253"},{"name":"Vibe Coding for Web & App Development","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2020503366"},{"name":"Claude AI (Zoom)","category":"Tech","delivery":"Online","duration":"2 DAYS (16 HRS)","fees":{"full":806.6,"age2139":436.6,"age40":288.6},"pv":90.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059941"},{"name":"AI Agents & Automation","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061246"},{"name":"Successful Livestreaming on Shopee","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1331.44,"age2139":720.69,"age40":476.39},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021008153"},{"name":"Communication & Coaching","category":"PWM","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1177.2,"age2139":637.2,"age40":421.2},"pv":130.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046246"},{"name":"TikTok with AI (Bundle)","category":"PWM · Bundle","delivery":"Classroom","duration":"6 DAYS (46 HRS)","fees":{"full":2114.6,"age2139":1144.6,"age40":756.5999999999999},"pv":200.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046178 + TGS-2024046177"}] /* CATALOGUE_END */;
+    const INITIAL_DATA = /* CATALOGUE_START */ [{"name":"Cakes & Cookies","category":"Baking · Bundle","delivery":"Classroom","duration":"8 DAYS (48 HRS)","fees":{"full":1264.4,"age2139":684.4,"age40":452.4},"pv":200.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2019503177 + TGS-2019503181"},{"name":"Cafe Style Bread & Tarts","category":"Baking · Bundle","delivery":"Classroom","duration":"9 DAYS (54 HRS)","fees":{"full":1449.7,"age2139":784.7,"age40":518.7},"pv":220.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023019954 + TGS-2019503567"},{"name":"Premium Cakes","category":"Baking","delivery":"Classroom","duration":"5 DAYS (30 HRS)","fees":{"full":1199.0,"age2139":649.0,"age40":429.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023036448"},{"name":"Handphone Apps with Photography","category":"Tech · Bundle","delivery":"Classroom","duration":"4 DAYS (32 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061249 + TGS-2021007824"},{"name":"Mobile Photography & Videography","category":"Tech · Bundle","delivery":"Classroom","duration":"5 DAYS (38 HRS)","fees":{"full":1035.5,"age2139":560.5,"age40":370.5},"pv":110.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021007824 + TGS-2021009032"},{"name":"Certificate in AI Essentials","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Upgrade yourself with Gen AI (Seniors/Retirees)","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Certificate in AI Essentials (Zoom)","category":"Tech","delivery":"Online","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"3D Printing","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1237.15,"age2139":669.65,"age40":442.65},"pv":120.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061253"},{"name":"Vibe Coding for Web & App Development","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2020503366"},{"name":"Claude AI (Zoom)","category":"Tech","delivery":"Online","duration":"2 DAYS (16 HRS)","fees":{"full":806.6,"age2139":436.6,"age40":288.6},"pv":90.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059941"},{"name":"AI Agents & Automation","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061246"},{"name":"Successful Livestreaming on Shopee","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1331.44,"age2139":720.69,"age40":476.39},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021008153"},{"name":"Communication & Coaching","category":"PWM","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1177.2,"age2139":637.2,"age40":421.2},"pv":130.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046246"},{"name":"TikTok with AI","category":"PWM · Bundle","delivery":"Classroom","duration":"6 DAYS (46 HRS)","fees":{"full":2114.6,"age2139":1144.6,"age40":756.5999999999999},"pv":200.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046178 + TGS-2024046177"}] /* CATALOGUE_END */;
     window.BELLS_COURSE_NAMES = INITIAL_DATA.map(c=>c.name);
     // Claude AI (Zoom) is B2B-only (Li Wei, 23 Nov 2026): hidden from the course list, price, brochure and class card
     // unless the server said b2bAccess === true for the person on screen. Missing/unknown = hidden. The OWC copy
@@ -1752,7 +1746,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       profileChips: document.getElementById('bgProfileChips'),
       profileFull: document.getElementById('bgProfileFull'),
       locationWrap: document.getElementById('bgLocationWrap'),
-      copyDates: document.getElementById('bgCopyDates'),
       loading: document.getElementById('bgLoading'),
       result: document.getElementById('bgResult'),
       empty: document.getElementById('bgEmpty'),
@@ -1911,7 +1904,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         els.laptopNote.style.display = 'none';
         els.tiktokWarning.style.display = 'none';
         els.tmsLinks.style.display = '';
-        els.copyDates.style.display = 'none';
         renderClasses();
         return;
       }
@@ -1967,11 +1959,11 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     const GEOCODE_URL = 'https:' + '/' + '/nominatim.openstreetmap.org/search';
     // Editable: which TMS course id(s) feed each EasyGuide course. [] = no TMS schedule (Claude AI).
     const CLASSES_BY_COURSE = {
-      'Cakes & Cookies (Bundle)': [107, 109],
-      'Cafe Style Bread & Tarts (Bundle)': [214],
+      'Cakes & Cookies': [107, 109],
+      'Cafe Style Bread & Tarts': [214],
       'Premium Cakes': [153],
-      'Handphone Apps with Photography (Bundle)': [229],
-      'Mobile Photography & Videography (Bundle)': [77],
+      'Handphone Apps with Photography': [229],
+      'Mobile Photography & Videography': [77],
       'Certificate in AI Essentials': [245],
       'Upgrade yourself with Gen AI (Seniors/Retirees)': [213],
       'Certificate in AI Essentials (Zoom)': [246],
@@ -1981,7 +1973,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       'AI Agents & Automation': [225],
       'Successful Livestreaming on Shopee': [253],
       'Communication & Coaching': [176],
-      'TikTok with AI (Bundle)': [202]
+      'TikTok with AI': [202]
     };
     // Editable class time for the WhatsApp message. TMS has no class times, so this is a constant.
     const DEFAULT_CLASS_TIME = '9am - 6pm';
@@ -2134,32 +2126,38 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       });
       return chain;
     }
-    // Option letters follow tick order. One message per venue (and per class time).
+    // ONE message always. Classes sit under their venue heading (venues in first-tick order, classes in tick order
+    // inside a venue); option letters run A, B, C... across the whole message.
     function egGroups(runs, tickOrder) {
       const groups = [], idx = {};
       tickOrder.forEach(key => {
         const r = runs.find(x => x.key === key);
         if (!r) return;
-        const gk = r.venue.code + '|' + r.time;
-        if (!(gk in idx)) { idx[gk] = groups.length; groups.push({ venue: r.venue, time: r.time, runs: [] }); }
+        const gk = r.venue.code;
+        if (!(gk in idx)) { idx[gk] = groups.length; groups.push({ venue: r.venue, runs: [] }); }
         groups[idx[gk]].runs.push(r);
       });
       return groups;
     }
-    function egMessage(courseName, group) {
+    function egRunWeekday(r) { return egEvery(r).replace(/^Every\s+/i, ''); }
+    function egMessage(courseName, groups) {
       const lines = ['Here\u2019s our updated classes for: \uD83D\uDC47\uD83C\uDFFB', '', '\u2728 *' + courseName + '* \u2728', ''];
-      group.runs.forEach((r, i) => {
-        lines.push('*Option ' + String.fromCharCode(65 + i) + ' - ' + egSlotsText(r.slots) + '*');
-        lines.push(egDates(r.dates) + ' (' + egWeekday(r.start) + ')');
-        lines.push('');
+      let n = 0;
+      (groups || []).forEach(g => {
+        lines.push('\uD83D\uDCCD Venue: ' + g.venue.name, '');
+        g.runs.forEach(r => {
+          lines.push('*Option ' + String.fromCharCode(65 + n++) + ' - ' + egSlotsText(r.slots) + '*');
+          lines.push('Time: ' + r.time);
+          lines.push(egDates(r.dates) + ' (' + egRunWeekday(r) + ')');
+          lines.push('');
+        });
       });
-      lines.push('Time: ' + group.time + ' (Breaks & Refreshments included)', '');
-      lines.push('\uD83D\uDCCD Venue: ' + group.venue.name, '');
+      lines.push('(Breaks & Refreshments included)', '');
       lines.push('As there\u2019s limited slots left - which *option* would you like me to help you secure a slot for? \uD83D\uDE01');
       return lines.join('\n');
     }
     window.BellsClassesLogic_ = { egDate, egWeekday, egDates, egMonthKey, egMonths, egStamp, egTodaySgt, egSlotsClass,
-      egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage,
+      egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage, egRunWeekday,
       egClassTime, VENUES, CLASSES_BY_COURSE };
     /* EG_CLASSES_LOGIC_END */
 
@@ -2201,17 +2199,14 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       const owc = egIsOwc();
       const ids = CLASSES_BY_COURSE[course.name] || [];
       // TMS button only when the card cannot show classes (no TMS list, or the schedule failed to load).
-      // Copy dates points at the card, so it is hidden when the card is a fallback or in OWC (no Copy there).
       const noList = !ids.length || egState.failed;
       els.tmsLinks.style.display = noList ? '' : 'none';
-      els.copyDates.style.display = (noList || owc) ? 'none' : '';
       let fallback = '';
       if (!ids.length) fallback = 'No Bells TMS schedule is listed for this course here. Open TMS with the button above.';
       else if (egState.failed) fallback = 'Class schedule not available right now. Open TMS with the button above.';
       else if (!egState.data) { fallback = 'Loading upcoming classes…'; egLoad(); }
       egShow('bgClsBody', !fallback);
       egShow('bgClsBar', !fallback && !owc);
-      egShow('bgClsMulti', false);
       egSet('bgClsFallback', fallback);
       egShow('bgClsFallback', !!fallback);
       egShow('bgClsEnrolHint', !fallback && !owc);
@@ -2275,7 +2270,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     }
 
     function renderClassesBar(all, courseName) {
-      const groups = egGroups(all, egState.ticks);
       const n = egState.ticks.length;
       const copy = egEl('bgClsCopy');
       if (copy) { copy.textContent = 'Copy WhatsApp message (' + n + ' selected)'; copy.disabled = n === 0; }
@@ -2283,11 +2277,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       const stamp = egState.data ? egStamp(egState.data.generated) : '';
       egSet('bgClsStamp', stamp ? 'Slots as of ' + stamp : '');
       const clear = egEl('bgClsClear'); if (clear) clear.disabled = n === 0;
-      if (groups.length > 1) {
-        egHtml('bgClsMulti', '<b>These classes are at ' + groups.length + ' venues.</b> Each venue gets its own message. Copy them one at a time:'
-          + groups.map((g, i) => '<button type="button" class="bg-cls-copy2" data-cls-copy-group="' + i + '">Copy: ' + egEsc(g.venue.name) + ' (' + g.runs.length + ')</button>').join(''));
-        egShow('bgClsMulti', true);
-      } else { egShow('bgClsMulti', false); }
     }
 
     function egCopyText(text) {
@@ -2303,16 +2292,16 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         } catch (e) { reject(e); }
       });
     }
-    function egDoCopy(onlyIndex) {
+    function egDoCopy() {
       const course = selectedCourse();
       if (!course || !egState.data) return;
       const all = egOpenRuns(egState.data, course.name, egTodaySgt(Date.now()));
       const groups = egGroups(all, egState.ticks);
       if (!groups.length) return;
-      const picked = onlyIndex == null ? groups : [groups[onlyIndex]];
-      const text = picked.map(g => egMessage(course.name, g)).join('\n\n———\n\n');
+      const count = groups.reduce((t, g) => t + g.runs.length, 0);
+      const text = egMessage(course.name, groups);
       egCopyText(text).then(() => {
-        egState.copyMsg = 'Copied ✓ ' + (picked.length > 1 ? picked.length + ' messages, one per venue' : picked[0].runs.length + (picked[0].runs.length === 1 ? ' option' : ' options') + ' · ' + picked[0].venue.name);
+        egState.copyMsg = 'Copied \u2713 ' + count + (count === 1 ? ' option' : ' options') + ' \u00b7 1 message';
         renderClassesBar(all, course.name);
       }).catch(() => { egState.copyMsg = 'Not copied. Tap Copy again.'; renderClassesBar(all, course.name); });
     }
@@ -2341,8 +2330,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         let b;
         if ((b = t.closest('[data-cls-venue]'))) { egState.venue = b.dataset.clsVenue; egState.copyMsg = ''; renderClasses(); }
         else if ((b = t.closest('[data-cls-month]'))) { egState.month = b.dataset.clsMonth; egState.copyMsg = ''; renderClasses(); }
-        else if ((b = t.closest('[data-cls-copy-group]'))) { egDoCopy(Number(b.dataset.clsCopyGroup)); }
-        else if (t.closest('#bgClsCopy')) { egDoCopy(null); }
+        else if (t.closest('#bgClsCopy')) { egDoCopy(); }
         else if (t.closest('#bgClsClear')) { egState.ticks = []; egState.copyMsg = ''; renderClasses(); }
         else if (t.closest('#bgClsFind')) { egFind(); }
         else if (t.closest('#bgClsForget')) { const i = egEl('bgClsWhere'); if (i) i.value = ''; egState.point = null; egState.geoMsg = ''; renderClasses(); }
@@ -2451,14 +2439,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       if (!chip || els.profile.value === chip.dataset.bgProfile) return;
       els.profile.value = chip.dataset.bgProfile;
       els.profile.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-    // Copy dates cannot copy without ticks, so it takes you to the Upcoming classes card.
-    els.copyDates.addEventListener('click', () => {
-      const box = document.getElementById('bgClasses');
-      if (!box) return;
-      if (box.scrollIntoView) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      const where = document.getElementById('bgClsWhere');
-      if (where && where.focus) { try { where.focus({ preventScroll: true }); } catch (e) { where.focus(); } }
     });
     els.categoryFilters.addEventListener('click', event => {
       const chip = event.target.closest('[data-bg-filter]');
