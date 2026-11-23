@@ -709,6 +709,15 @@ Submit this page now. The form link appears on the next screen and unlocks once 
           <div class="bg-bundle-total"><span>Total</span><strong id="bgBundleTotal"></strong></div>
         </div>
 
+        <div class="bg-facts">
+          <div class="bg-fact"><span class="bg-k">Duration</span><span id="bgDuration" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">PV</span><span id="bgPv" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">Delivery</span><span id="bgDeliveryFact" class="bg-v"></span></div>
+          <div class="bg-fact bg-location"><span class="bg-k">Location</span><span id="bgLocation" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">Eligible credit</span><span id="bgCredit" class="bg-v"></span></div>
+          <div class="bg-fact"><span class="bg-k">SkillsFuture course code</span><span id="bgCourseCode" class="bg-v"></span></div>
+        </div>
+
         <section id="bgClasses" class="bg-classes" aria-label="Upcoming classes" style="display:none">
           <h3>Upcoming classes</h3>
           <div id="bgClsUpdated" class="bg-cls-updated" aria-live="polite"></div>
@@ -735,15 +744,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
             <div class="bg-cls-foot"><span id="bgClsStamp"></span><button id="bgClsClear" type="button" class="bg-cls-link" disabled>Clear ticks</button></div>
           </div>
         </section>
-
-        <div class="bg-facts">
-          <div class="bg-fact"><span class="bg-k">Duration</span><span id="bgDuration" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">PV</span><span id="bgPv" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">Delivery</span><span id="bgDeliveryFact" class="bg-v"></span></div>
-          <div class="bg-fact bg-location"><span class="bg-k">Location</span><span id="bgLocation" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">Eligible credit</span><span id="bgCredit" class="bg-v"></span></div>
-          <div class="bg-fact"><span class="bg-k">SkillsFuture course code</span><span id="bgCourseCode" class="bg-v"></span></div>
-        </div>
       </div>
       <div id="bgEmpty" class="bg-empty">No courses available.</div>
     </section>
@@ -937,7 +937,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-24.1';
+    const BUILD='2026-11-24.2';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1728,7 +1728,14 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     const CATALOGUE_AS_OF = /* CATALOGUE_AS_OF_START */ '2026-11-24' /* CATALOGUE_AS_OF_END */;
     const INITIAL_DATA = /* CATALOGUE_START */ [{"name":"Cakes & Cookies (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"8 DAYS (48 HRS)","fees":{"full":1264.4,"age2139":684.4,"age40":452.4},"pv":200.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2019503177 + TGS-2019503181"},{"name":"Cafe Style Bread & Tarts (Bundle)","category":"Baking · Bundle","delivery":"Classroom","duration":"9 DAYS (54 HRS)","fees":{"full":1449.7,"age2139":784.7,"age40":518.7},"pv":220.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023019954 + TGS-2019503567"},{"name":"Premium Cakes","category":"Baking","delivery":"Classroom","duration":"5 DAYS (30 HRS)","fees":{"full":1199.0,"age2139":649.0,"age40":429.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2023036448"},{"name":"Handphone Apps with Photography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"4 DAYS (32 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061249 + TGS-2021007824"},{"name":"Mobile Photography & Videography (Bundle)","category":"Tech · Bundle","delivery":"Classroom","duration":"5 DAYS (38 HRS)","fees":{"full":1035.5,"age2139":560.5,"age40":370.5},"pv":110.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021007824 + TGS-2021009032"},{"name":"Certificate in AI Essentials","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Upgrade yourself with Gen AI (Seniors/Retirees)","category":"Tech","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"Certificate in AI Essentials (Zoom)","category":"Tech","delivery":"Online","duration":"3 DAYS (23 HRS)","fees":{"full":1397.38,"age2139":756.38,"age40":499.98},"pv":170.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059841"},{"name":"3D Printing","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1237.15,"age2139":669.65,"age40":442.65},"pv":120.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061253"},{"name":"Vibe Coding for Web & App Development","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2020503366"},{"name":"Claude AI (Zoom)","category":"Tech","delivery":"Online","duration":"2 DAYS (16 HRS)","fees":{"full":806.6,"age2139":436.6,"age40":288.6},"pv":90.0,"location":"Online","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025059941"},{"name":"AI Agents & Automation","category":"Tech","delivery":"Classroom","duration":"3 DAYS (24 HRS)","fees":{"full":1308.0,"age2139":708.0,"age40":468.0},"pv":150.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2025061246"},{"name":"Successful Livestreaming on Shopee","category":"Tech","delivery":"Classroom","duration":"3 DAYS (22 HRS)","fees":{"full":1331.44,"age2139":720.69,"age40":476.39},"pv":135.0,"location":"Search in TMS","credit":"SkillsFuture Credit (not Mid-Career Credit)","courseCode":"TGS-2021008153"},{"name":"Communication & Coaching","category":"PWM","delivery":"Classroom","duration":"3 DAYS (23 HRS)","fees":{"full":1177.2,"age2139":637.2,"age40":421.2},"pv":130.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046246"},{"name":"TikTok with AI (Bundle)","category":"PWM · Bundle","delivery":"Classroom","duration":"6 DAYS (46 HRS)","fees":{"full":2114.6,"age2139":1144.6,"age40":756.5999999999999},"pv":200.0,"location":"Search in TMS","credit":"Mid Career Credit or Skillsfuture Credit","courseCode":"TGS-2024046178 + TGS-2024046177"}] /* CATALOGUE_END */;
     window.BELLS_COURSE_NAMES = INITIAL_DATA.map(c=>c.name);
-    let allCourses = INITIAL_DATA.slice();
+    // Claude AI (Zoom) is B2B-only (Li Wei, 23 Nov 2026): hidden from the course list, price, brochure and class card
+    // unless the server said b2bAccess === true for the person on screen. Missing/unknown = hidden. The OWC copy
+    // (no My Journey account) never shows it. This block is synced into OWC unchanged; egIsOwc-style check is local.
+    const B2B_ONLY_COURSES = ['Claude AI (Zoom)'];
+    let allCoursesRaw = INITIAL_DATA.slice();
+    const b2bAllowed_ = () => false;   // OWC copy: B2B-only courses are never shown to candidates (sync_easyguide.py)
+    const gateCourses_ = list => list.filter(c => B2B_ONLY_COURSES.indexOf(c.name) < 0 || b2bAllowed_());
+    let allCourses = gateCourses_(allCoursesRaw);
     let visibleCourses = allCourses.slice();
     let activeCategory = 'all';
 
@@ -1779,7 +1786,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         showLoadError();
         return;
       }
-      allCourses = response.table.rows.map(row => {
+      allCoursesRaw = response.table.rows.map(row => {
         const category = String(value(row, 1)).trim();
         const delivery = String(value(row, 2)).trim();
         return {
@@ -1793,13 +1800,14 @@ Submit this page now. The form link appears on the next screen and unlocks once 
             age40: Number(value(row, 6)) || 0
           },
           pv: Number(value(row, 7)) || 0,
-          location: delivery.toLowerCase() === 'online' ? 'Online' : 'Search in TMS',
+          location: delivery.toLowerCase() === 'online' ? 'Online' : 'See classes below',
           credit: category.startsWith('PWM')
             ? 'Mid Career Credit or Skillsfuture Credit'
             : 'SkillsFuture Credit (not Mid-Career Credit)',
           courseCode: String(value(row, 9)).trim()
         };
       }).filter(course => course.name);
+      allCourses = gateCourses_(allCoursesRaw);
 
       if (!allCourses.length) {
         showLoadError();
@@ -2407,6 +2415,12 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       els.brochureButton.focus();
     }
 
+    // Called by the page whenever b2bAccess changes (sign-in, View As, sign-out).
+    window.bellsApplyAccess_ = function () {
+      const keep = els.course.value;
+      allCourses = gateCourses_(allCoursesRaw);
+      applyCategoryFilter(activeCategory, keep);
+    };
     els.course.addEventListener('change', render);
     els.profile.addEventListener('change', render);
     els.categoryFilters.addEventListener('click', event => {
