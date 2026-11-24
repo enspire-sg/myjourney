@@ -159,7 +159,7 @@
 #bells .bg-shell{ width: min(980px, 100%); margin: 0 auto; padding: 24px 16px 48px; }
 #bells .bg-brand{
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
-      margin-bottom: 18px; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+      margin-bottom: 18px; padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px); /* top inset removed 24 Nov 2026: the panel sits under the My Journey header, which already clears the status bar */
     }
 #bells .bg-brand-mark{ display: flex; align-items: center; gap: 12px; }
 #bells .bg-logo{
@@ -306,7 +306,7 @@ body.bg-modal-open{ overflow: hidden; }
 
     @media (max-width: 720px) {
 #bells .bg-shell{ padding: 14px 10px 30px; }
-#bells .bg-brand{ padding: env(safe-area-inset-top, 0px) max(4px, env(safe-area-inset-right, 0px)) 0 max(4px, env(safe-area-inset-left, 0px)); }
+#bells .bg-brand{ padding: 0 max(4px, env(safe-area-inset-right, 0px)) 0 max(4px, env(safe-area-inset-left, 0px)); }
 #bells .bg-controls{ grid-template-columns: 1fr; padding: 16px; }
 #bells .bg-result{ padding: 17px; }
 #bells .bg-result-head{ display: block; }
@@ -1263,7 +1263,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-24.1';
+  const BUILD='2026-11-24.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
