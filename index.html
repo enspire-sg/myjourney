@@ -1264,7 +1264,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-24.4';
+  const BUILD='2026-11-24.5';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -4765,7 +4765,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       }
 
       // Venues: ranked cards when a place was found, else plain chips (the fallback).
-      let vh = '<button type="button" class="bg-filter-chip" data-cls-venue="all" aria-pressed="' + (egState.venue === 'all') + '">All venues</button>';
+      let vh = '';
       if (egState.point) {
         vh += '<div class="bg-cls-ranked">';
         rows.forEach((r, i) => {
@@ -4786,11 +4786,10 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       egSet('bgClsGeoMsg', egState.geoMsg);
       const find = egEl('bgClsFind'); if (find) find.disabled = !!egState.geoBusy;
 
-      egHtml('bgClsMonths', '<button type="button" class="bg-filter-chip" data-cls-month="all" aria-pressed="' + (egState.month === 'all') + '">All</button>'
-        + months.map(m => '<button type="button" class="bg-filter-chip" data-cls-month="' + egEsc(m.key) + '" aria-pressed="' + (egState.month === m.key) + '">' + egEsc(m.label) + '</button>').join(''));
-      const mlabel = (months.find(m => m.key === egState.month) || {}).label;
-      egSet('bgClsCount', runs.length + (runs.length === 1 ? ' class' : ' classes') + (mlabel ? ' starting in ' + mlabel : '')
-        + (egState.venue !== 'all' ? ' at ' + egVenue(egState.venue).name : ''));
+      egHtml('bgClsMonths', months.map(m => '<button type="button" class="bg-filter-chip" data-cls-month="' + egEsc(m.key) + '" aria-pressed="' + (egState.month === m.key) + '">' + egEsc(m.label) + '</button>').join(''));
+            egSet('bgClsCount', (egState.venue !== 'all' || egState.month !== 'all')
+        ? 'Showing ' + runs.length + ' of ' + all.length + (all.length === 1 ? ' class' : ' classes')
+        : all.length + (all.length === 1 ? ' class' : ' classes'));
       egHtml('bgClsList', runs.length ? runs.map(r => {
         const on = egState.ticks.indexOf(r.key) >= 0;
         const tick = owc ? '' : '<label class="bg-cls-tick"><input type="checkbox" data-cls-tick="' + egEsc(r.key) + '"' + (on ? ' checked' : '') + ' aria-label="Select this class"></label>';
@@ -4863,8 +4862,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         const t = event.target && event.target.closest ? event.target : null;
         if (!t) return;
         let b;
-        if ((b = t.closest('[data-cls-venue]'))) { egState.venue = b.dataset.clsVenue; egState.copyMsg = ''; renderClasses(); }
-        else if ((b = t.closest('[data-cls-month]'))) { egState.month = b.dataset.clsMonth; egState.copyMsg = ''; renderClasses(); }
+        if ((b = t.closest('[data-cls-venue]'))) { egState.venue = egState.venue === b.dataset.clsVenue ? 'all' : b.dataset.clsVenue; egState.copyMsg = ''; renderClasses(); }
+        else if ((b = t.closest('[data-cls-month]'))) { egState.month = egState.month === b.dataset.clsMonth ? 'all' : b.dataset.clsMonth; egState.copyMsg = ''; renderClasses(); }
         else if (t.closest('#bgClsCopy')) { egDoCopy(); }
         else if (t.closest('#bgClsClear')) { egState.ticks = []; egState.copyMsg = ''; renderClasses(); }
         else if (t.closest('#bgClsFind')) { egFind(); }
