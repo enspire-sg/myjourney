@@ -948,7 +948,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-22.3';
+  const SHELL_VERSION = '2026-11-24.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -2246,6 +2246,21 @@
           backToBackWriteRun_(fn, overrideArgs, what, function (result) {
             clearBackToBackWarning_(); if (after) after(result);
           }, retryFailed, canceled);
+        }, function () { clearBackToBackWarning_(); if (canceled) canceled(); }));
+        return true;
+      }
+      // Split guard (24 Nov 2026): the server refuses a single Morning/Afternoon move that would leave
+      // the day on two booths. Show its plain message with a one-tap "Move both shifts".
+      var splitText = text.replace(/^(?:Error:\s*)+/, '');
+      if (fn === 'movePerson' && splitText.indexOf('cannot be split across two booths') >= 0) {
+        var splitStatus = $('writeStatus');
+        splitStatus.className = 'writeStatus'; splitStatus.textContent = ''; splitStatus.onclick = null;
+        var splitHost = $('backToBackWarning');
+        splitHost.innerHTML = ''; splitHost.style.display = 'block';
+        splitHost.appendChild(actionConfirmPanel(splitText, 'Move both shifts', function (_, retryFailed) {
+          writeRun_('movePersonBoth', [token, args[1], args[3], args[4], args[5]],
+            'Moved ' + args[3] + ' (Morning + Afternoon) to ' + args[4],
+            function (result) { clearBackToBackWarning_(); if (after) after(result); }, retryFailed);
         }, function () { clearBackToBackWarning_(); if (canceled) canceled(); }));
         return true;
       }
