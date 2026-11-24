@@ -324,6 +324,7 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-classes{ margin-top: 18px; padding: 16px 14px 12px; border: 1px solid var(--bg-line); border-radius: 16px; background: #fff; color: var(--bg-ink); }
 #bells .bg-classes h3{ margin: 0; font-size: 1.25rem; color: var(--bg-navy-2); }
 #bells .bg-cls-updated{ min-height: 20px; margin: 2px 0 8px; font-size: .8rem; color: var(--bg-muted); }
+#bells .bg-cls-updated.bg-stale, #bells .bg-cls-foot > span.bg-stale{ color: #c26a00; font-weight: 600; }
 #bells .bg-cls-fallback{ padding: 12px; border-radius: 12px; background: #fff7e0; border: 1px solid #f0d58a; font-size: .92rem; }
 #bells .bg-cls-label{ margin: 10px 0 5px; font-size: .85rem; font-weight: 700; color: var(--bg-muted); display: block; }
 #bells .bg-cls-where{ display: flex; gap: 8px; }
@@ -1264,7 +1265,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-24.5';
+  const BUILD='2026-11-24.6';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -4563,6 +4564,15 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       const h12 = t.h % 12 === 0 ? 12 : t.h % 12;
       return t.d + ' ' + EG_MONTHS[t.mo] + ' ' + t.y + ', ' + h12 + ':' + String(t.mi).padStart(2, '0') + (t.h < 12 ? 'am' : 'pm') + ' SGT';
     }
+    function egStale_(generatedIso, nowMs) {                // '' (fine) | 'recent' (daytime SGT, >60 min old) | 'old' (>72 h)
+      const ms = Date.parse(generatedIso);
+      if (!isFinite(ms) || !isFinite(nowMs)) return '';
+      const age = nowMs - ms;
+      if (age <= 0) return '';
+      const h = egSgtParts(nowMs).h;                         // 08:00 <= SGT < 22:00 is daytime
+      if (h >= 8 && h < 22 && age > 60 * 60000) return 'recent';
+      return age > 72 * 3600000 ? 'old' : '';
+    }
     function egTodaySgt(nowMs) {
       const t = egSgtParts(nowMs);
       return t.y + '-' + String(t.mo + 1).padStart(2, '0') + '-' + String(t.d).padStart(2, '0');
@@ -4691,7 +4701,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       lines.push('As there\u2019s limited slots left - which *option* would you like me to help you secure a slot for? \uD83D\uDE01');
       return lines.join('\n');
     }
-    window.BellsClassesLogic_ = { egDate, egWeekday, egDates, egMonthKey, egMonths, egStamp, egTodaySgt, egSlotsClass,
+    window.BellsClassesLogic_ = { egDate, egWeekday, egDates, egMonthKey, egMonths, egStamp, egStale_, egTodaySgt, egSlotsClass,
       egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage, egRunWeekday,
       egClassTime, VENUES, CLASSES_BY_COURSE };
     /* EG_CLASSES_LOGIC_END */
@@ -4719,6 +4729,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       }).catch(() => { egState.failed = true; egState.loading = false; renderClasses(); });
     }
     function egSet(id, text) { const el = egEl(id); if (el) el.textContent = text; }
+    function egWarn(id, on) { const el = egEl(id); if (el) el.classList.toggle('bg-stale', on); }
     function egHtml(id, html) { const el = egEl(id); if (el) el.innerHTML = html; }
     function egShow(id, on) { const el = egEl(id); if (el) el.style.display = on ? '' : 'none'; }
 
@@ -4749,8 +4760,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
 
       const data = egState.data;
       const stamp = egStamp(data.generated);
-      const ageH = (Date.now() - Date.parse(data.generated)) / 3600000;
-      egSet('bgClsUpdated', stamp ? 'Updated ' + stamp + (ageH > 72 ? ' (old: check TMS)' : '') : '');
+      const stale = stamp ? egStale_(data.generated, Date.now()) : '';
+      egSet('bgClsUpdated', stamp ? 'Updated ' + stamp + (stale === 'recent' ? ' (slots may be out of date, check TMS)' : (stale === 'old' ? ' (old: check TMS)' : '')) : '');
+      egWarn('bgClsUpdated', !!stale);
       const all = egOpenRuns(data, course.name, egTodaySgt(Date.now()));
       egState.ticks = egState.ticks.filter(k => all.some(r => r.key === k));
       const rows = egRankVenues(all, egState.point);
@@ -4809,7 +4821,9 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       if (copy) { copy.textContent = 'Copy WhatsApp message (' + n + ' selected)'; copy.disabled = n === 0; }
       egSet('bgClsCopyMsg', egState.copyMsg);
       const stamp = egState.data ? egStamp(egState.data.generated) : '';
-      egSet('bgClsStamp', stamp ? 'Slots as of ' + stamp : '');
+      const stale = stamp ? egStale_(egState.data.generated, Date.now()) : '';
+      egSet('bgClsStamp', stamp ? 'Slots as of ' + stamp + (stale ? ' - may be out of date, check TMS' : '') : '');
+      egWarn('bgClsStamp', !!stale);
       const clear = egEl('bgClsClear'); if (clear) clear.disabled = n === 0;
     }
 
