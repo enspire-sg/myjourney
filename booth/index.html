@@ -496,6 +496,8 @@
   button.weekGridMoveDayLink { display:block; width:auto; min-height:0; margin-top:3px; padding:0;
                     border:0; border-radius:0; background:transparent; color:#9ec1ff;
                     text-decoration:underline; font-size:11px; font-weight:600; }
+  .moveDayPanel { flex:1 1 100%; min-width:0; }
+  .moveDayPanel .actionConfirmQuestion { color:#e6ebf5; font-size:14px; font-weight:600; }
   .moveDayPanel select { width:100%; font-size:16px; margin:6px 0; }
   .moveDayNames { margin:6px 0; font-size:14px; line-height:1.4; color:#e6ebf5; }
   .weekGridShiftBand { display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -954,7 +956,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-24.2';
+  const SHELL_VERSION = '2026-11-24.4';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -4058,6 +4060,7 @@
               renderAll(fresh);
             }, failed);
         }, function () { renderWeekGrid(a); }, {id: 'moveDay'});
+      conf.className += ' moveDayPanel';
       var list = document.createElement('p'); list.className = 'moveDayNames'; list.textContent = names.join(', ');
       conf.insertBefore(list, conf.children[1]); wrap.appendChild(conf);
     };
