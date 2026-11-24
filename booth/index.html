@@ -492,6 +492,12 @@
   button.weekGridRemoveDayLink { display:block; width:auto; min-height:0; margin-top:3px; padding:0;
                     border:0; border-radius:0; background:transparent; color:#b8c5df;
                     text-decoration:underline; font-size:11px; font-weight:500; }
+  .weekGridRemoveDay { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  button.weekGridMoveDayLink { display:block; width:auto; min-height:0; margin-top:3px; padding:0;
+                    border:0; border-radius:0; background:transparent; color:#9ec1ff;
+                    text-decoration:underline; font-size:11px; font-weight:600; }
+  .moveDayPanel select { width:100%; font-size:16px; margin:6px 0; }
+  .moveDayNames { margin:6px 0; font-size:14px; line-height:1.4; color:#e6ebf5; }
   .weekGridShiftBand { display:flex; flex-direction:column; align-items:center; justify-content:center;
                     min-width:0; padding:10px 8px; color:#fff; text-align:center; font-size:14px;
                     font-weight:800; border-top:1px solid #2c3a5e; }
@@ -948,7 +954,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-24.1';
+  const SHELL_VERSION = '2026-11-24.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -3967,6 +3973,96 @@
     return line;
   }
 
+  /* Move whole day (24 Nov 2026): one control per day header. Pick the target booth, read the plain
+     confirmation with every name, Yes/Cancel. One server call (moveDayPeople) moves Morning+Afternoon. */
+  function moveDayNames_(a, day, fromName) {
+    var seen = {}, names = [];
+    (a.booths || []).forEach(function (b) {
+      if (fromName && b.name !== fromName) return;
+      (b.days || []).forEach(function (d) {
+        if (d.day !== day) return;
+        (d.shifts || []).forEach(function (s) {
+          if ((s.shift !== 'Morning' && s.shift !== 'Afternoon') || s.notRunning) return;
+          (s.people || []).forEach(function (p) {
+            var at = (s.shift + '|' + b.name);
+            seen[p.name] = seen[p.name] || {name: p.name, at: []}; seen[p.name].at.push(at);
+          });
+        });
+      });
+    });
+    Object.keys(seen).sort().forEach(function (k) { names.push(seen[k]); });
+    return names;
+  }
+
+  function weekGridMoveDay_(a, booth, day, wrap) {
+    var targets = (a.booths || []).filter(function (b) {
+      if (b.name === booth.name || !b.name) return false;
+      return (b.days || []).some(function (d) {
+        return d.day === day.day && (d.shifts || []).some(function (s) {
+          return !s.notRunning && (s.shift === 'Morning' || s.shift === 'Afternoon');
+        });
+      });
+    });
+    wrap.innerHTML = '';
+    var panel = document.createElement('div'); panel.className = 'moveDayPanel actionConfirm';
+    var q = document.createElement('p'); q.className = 'actionConfirmQuestion';
+    if (!targets.length) {
+      q.textContent = 'No other booth is running ' + day.day + ' Morning or Afternoon.'; panel.appendChild(q);
+      var close = document.createElement('button'); close.className = 'ghost'; close.textContent = 'Cancel';
+      close.onclick = function () { renderWeekGrid(a); }; panel.appendChild(close); wrap.appendChild(panel); return;
+    }
+    q.textContent = 'Move ' + day.day + ' to which booth?'; panel.appendChild(q);
+    var pick = document.createElement('select'); pick.className = 'moveDayTarget'; pick.setAttribute('aria-label', 'Target booth');
+    targets.forEach(function (b) { var o = document.createElement('option'); o.value = b.name; o.textContent = b.label; pick.appendChild(o); });
+    panel.appendChild(pick);
+    var scope = document.createElement('select'); scope.className = 'moveDayFrom'; scope.setAttribute('aria-label', 'Move people from');
+    [[booth.name, 'Only people on ' + booth.label], ['', 'Everyone on all booths']].forEach(function (x) {
+      var o = document.createElement('option'); o.value = x[0]; o.textContent = x[1]; scope.appendChild(o);
+    });
+    panel.appendChild(scope);
+    var next = document.createElement('button'); next.className = 'yes moveDayNext'; next.textContent = 'Next';
+    var back = document.createElement('button'); back.className = 'ghost moveDayBack'; back.textContent = 'Cancel';
+    back.onclick = function () { renderWeekGrid(a); };
+    var row = document.createElement('div'); row.className = 'actionConfirmButtons'; row.appendChild(next); row.appendChild(back);
+    panel.appendChild(row); wrap.appendChild(panel);
+    next.onclick = function () {
+      var target = pick.value, targetLabel = pick.options[pick.selectedIndex].textContent;
+      var fromName = scope.value, fromLabel = fromName ? booth.label : 'all booths';
+      var who = moveDayNames_(a, day.day, fromName).filter(function (p) {
+        return p.at.some(function (x) { return x.split('|')[1] !== target; });
+      });
+      wrap.innerHTML = '';
+      if (!who.length) {
+        var none = document.createElement('div'); none.className = 'moveDayPanel';
+        var m = document.createElement('p'); m.className = 'actionConfirmQuestion';
+        m.textContent = 'Nobody to move: no one on ' + fromLabel + ' for ' + day.day + ' is away from ' + targetLabel + '.';
+        none.appendChild(m); var ok = document.createElement('button'); ok.className = 'ghost'; ok.textContent = 'Cancel';
+        ok.onclick = function () { renderWeekGrid(a); }; none.appendChild(ok); wrap.appendChild(none); return;
+      }
+      var names = who.map(function (p) { return p.name; });
+      var conf = actionConfirmPanel(
+        'Move ' + names.length + ' ' + (names.length === 1 ? 'person' : 'people') + ' from ' + fromLabel + ' to ' + targetLabel + ' for ' + day.day + ' (Morning+Afternoon)?',
+        'Yes, move ' + names.length,
+        function (_, failed) {
+          writeRun_('moveDayPeople', [token, day.day, target, names, a.weekStart, fromName, false],
+            function (r) { var n = r && r.moveDay ? r.moveDay.moved.length : 0; return 'Moved ' + n + ' ' + (n === 1 ? 'person' : 'people') + ' to ' + targetLabel; },
+            function (fresh) {
+              var md = fresh && fresh.moveDay;
+              if (md && (!md.moved.length || md.failed.length)) {
+                // Say plainly what did not move; people who did move stay moved.
+                var bad = md.failed.concat(md.skipped).map(function (x) { return x.name + ' (' + x.reason + ')'; }).join('; ');
+                setWriteStatus_(md.moved.length ? 'saved' : 'error',
+                  md.moved.length ? 'Moved ' + md.moved.length + ' to ' + targetLabel + '. Not moved: ' + bad : '', null,
+                  md.moved.length ? '' : (bad || 'nobody was moved'));
+              }
+              renderAll(fresh);
+            }, failed);
+        }, function () { renderWeekGrid(a); }, {id: 'moveDay'});
+      var list = document.createElement('p'); list.className = 'moveDayNames'; list.textContent = names.join(', ');
+      conf.insertBefore(list, conf.children[1]); wrap.appendChild(conf);
+    };
+  }
+
   function weekGridRemoveDayLink(a, booth, day) {
     var wrap = document.createElement('div'); wrap.className = 'weekGridRemoveDay';
     if (!a.canEditIC || !booth.name) return wrap;
@@ -3992,7 +4088,14 @@
           }
         }, function () { renderWeekGrid(a); }));
     };
-    wrap.appendChild(link); return wrap;
+    wrap.appendChild(link);
+    var mv = document.createElement('button');
+    mv.className = 'weekGridMoveDayLink'; mv.textContent = 'Move day';
+    mv.onclick = function (event) {
+      if (event && event.stopPropagation) event.stopPropagation();
+      weekGridMoveDay_(a, booth, day, wrap);
+    };
+    wrap.appendChild(mv); return wrap;
   }
 
   function weekGridCellControls(a, booth, day, shift) {
