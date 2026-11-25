@@ -802,7 +802,7 @@ body.bg-modal-open{ overflow: hidden; }
       <section class="bg-panel" aria-live="polite">
       <div class="bg-controls">
         <div id="bgCategoryFilters" class="bg-category-filters" role="group" aria-label="Filter courses by category">
-          <button class="bg-filter-chip" type="button" data-bg-filter="all" aria-pressed="true">All</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="pwm" aria-pressed="true">PWM</button>
           <button class="bg-filter-chip" type="button" data-bg-filter="baking" aria-pressed="false">Baking</button>
           <button class="bg-filter-chip" type="button" data-bg-filter="tech" aria-pressed="false">Tech</button>
         </div>
@@ -1266,7 +1266,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-24.8';
+  const BUILD='2026-11-25.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -4297,7 +4297,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     const gateCourses_ = list => list.filter(c => B2B_ONLY_COURSES.indexOf(c.name) < 0 || b2bAllowed_());
     let allCourses = gateCourses_(allCoursesRaw);
     let visibleCourses = allCourses.slice();
-    let activeCategory = 'all';
+    let activeCategory = 'pwm';
 
     const els = {
       course: document.getElementById('bgCourseSelect'),
@@ -4377,7 +4377,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         return;
       }
       els.loading.style.display = 'none';
-      applyCategoryFilter('all', allCourses[0].name);
+      applyCategoryFilter('pwm', allCourses.find(c=>String(c.category||'').startsWith('PWM'))?.name||allCourses[0].name);
     }
 
     function showLoadError() {
@@ -4387,6 +4387,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
 
     function categoryMatches(course, filter) {
       const category = String(course.category || '');
+      if (filter === 'pwm') return category.startsWith('PWM');
       if (filter === 'baking') return category.startsWith('Baking');
       if (filter === 'tech') return category.startsWith('Tech');
       if (filter === 'bundles') return category.includes('Bundle');
@@ -4394,7 +4395,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     }
 
     function applyCategoryFilter(filter, preferredName) {
-      activeCategory = ['all', 'baking', 'tech', 'bundles'].includes(filter) ? filter : 'all';
+      activeCategory = ['all', 'pwm', 'baking', 'tech', 'bundles'].includes(filter) ? filter : 'pwm';
       visibleCourses = allCourses.filter(course => categoryMatches(course, activeCategory));
       Array.from(els.categoryFilters.querySelectorAll('[data-bg-filter]')).forEach(chip => {
         chip.setAttribute('aria-pressed', String(chip.dataset.bgFilter === activeCategory));
@@ -5040,7 +5041,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     egBind();
     if (INITIAL_DATA.length) {
       els.loading.style.display = 'none';
-      applyCategoryFilter('all', INITIAL_DATA[0].name);
+      applyCategoryFilter('pwm', (INITIAL_DATA.find(c=>String(c.category||'').startsWith('PWM'))||INITIAL_DATA[0]).name);
     } else {
       showLoadError();
     }
