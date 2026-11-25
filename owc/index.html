@@ -617,7 +617,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       <section class="bg-panel" aria-live="polite">
       <div class="bg-controls">
         <div id="bgCategoryFilters" class="bg-category-filters" role="group" aria-label="Filter courses by category">
-          <button class="bg-filter-chip" type="button" data-bg-filter="all" aria-pressed="true">All</button>
+          <button class="bg-filter-chip" type="button" data-bg-filter="pwm" aria-pressed="true">PWM</button>
           <button class="bg-filter-chip" type="button" data-bg-filter="baking" aria-pressed="false">Baking</button>
           <button class="bg-filter-chip" type="button" data-bg-filter="tech" aria-pressed="false">Tech</button>
         </div>
@@ -941,7 +941,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-25.1';
+    const BUILD='2026-11-25.2';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1753,7 +1753,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     const gateCourses_ = list => list.filter(c => B2B_ONLY_COURSES.indexOf(c.name) < 0 || b2bAllowed_());
     let allCourses = gateCourses_(allCoursesRaw);
     let visibleCourses = allCourses.slice();
-    let activeCategory = 'all';
+    let activeCategory = 'pwm';
 
     const els = {
       course: document.getElementById('bgCourseSelect'),
@@ -1833,7 +1833,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         return;
       }
       els.loading.style.display = 'none';
-      applyCategoryFilter('all', allCourses[0].name);
+      applyCategoryFilter('pwm', allCourses.find(c=>String(c.category||'').startsWith('PWM'))?.name||allCourses[0].name);
     }
 
     function showLoadError() {
@@ -1843,6 +1843,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
 
     function categoryMatches(course, filter) {
       const category = String(course.category || '');
+      if (filter === 'pwm') return category.startsWith('PWM');
       if (filter === 'baking') return category.startsWith('Baking');
       if (filter === 'tech') return category.startsWith('Tech');
       if (filter === 'bundles') return category.includes('Bundle');
@@ -1850,7 +1851,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     }
 
     function applyCategoryFilter(filter, preferredName) {
-      activeCategory = ['all', 'baking', 'tech', 'bundles'].includes(filter) ? filter : 'all';
+      activeCategory = ['all', 'pwm', 'baking', 'tech', 'bundles'].includes(filter) ? filter : 'pwm';
       visibleCourses = allCourses.filter(course => categoryMatches(course, activeCategory));
       Array.from(els.categoryFilters.querySelectorAll('[data-bg-filter]')).forEach(chip => {
         chip.setAttribute('aria-pressed', String(chip.dataset.bgFilter === activeCategory));
@@ -2496,7 +2497,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     egBind();
     if (INITIAL_DATA.length) {
       els.loading.style.display = 'none';
-      applyCategoryFilter('all', INITIAL_DATA[0].name);
+      applyCategoryFilter('pwm', (INITIAL_DATA.find(c=>String(c.category||'').startsWith('PWM'))||INITIAL_DATA[0]).name);
     } else {
       showLoadError();
     }
