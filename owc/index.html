@@ -946,7 +946,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-27.3';
+    const BUILD='2026-11-27.4';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1989,7 +1989,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // AMF/AMK/IPZ/JEM/STC/TAM/TAP/LLI geocoded on OpenStreetMap (AMF from its postcode 560712).
     // AWD (Wings of Dawn) could not be geocoded: approximate Ang Mo Kio town centre.
     const VENUES = {
-      AMF: { name: 'Ang Mo Kio FairPrice Finest (AMF)', lat: 1.3713, lon: 103.8471 },
+      AMF: { name: 'Ang Mo Kio FairPrice Finest', lat: 1.3713, lon: 103.8471 },
       AMK: { name: 'Ang Mo Kio Broadway Plaza', lat: 1.3719, lon: 103.8460 },
       AWD: { name: 'Ang Mo Kio Wings of Dawn', lat: 1.3700, lon: 103.8480, approx: true },
       IPZ: { name: 'International Plaza', lat: 1.2758, lon: 103.8459 },
@@ -2165,7 +2165,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       const lines = ['Here\u2019s our updated classes for: \uD83D\uDC47\uD83C\uDFFB', '', '\u2728 *' + courseName + '* \u2728', ''];
       let n = 0;
       (groups || []).forEach(g => {
-        lines.push('\uD83D\uDCCD *' + String(g.venue.name).toUpperCase() + '*', '');
         g.runs.forEach(r => {
           lines.push('*Option ' + String.fromCharCode(65 + n++) + ' - ' + g.venue.name + (r.slots <= 5 ? ' - ' + egSlotsText(r.slots) : '') + '*');
           lines.push('Time: ' + r.time);
