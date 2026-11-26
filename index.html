@@ -402,7 +402,7 @@ body.bg-modal-open{ overflow: hidden; }
 </head>
 <body>
 <main class="shell">
-  <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><button class="btn ghost mini owcbtn hidden" id="owcDashBtn" type="button">OWC dashboard ↗</button><button class="btn ghost mini owcbtn hidden" id="owcAppBtn" type="button">OWC app ↗</button><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button><button class="btn ghost mini hidden" id="teamPerfBtn" type="button">Team performance</button><button class="btn ghost mini hidden" id="ipoBtn" type="button">IPA overview</button></div></div>
+  <div class="brand" id="appBrand"><div class="brand-head"><div class="brand-l"><div class="mark">E</div><div><strong>ENSPIRE</strong><span>My Journey</span></div></div><button class="btn ghost mini hidden" id="signOut" type="button">Sign out</button></div><div class="brand-quick hidden" id="quickActions"><button class="btn primary" id="ipaQuickBtn" type="button">Submit IPA</button><button class="btn secondary hidden" id="boothQuickBtn" type="button">Book Shift</button><button class="btn secondary hidden" id="resBtn" type="button">Resources</button></div><div class="row brand-nav" id="utilityNav"><button class="btn ghost mini owcbtn hidden" id="owcDashBtn" type="button">OWC dashboard ↗</button><button class="btn ghost mini owcbtn hidden" id="owcAppBtn" type="button">OWC app ↗</button><button class="btn ghost mini owcbtn hidden" id="tlWalkBtn" type="button">Team Leader walkthrough ↗</button><button class="btn ghost mini hidden" id="viewAsBtn" type="button">View as</button><button class="btn ghost mini hidden" id="teamBtn" type="button">Team</button><button class="btn ghost mini hidden" id="pipeBtn" type="button">Pipeline</button><button class="btn ghost mini hidden" id="teamPerfBtn" type="button">Team performance</button><button class="btn ghost mini hidden" id="ipoBtn" type="button">IPA overview</button></div></div>
   <div id="freshnessSlot" class="freshness-slot" role="status" aria-live="polite"><span id="freshness"></span></div>
 
   <!-- useful links: a top-level page, not another card in the already-long Journey feed -->
@@ -1267,7 +1267,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-26.1';
+  const BUILD='2026-11-26.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1338,7 +1338,7 @@ body.bg-modal-open{ overflow: hidden; }
     catch(e){ msg($('loginMsg'),e.message,'error'); } finally{ $('verifyCode').disabled=false; } };
   $('code').addEventListener('keydown',e=>{ if(e.key==='Enter')$('verifyCode').click(); });
   $('email').addEventListener('keydown',e=>{ if(e.key==='Enter')$('sendCode').click(); });
-  $('signOut').onclick=async()=>{ try{ await run('signOut',token);}catch(e){} ownB2b_=false; setB2b_(false); clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null; actionData=null; ownActionData=null; viewAs=null; planningAccess=null; resData=null; resourceListWarmStarted=false; team=null; planningData=null; learnerData=null; $('asCard').classList.add('hidden'); showPanel(''); ['quickActions','signOut','viewAsBtn','resBtn','teamBtn','pipeBtn','teamPerfBtn','owcDashBtn','owcAppBtn'].forEach(id=>$(id).classList.add('hidden')); showLogin_(); };
+  $('signOut').onclick=async()=>{ try{ await run('signOut',token);}catch(e){} ownB2b_=false; setB2b_(false); clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null; actionData=null; ownActionData=null; viewAs=null; planningAccess=null; resData=null; resourceListWarmStarted=false; team=null; planningData=null; learnerData=null; $('asCard').classList.add('hidden'); showPanel(''); ['quickActions','signOut','viewAsBtn','resBtn','teamBtn','pipeBtn','teamPerfBtn','owcDashBtn','owcAppBtn','tlWalkBtn'].forEach(id=>$(id).classList.add('hidden')); showLogin_(); };
 
 
   // ---- Team Performance (read-only; server response is already scope-filtered)
@@ -1469,8 +1469,8 @@ body.bg-modal-open{ overflow: hidden; }
   /* The hub link. The server sends '' for anyone who cannot use the launcher, and the
    * button stays hidden - a link to a page that would turn them away is worse than none. */
   /* Your own button only: a View As preview shows what THEY see, and they do not get this. */
-  let owcBtnOwn_={dashboard:false,app:false};   /* cosmetic: who SEES the OWC buttons; the OWC apps re-check on redeem */
-  function syncLauncher_(){ setB2b_(viewAs?viewB2b_:ownB2b_); const d=$('owcDashBtn'), a=$('owcAppBtn'); if(d)d.classList.toggle('hidden',!(owcBtnOwn_.dashboard&&!viewAs)); if(a)a.classList.toggle('hidden',!(owcBtnOwn_.app&&!viewAs)); }
+  let owcBtnOwn_={dashboard:false,app:false}, tlWalkOwn_=false;   /* cosmetic: who SEES the OWC buttons; the OWC apps re-check on redeem */
+  function syncLauncher_(){ setB2b_(viewAs?viewB2b_:ownB2b_); const d=$('owcDashBtn'), a=$('owcAppBtn'); if(d)d.classList.toggle('hidden',!(owcBtnOwn_.dashboard&&!viewAs)); if(a)a.classList.toggle('hidden',!(owcBtnOwn_.app&&!viewAs)); const w=$('tlWalkBtn'); if(w)w.classList.toggle('hidden',!(tlWalkOwn_&&!viewAs)); }
   let ownB2b_=false, viewB2b_=false;
   function setB2b_(v){ window.BELLS_B2B_ACCESS=(v===true); try{ if(window.bellsApplyAccess_)window.bellsApplyAccess_(); }catch(e){} }
   function applyOwcButtons_(o){ owcBtnOwn_={dashboard:!!(o&&o.dashboard),app:!!(o&&o.app)}; syncLauncher_(); }
@@ -1478,7 +1478,7 @@ body.bg-modal-open{ overflow: hidden; }
   function applyJourneyBundle_(bundle,fromCache,keepView){
       planningAccess=bundle.planningAccess;
       applicationsAccess=bundle.applicationsAccess;
-      applyOwcButtons_(bundle.owc); ownB2b_=bundle.b2bAccess===true; setB2b_(ownB2b_);
+      tlWalkOwn_=bundle.tlWalkthrough===true; applyOwcButtons_(bundle.owc); ownB2b_=bundle.b2bAccess===true; setB2b_(ownB2b_);
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
       mentorNeedsOwn=bundle.mentorNeeds||[]; data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); ownIpoTab=!!(bundle.tabs&&bundle.tabs.ipaOverview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       warmBoothHandoff_().catch(()=>{});
@@ -3093,7 +3093,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null;
     showPanel('');
     $('devLinkWrap').classList.add('hidden'); $('devLink').value='';
-    ['quickActions','viewAsBtn','resBtn','pipeBtn','teamBtn','signOut','owcDashBtn','owcAppBtn'].forEach(id=>$(id).classList.add('hidden'));
+    ['quickActions','viewAsBtn','resBtn','pipeBtn','teamBtn','signOut','owcDashBtn','owcAppBtn','tlWalkBtn'].forEach(id=>$(id).classList.add('hidden'));
     showLogin_(); msg($('loginMsg'),note||'Signed out.','');
   }
   const resourceBodyQueued={};
@@ -3763,6 +3763,12 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   }
   if($('owcDashBtn')) $('owcDashBtn').onclick=e=>{ e.preventDefault(); openOwcDestination_(()=>run('issueOwcDashboardHandoff',token),'the OWC dashboard'); };
   if($('owcAppBtn')) $('owcAppBtn').onclick=e=>{ e.preventDefault(); openOwcDestination_(()=>run('issueOwcAppHandoff',token),'the OWC app'); };
+  /* Team Leader walkthrough (view only; HQ + entrepreneurs). The server mints the link; Team Leaders and Intrapreneurs never get the button. */
+  if($('tlWalkBtn')) $('tlWalkBtn').onclick=async e=>{ e.preventDefault(); if(viewAs)return; const tab=window.open('about:blank','_blank');
+    try{ const r=await run('issueTlWalkthroughLink',token), url=String(r&&r.url||'');
+      if(url.indexOf('https://script.google.com/')!==0)throw new Error('Could not open the Team Leader walkthrough.');
+      if(tab){ try{ tab.opener=null; }catch(_){} tab.location.href=url; } else window.location.assign(url);
+    }catch(err){ if(tab)tab.close(); window.alert(err.message||'Could not open the Team Leader walkthrough.'); } };
 
   // ---- modal
   function findStep(id){ let f=null; data.quests.forEach(q=>q.phases.forEach(ph=>ph.items.forEach(it=>{ if(it.id===id)f=it; }))); return f; }
