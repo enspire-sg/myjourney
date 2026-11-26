@@ -1267,7 +1267,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-26.2';
+  const BUILD='2026-11-26.3';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -2810,8 +2810,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     $('ipaConnections').focus();
   }
   function renderIpaRecentShifts_(){
-    const rows=(ipaPerformanceData&&ipaPerformanceData.recentShifts)||[];
-    $('ipaRecentShifts').innerHTML=rows.length?rows.map((item,i)=>'<button type="button" class="ipa-recent-card'+(item.filed?' filed':'')+'" data-ipa-recent="'+i+'"><span><b>'+esc(ipaRecentLabel_(item.date))+' · '+esc(item.shift)+'</b><small>'+esc(item.location||'Location not recorded')+(item.boothIc?' · '+esc(item.boothIc):'')+'</small></span>'+(item.filed?'<span class="chip green">Filed ✓</span>':'<span class="chip gold">File</span>')+'</button>').join(''):'<p class="muted small">No ended allocated shifts in the last 14 days. Use “Not on this list” for a swap, extra or Follow-up.</p>';
+    const all=(ipaPerformanceData&&ipaPerformanceData.recentShifts)||[],rows=all.filter(item=>!item.filed);
+    $('ipaRecentShifts').innerHTML=rows.length?rows.map((item,i)=>'<button type="button" class="ipa-recent-card'+(item.filed?' filed':'')+'" data-ipa-recent="'+i+'"><span><b>'+esc(ipaRecentLabel_(item.date))+' · '+esc(item.shift)+'</b><small>'+esc(item.location||'Location not recorded')+(item.boothIc?' · '+esc(item.boothIc):'')+'</small></span>'+(item.filed?'<span class="chip green">Filed ✓</span>':'<span class="chip gold">File</span>')+'</button>').join(''):(all.length?'<p class="muted small">All your recent shifts are filed ✓. Use “Not on this list” for a swap, extra or Follow-up.</p>':'<p class="muted small">No ended allocated shifts in the last 14 days. Use “Not on this list” for a swap, extra or Follow-up.</p>');
     $('ipaRecentShifts').querySelectorAll('[data-ipa-recent]').forEach(b=>b.onclick=()=>chooseIpaRecent_(rows[Number(b.dataset.ipaRecent)]));
   }
   function isIpaFollowUp_(){return $('ipaShift').value==='Follow-up';}
