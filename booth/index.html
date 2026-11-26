@@ -697,7 +697,7 @@
 <style>.apps-link{display:none;margin-top:6px;padding:5px 11px;border:1px solid currentColor;border-radius:999px;font-size:.78rem;font-weight:700;text-decoration:none;color:inherit;opacity:.85}.apps-link:not([hidden]){display:inline-block}.apps-link:hover{opacity:1}</style>
 </head>
 <body>
-<header><div class="inner"><h1>Aquila Booth Shifts</h1><div class="who" id="who"></div><a id="journeyLink" class="apps-link" href="https://enspire-sg.github.io/myjourney/" target="_top" rel="noopener" hidden>My Journey</a><a id="appsLink" class="apps-link" target="_top" rel="noopener" hidden>Enspire Apps</a></div></header>
+<header><div class="inner"><h1>Aquila Booth Shifts</h1><div class="who" id="who"></div><a id="journeyLink" class="apps-link" href="https://enspire-sg.github.io/myjourney/" target="_top" rel="noopener" hidden>My Journey</a></div></header>
 <nav class="tabs" id="tabs" style="display:none"><div class="inner" id="tabsInner"></div></nav>
 <div class="wrap">
   <div id="signin" class="card" style="display:none">
@@ -971,7 +971,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-26.1';
+  const SHELL_VERSION = '2026-11-26.2';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1619,12 +1619,6 @@
     $('who').textContent = d.name + (d.preview ? ' \u00b7 preview' : '');
     var journeyLink = $('journeyLink');
     if (journeyLink) journeyLink.hidden = false;
-    // The hub link, drawn only when the server says this viewer can use it.
-    var appsLink = $('appsLink');
-    if (appsLink) {
-      if (d.launcherUrl) { appsLink.setAttribute('href', d.launcherUrl); appsLink.hidden = false; }
-      else { appsLink.hidden = true; }   // hidden, so a stale href cannot be reached
-    }
     $('weekTitle').textContent = 'Week of ' + d.week;
     $('weekSub').textContent = d.notYetOpen
       ? 'Bookings open ' + d.opensAt + ' and close ' + d.cutoff + '.'
