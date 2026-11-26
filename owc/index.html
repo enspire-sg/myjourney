@@ -291,7 +291,7 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-cls-none{ color: #c74435; font-weight: 700; }
 #bells .bg-cls-hidden{ margin: 8px 0 0; font-size: 12.5px; line-height: 1.35; color: var(--bg-muted); }
 #bells .bg-cls-hidden:empty{ display: none; }
-#bells .bg-cls-count{ margin: 10px 0 2px; font-size: .88rem; color: var(--bg-muted); min-height: 20px; }
+#bells .bg-cls-count{ margin: 10px 0 2px; font-size: .88rem; color: var(--bg-muted); min-height: 42px; }
 #bells .bg-cls-hint{ margin: 0 0 8px; font-size: .8rem; color: var(--bg-muted); }
 #bells .bg-cls-row{ display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; padding: 11px 10px; border: 2px solid #d5e0ec; border-radius: 14px; background: #f6f9fc; }
 #bells .bg-cls-row.on{ border-color: var(--bg-navy-2); background: #eaf3ff; }
@@ -946,7 +946,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-27.2';
+    const BUILD='2026-11-27.3';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -2122,6 +2122,9 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     function egHiddenText(n) {
       return n > 0 ? n + ' other ' + (n === 1 ? 'venue has' : 'venues have') + ' no open classes right now, so ' + (n === 1 ? 'it is' : 'they are') + ' hidden.' : '';
     }
+    // Auto-select helpers (pure). Venue = first venue with open classes in the order shown; month = earliest month AT that venue.
+    function egFirstOpenVenue(rows) { const r = rows.filter(x => x.count)[0]; return r ? r.code : 'all'; }
+    function egEarliestMonth(runs) { const m = egMonths(runs); return m.length ? m[0].key : 'all'; }
     function egKmText(km) { return 'About ' + (Math.round(km * 10) / 10).toFixed(1) + ' km away'; }
     function egGeocodeUrls(text) {                          // tries the text, then 'MRT' -> 'MRT Station'
       const t = String(text || '').trim().replace(/\s+/g, ' ');
@@ -2175,12 +2178,12 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       return lines.join('\n');
     }
     window.BellsClassesLogic_ = { egDate, egWeekday, egDates, egMonthKey, egMonths, egStamp, egStale_, egTodaySgt, egSlotsClass,
-      egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egHiddenText, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage, egRunWeekday,
+      egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egHiddenText, egFirstOpenVenue, egEarliestMonth, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage, egRunWeekday,
       egClassTime, VENUES, CLASSES_BY_COURSE };
     /* EG_CLASSES_LOGIC_END */
 
     /* EG_CLASSES_UI_BEGIN */
-    const egState = { data: null, loading: false, failed: false, venue: 'all', month: 'all', ticks: [], point: null,
+    const egState = { data: null, loading: false, failed: false, venue: 'all', month: 'all', pick: true, monthPick: false, ticks: [], point: null,
       geoBusy: false, geoMsg: '', copyMsg: '', courseName: '' };
     const egEl = id => document.getElementById(id);
     const egEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2213,7 +2216,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       if (!course) { box.style.display = 'none'; return; }
       box.style.display = 'block';
       if (egState.courseName !== course.name) {
-        egState.courseName = course.name; egState.venue = 'all'; egState.month = 'all'; egState.ticks = []; egState.copyMsg = '';
+        egState.courseName = course.name; egState.venue = 'all'; egState.month = 'all'; egState.pick = true; egState.monthPick = false; egState.ticks = []; egState.copyMsg = '';
       }
       const owc = egIsOwc();
       const ids = CLASSES_BY_COURSE[course.name] || [];
@@ -2239,9 +2242,12 @@ Submit this page now. The form link appears on the next screen and unlocks once 
       const all = egOpenRuns(data, course.name, egTodaySgt(Date.now()));
       egState.ticks = egState.ticks.filter(k => all.some(r => r.key === k));
       const rows = egRankVenues(all, egState.point);
+      // Auto-select (26 Nov 2026): only on load, course switch, search result, clear location. Never on every render.
+      if (egState.pick) { egState.pick = false; const first = egFirstOpenVenue(rows); egState.venue = first; egState.monthPick = true; }
       if (egState.venue !== 'all' && !all.some(r => r.venue.code === egState.venue)) egState.venue = 'all';
       let runs = egState.venue === 'all' ? all : all.filter(r => r.venue.code === egState.venue);
       const months = egMonths(runs);
+      if (egState.monthPick) { egState.monthPick = false; egState.month = egEarliestMonth(runs); }
       if (egState.month !== 'all' && !months.some(m => m.key === egState.month)) egState.month = 'all';
       if (egState.month !== 'all') runs = runs.filter(r => egMonthKey(r.start) === egState.month);
       if (egState.point && egState.venue === 'all') {
@@ -2279,7 +2285,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
 
       egHtml('bgClsMonths', months.map(m => '<button type="button" class="bg-filter-chip" data-cls-month="' + egEsc(m.key) + '" aria-pressed="' + (egState.month === m.key) + '">' + egEsc(m.label) + '</button>').join(''));
             egSet('bgClsCount', (egState.venue !== 'all' || egState.month !== 'all')
-        ? 'Showing ' + runs.length + ' of ' + all.length + (all.length === 1 ? ' class' : ' classes')
+        ? 'Showing ' + runs.length + ' of ' + all.length + (all.length === 1 ? ' class' : ' classes') + ' \u00b7 tap a chip again to see all'
         : all.length + (all.length === 1 ? ' class' : ' classes'));
       egHtml('bgClsList', runs.length ? runs.map(r => {
         const on = egState.ticks.indexOf(r.key) >= 0;
@@ -2335,11 +2341,11 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     function egFind() {
       const input = egEl('bgClsWhere');
       const text = input ? String(input.value || '').trim() : '';
-      if (!text) { egState.point = null; egState.geoMsg = ''; renderClasses(); return; }
+      if (!text) { egState.point = null; egState.geoMsg = ''; egState.pick = true; renderClasses(); return; }
       if (typeof fetch !== 'function') { egState.point = null; egState.geoMsg = 'Could not look that up. Showing all venues, not ranked.'; renderClasses(); return; }
       egState.geoBusy = true; egState.geoMsg = 'Looking…'; renderClasses();
       egGeocode(text, egFetchGeo).then(p => {
-        egState.geoBusy = false; egState.point = p;
+        egState.geoBusy = false; egState.point = p; egState.pick = true;
         egState.geoMsg = p ? 'Venues are shown nearest first (straight-line distance).' : 'Could not find that place. Showing all venues, not ranked.';
         renderClasses();
       }).catch(() => {
@@ -2355,12 +2361,12 @@ Submit this page now. The form link appears on the next screen and unlocks once 
         const t = event.target && event.target.closest ? event.target : null;
         if (!t) return;
         let b;
-        if ((b = t.closest('[data-cls-venue]'))) { egState.venue = egState.venue === b.dataset.clsVenue ? 'all' : b.dataset.clsVenue; egState.copyMsg = ''; renderClasses(); }
+        if ((b = t.closest('[data-cls-venue]'))) { egState.venue = egState.venue === b.dataset.clsVenue ? 'all' : b.dataset.clsVenue; egState.monthPick = egState.venue !== 'all'; egState.copyMsg = ''; renderClasses(); }
         else if ((b = t.closest('[data-cls-month]'))) { egState.month = egState.month === b.dataset.clsMonth ? 'all' : b.dataset.clsMonth; egState.copyMsg = ''; renderClasses(); }
         else if (t.closest('#bgClsCopy')) { egDoCopy(); }
         else if (t.closest('#bgClsClear')) { egState.ticks = []; egState.copyMsg = ''; renderClasses(); }
         else if (t.closest('#bgClsFind')) { egFind(); }
-        else if (t.closest('#bgClsForget')) { const i = egEl('bgClsWhere'); if (i) i.value = ''; egState.point = null; egState.geoMsg = ''; egState.geoBusy = false; renderClasses(); }
+        else if (t.closest('#bgClsForget')) { const i = egEl('bgClsWhere'); if (i) i.value = ''; egState.point = null; egState.geoMsg = ''; egState.geoBusy = false; egState.pick = true; renderClasses(); }
       });
       box.addEventListener('change', event => {
         const t = event.target;
