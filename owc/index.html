@@ -343,7 +343,6 @@ body.bg-modal-open{ overflow: hidden; }
     </div>
   </div>
   <div class="account-bar">
-  <button id="participantApps" class="account-logout" type="button" hidden>Enspire Apps</button>
   <button id="participantWalkthrough" class="account-logout account-walkthrough" type="button" hidden>Walkthrough</button>
   <button id="participantLogout" class="account-logout" type="button" hidden>Sign out</button>
   </div>
@@ -942,7 +941,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     // Fill in the existing Apps Script deployment ID only after the server door is deployed.
     // Keep ?api=1: it selects the explicit OWC allow-list rather than the normal HTML page.
     const API_URL='https://script.google.com/macros/s/AKfycbxjBxiXrKrA5gcOwgd0FFEexEdJ6UPXf0eIk9gpllk619K43v3tGcGAHr_msUqYTuIy/exec?api=1';
-    const BUILD='2026-11-26.1';
+    const BUILD='2026-11-26.2';
     (function selfUpdate_(){
       try{
         fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(value=>{
@@ -1253,23 +1252,6 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     const PARTICIPANT_RESTORE_TIMEOUT_MS=12000;
     const sessionLoading=document.getElementById('sessionLoading');
     const participantLogout=document.getElementById('participantLogout');
-    /* The Enspire Apps button. Asked for once, the first time an account is revealed -
-     * three code paths get there and none of them is the obvious one. The server returns
-     * '' for anyone not on the launcher, which is every candidate, and the button stays
-     * hidden. window.top, because this page is a sandboxed iframe. */
-    let owcpLauncherAsked=false,owcpLauncherUrl='';
-    function owcpApplyLauncher_(){
-      if(owcpLauncherAsked)return;owcpLauncherAsked=true;
-      const b=document.getElementById('participantApps');if(!b)return;
-      let t='';try{t=localStorage.getItem(PARTICIPANT_SESSION_KEY)||''}catch(e){}
-      if(!t)return;
-      try{server.run.withSuccessHandler(function(u){if(!u)return;
-        owcpLauncherUrl=u;
-        b.hidden=false;b.onclick=function(){window.top.location.href=u};
-        // Relabel the walkthrough's way out: for someone on the hub, out means the hub.
-        const x=document.getElementById('previewExit');if(x)x.textContent='Enspire Apps'})
-        .withFailureHandler(function(){}).getOwcpLauncherUrl(t)}catch(e){}
-    }
     const login={gate:document.getElementById('emailLoginGate'),email:document.getElementById('loginEmail'),code:document.getElementById('loginCode'),codeField:document.getElementById('loginCodeField'),send:document.getElementById('loginSend'),verify:document.getElementById('loginVerify'),status:document.getElementById('loginStatus')};
     function finishSessionRestore(){document.documentElement.classList.remove('restoring-participant-session');sessionLoading.hidden=true}
     function beginSessionRestore(){document.documentElement.classList.add('restoring-participant-session');sessionLoading.hidden=false}
@@ -1277,7 +1259,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     function showEmailLogin(email){postPassUndoOptimistic();finishSessionRestore();optin.gate.hidden=true;optin.app.hidden=true;optin.syncbar.hidden=true;login.gate.hidden=false;login.email.value=String(email||'').trim().toLowerCase();login.code.value='';login.codeField.hidden=true;login.verify.hidden=true;login.send.hidden=false;loginMessage('Enter your registered email to continue.',false);window.scrollTo(0,0)}
     function loginProfile(result){const profile=result&&result.profile||{};return {name:String(profile.name||''),contact:String(profile.contact||''),startDate:String(profile.orientationDate||'')}}
     function showFirstTimeAgreement(result){
-      postPassUndoOptimistic();finishSessionRestore();participantLogout.hidden=false;owcpApplyLauncher_();state.participantId=result.participantId;optin.email.value=(result.email||login.email.value).trim().toLowerCase();optin.email.readOnly=true;optin.name.value='';optin.contact.value='';optin.startDate.value='';optin.reason.value='';optin.form.querySelectorAll('.agree-check input').forEach(input=>input.checked=false);login.gate.hidden=true;optin.gate.hidden=false;showOptinStep(1);window.scrollTo(0,0);
+      postPassUndoOptimistic();finishSessionRestore();participantLogout.hidden=false;state.participantId=result.participantId;optin.email.value=(result.email||login.email.value).trim().toLowerCase();optin.email.readOnly=true;optin.name.value='';optin.contact.value='';optin.startDate.value='';optin.reason.value='';optin.form.querySelectorAll('.agree-check input').forEach(input=>input.checked=false);login.gate.hidden=true;optin.gate.hidden=false;showOptinStep(1);window.scrollTo(0,0);
     }
     /* ---- Walkthrough preview: admins and entrepreneurs ---------------------------------
      * Who gets it is decided on the server (owcpPreviewEligible_ -> the leader dashboard's
@@ -1434,7 +1416,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     }
     /* The way back out: a reload lands on the real record, because auto-enter only fires when
      * there is no record. No server call - preview never created anything to clean up. */
-    function exitWalkthrough_(){ if(owcpLauncherUrl){window.top.location.href=owcpLauncherUrl;return} location.reload(); }
+    function exitWalkthrough_(){ location.reload(); }
     login.send.addEventListener('click',()=>{
       if(!login.email.reportValidity())return;
       login.send.disabled=true;loginMessage('Sending code…',false);server.run.withSuccessHandler(()=>{login.send.disabled=false;login.codeField.hidden=false;login.verify.hidden=false;login.code.focus();loginMessage('Code sent. Check your email.',false)}).withFailureHandler(err=>{login.send.disabled=false;loginMessage(err.message||String(err),true)}).requestOwcParticipantCode(login.email.value);
@@ -1616,7 +1598,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     postPass.form.addEventListener('input',savePostPassDraft);
     postPass.form.addEventListener('change',savePostPassDraft);
     function showPostPassApp(stateValue){
-      postPass.state=stateValue||{};if(!postPass.state.preview)writePostPassCache(postPass.state);if(!postPass.state.passed){postPass.app.hidden=true;postPassDemote();postPassOptimistic=false;settlePostPassGate(false);return}if(!postPass.state.cachedHint)postPassOptimistic=false;settlePostPassGate(true);if(!postPassActive){postPassActive=true;window.scrollTo(0,0)}finishSessionRestore();participantLogout.hidden=false;owcpApplyLauncher_();optin.app.hidden=true;optin.syncbar.hidden=true;login.gate.hidden=true;optin.gate.hidden=true;postPass.app.hidden=false;
+      postPass.state=stateValue||{};if(!postPass.state.preview)writePostPassCache(postPass.state);if(!postPass.state.passed){postPass.app.hidden=true;postPassDemote();postPassOptimistic=false;settlePostPassGate(false);return}if(!postPass.state.cachedHint)postPassOptimistic=false;settlePostPassGate(true);if(!postPassActive){postPassActive=true;window.scrollTo(0,0)}finishSessionRestore();participantLogout.hidden=false;optin.app.hidden=true;optin.syncbar.hidden=true;login.gate.hidden=true;optin.gate.hidden=true;postPass.app.hidden=false;
       const schedule=postPass.state.schedule;postPass.pending.hidden=!!schedule;postPass.events.hidden=!schedule;
       if(schedule){document.getElementById('postPassMomentumTime').textContent=postPassTimeRange(schedule.momentumStart,schedule.momentumEnd);document.getElementById('postPassMomentumLocation').textContent=schedule.momentumLocation;document.getElementById('postPassMomentumNote').textContent=schedule.momentumNotes||'';document.getElementById('postPassAttire').textContent='Attire: '+(schedule.attire||'Smart casual');const mmMap=document.getElementById('postPassMomentumMap');mmMap.href=schedule.momentumMapUrl||'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(schedule.momentumLocation);document.getElementById('postPassMomentumCalendar').href=postPassCalendarUrl('Momentum Monday',schedule.momentumStart,schedule.momentumEnd||postPassAddMinutes(schedule.momentumStart,90),schedule.momentumLocation,(schedule.momentumNotes||'')+'\nAttire: '+(schedule.attire||'Smart casual'));document.getElementById('postPassOnboardingTime').textContent=postPassTimeRange(schedule.onboardingStart,schedule.onboardingEnd);document.getElementById('postPassOnboardingLocation').textContent=schedule.onboardingLocation;document.getElementById('postPassOnboardingNote').textContent=schedule.onboardingNotes||'';const onboardingMap=document.getElementById('postPassOnboardingMap');onboardingMap.href=schedule.onboardingMapUrl||'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(schedule.onboardingLocation);document.getElementById('postPassOnboardingCalendar').href=postPassCalendarUrl('BELLS + Enspire Onboarding',schedule.onboardingStart,schedule.onboardingEnd,schedule.onboardingLocation,schedule.onboardingNotes||'');window.__owcOnboardingEnd=schedule.onboardingEnd||schedule.onboardingStart||'';postPassApplyIntraLock()}
       postPass.complete.hidden=!postPass.state.submitted;postPass.form.hidden=!!postPass.state.submitted;if(!postPass.state.submitted&&!postPassWizardReady){postPassWizardReady=true;restorePostPassDraft();postPassRenderStep(false);postPassSyncGmail()}if(postPass.state.submitted){const when=postPass.state.submittedAt?new Date(postPass.state.submittedAt).toLocaleString('en-SG',{timeZone:'Asia/Singapore'}):'';document.getElementById('postPassCompleteTime').textContent=postPass.state.preview?('Preview submitted '+when+'. This is exactly what a participant sees here.'):('Submitted '+when+'. Your leaders can see your response, and a copy of your answers was emailed to you.');const previewDone=document.getElementById('postPassPreviewDone');if(previewDone)previewDone.hidden=!postPass.state.preview;const previewFoot=document.getElementById('postPassPreviewFoot');if(previewFoot)previewFoot.hidden=!postPass.state.preview}
@@ -2529,7 +2511,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     function revealChallenge(prefill,inlinePostPass){
       if(postPassActive){const live=inlinePostPass&&typeof inlinePostPass.passed==='boolean'?inlinePostPass:null;if(live)showPostPassApp(live);else if(Date.now()-postPassBgAt>60000)refreshOwcPostPassState(0);return}
       if(!postPassGateSettled)return;
-      participantLogout.hidden=false;owcpApplyLauncher_();login.gate.hidden=true;optin.gate.hidden=true;
+      participantLogout.hidden=false;login.gate.hidden=true;optin.gate.hidden=true;
       if(prefill){els.name.value=prefill.name;els.contact.value=prefill.contact;els.startDate.value=prefill.startDate;updateUI()}
       sendOptinDashboardReceipt(prefill);
       setTimeout(ensureCountIdentity,250);setTimeout(()=>{refreshTelegramLink();startTelegramJoinPoll()},300);setTimeout(refreshSurveyCount,500);setTimeout(restoreConfirmedAccess,800);
@@ -2543,7 +2525,7 @@ Submit this page now. The form link appears on the next screen and unlocks once 
     }
     (function(){const b=document.getElementById('sessionLoadingRetry');if(b)b.addEventListener('click',()=>{if(postPassGateSettled)return;postPassGateTries=0;postPassGateAttempt()})})();
     function showChallengeApp(){
-      postPass.app.hidden=true;participantLogout.hidden=false;owcpApplyLauncher_();login.gate.hidden=true;optin.gate.hidden=true;optin.app.hidden=false;optin.syncbar.hidden=false;
+      postPass.app.hidden=true;participantLogout.hidden=false;login.gate.hidden=true;optin.gate.hidden=true;optin.app.hidden=false;optin.syncbar.hidden=false;
       window.scrollTo(0,0);requestAnimationFrame(()=>requestAnimationFrame(finishSessionRestore));
     }
     function optinMessage(message,isError){optin.status.textContent=message;optin.status.className='gate-status '+(isError?'error':'')}
