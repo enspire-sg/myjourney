@@ -1272,7 +1272,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-26.8';
+  const BUILD='2026-11-26.9';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -4728,24 +4728,28 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       return groups;
     }
     function egRunWeekday(r) { return egEvery(r).replace(/^Every\s+/i, ''); }
+    // "9am - 6pm" -> "9am-6pm": no spaces round the dash (Li Wei, 26 Nov 2026)
+    function egTimeNorm(t) { return String(t == null ? '' : t).trim().replace(/\s*[-\u2013\u2014]\s*/g, '-'); }
     function egMessage(courseName, groups) {
       const lines = ['Here\u2019s our updated classes for: \uD83D\uDC47\uD83C\uDFFB', '', '\u2728 *' + courseName + '* \u2728', ''];
-      let n = 0;
-      (groups || []).forEach(g => {
-        g.runs.forEach(r => {
-          lines.push('*Option ' + String.fromCharCode(65 + n++) + ' - ' + g.venue.name + (r.slots <= 5 ? ' - ' + egSlotsText(r.slots) : '') + '*');
-          lines.push('Time: ' + r.time);
-          lines.push(egDates(r.dates) + ' (' + egRunWeekday(r) + ')');
-          lines.push('');
-        });
+      const runs = [];
+      (groups || []).forEach(g => g.runs.forEach(r => runs.push({ g, r })));
+      // One shared Time line only when every ticked option has the same time; otherwise each option keeps its own.
+      const times = runs.map(x => egTimeNorm(x.r.time));
+      const shared = times.length > 0 && times.every(t => t === times[0]);
+      runs.forEach((x, n) => {
+        lines.push('*Option ' + String.fromCharCode(65 + n) + ' - ' + x.g.venue.name + (x.r.slots <= 5 ? ' - ' + egSlotsText(x.r.slots) : '') + '*');
+        lines.push(egDates(x.r.dates) + ' (' + egRunWeekday(x.r) + ')');
+        if (!shared) lines.push('Time: ' + times[n]);
+        lines.push('');
       });
-      lines.push('(Breaks & Refreshments included)', '');
+      lines.push(shared ? 'Time: ' + times[0] + ' (Breaks & Refreshments included)' : '(Breaks & Refreshments included)', '');
       lines.push('As there\u2019s limited slots left - which *option* would you like me to help you secure a slot for? \uD83D\uDE01');
       return lines.join('\n');
     }
     window.BellsClassesLogic_ = { egDate, egWeekday, egDates, egMonthKey, egMonths, egStamp, egStale_, egTodaySgt, egSlotsClass,
       egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egHiddenText, egFirstOpenVenue, egEarliestMonth, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage, egRunWeekday,
-      egClassTime, VENUES, CLASSES_BY_COURSE };
+      egClassTime, egTimeNorm, VENUES, CLASSES_BY_COURSE };
     /* EG_CLASSES_LOGIC_END */
 
     /* EG_CLASSES_UI_BEGIN */
