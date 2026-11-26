@@ -345,6 +345,8 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-cls-venue:disabled{ opacity: .6; }
 #bells .bg-cls-near{ position: absolute; top: 9px; right: 10px; font-style: normal; font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: #1f8a4c; color: #fff; }
 #bells .bg-cls-none{ color: #c74435; font-weight: 700; }
+#bells .bg-cls-hidden{ margin: 8px 0 0; font-size: 12.5px; line-height: 1.35; color: var(--bg-muted); }
+#bells .bg-cls-hidden:empty{ display: none; }
 #bells .bg-cls-count{ margin: 10px 0 2px; font-size: .88rem; color: var(--bg-muted); min-height: 20px; }
 #bells .bg-cls-hint{ margin: 0 0 8px; font-size: .8rem; color: var(--bg-muted); }
 #bells .bg-cls-row{ display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; padding: 11px 10px; border: 2px solid #d5e0ec; border-radius: 14px; background: #f6f9fc; }
@@ -906,6 +908,7 @@ body.bg-modal-open{ overflow: hidden; }
             <div class="bg-cls-note">Type the area or MRT, not the full home address. Not saved; looked up on OpenStreetMap.</div>
             <div class="bg-cls-georow"><div id="bgClsGeoMsg" class="bg-cls-geomsg" aria-live="polite"></div><button id="bgClsForget" type="button" class="bg-cls-link bg-cls-forget" style="visibility:hidden" tabindex="-1">✕ Clear location</button></div>
             <div id="bgClsVenues" class="bg-cls-venues"></div>
+            <div id="bgClsHidden" class="bg-cls-hidden" aria-live="polite"></div>
             <div class="bg-cls-label">Month</div>
             <div id="bgClsMonths" class="bg-cls-months"></div>
             <div id="bgClsCount" class="bg-cls-count"></div>
@@ -1269,7 +1272,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-26.5';
+  const BUILD='2026-11-26.6';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -4682,6 +4685,10 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         return (a.km === null ? 1e9 : a.km) - (b.km === null ? 1e9 : b.km);
       });
     }
+    // One muted line for venues that have no open class at all (not affected by venue/month chips).
+    function egHiddenText(n) {
+      return n > 0 ? n + ' other ' + (n === 1 ? 'venue has' : 'venues have') + ' no open classes right now, so ' + (n === 1 ? 'it is' : 'they are') + ' hidden.' : '';
+    }
     function egKmText(km) { return 'About ' + (Math.round(km * 10) / 10).toFixed(1) + ' km away'; }
     function egGeocodeUrls(text) {                          // tries the text, then 'MRT' -> 'MRT Station'
       const t = String(text || '').trim().replace(/\s+/g, ' ');
@@ -4735,7 +4742,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       return lines.join('\n');
     }
     window.BellsClassesLogic_ = { egDate, egWeekday, egDates, egMonthKey, egMonths, egStamp, egStale_, egTodaySgt, egSlotsClass,
-      egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage, egRunWeekday,
+      egSlotsText, egEvery, egOpenRuns, egKm, egRankVenues, egHiddenText, egKmText, egGeocodeUrls, egGeocode, egGroups, egMessage, egRunWeekday,
       egClassTime, VENUES, CLASSES_BY_COURSE };
     /* EG_CLASSES_LOGIC_END */
 
@@ -4810,10 +4817,13 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       }
 
       // Venues: ranked cards when a place was found, else plain chips (the fallback).
-      let vh = '';
+      let vh = '', hiddenTxt = '';
       if (egState.point) {
+        const openRows = rows.filter(r => r.count);
+        const hiddenN = rows.length - openRows.length;
+        hiddenTxt = openRows.length ? egHiddenText(hiddenN) : '';
         vh += '<div class="bg-cls-ranked">';
-        rows.forEach((r, i) => {
+        openRows.forEach((r, i) => {
           const dist = r.online ? 'Online, no distance' : (r.km === null ? '' : egKmText(r.km) + (r.approx ? ' (approx.)' : ''));
           const nxt = r.next ? 'Next class ' + egDate(r.next.start) + ' · ' + egSlotsText(r.next.slots) + ' · ' + r.count + (r.count === 1 ? ' class' : ' classes')
             : '<span class="bg-cls-none">No open classes</span>';
@@ -4828,6 +4838,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         });
       }
       egHtml('bgClsVenues', vh);
+      egSet('bgClsHidden', hiddenTxt);
       egSet('bgClsGeoMsg', egState.geoMsg);
       const forget = egEl('bgClsForget');
       if (forget) { const on = !!(egState.point || egState.geoMsg) && !egState.geoBusy; forget.style.visibility = on ? 'visible' : 'hidden'; forget.tabIndex = on ? 0 : -1; }
@@ -4846,7 +4857,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
           + '<div class="bg-cls-dates">' + egEsc(egDates(r.dates)) + '</div>'
           + '<div class="bg-cls-meta">' + egEsc(r.venue.name) + (r.session ? ' · ' + egEsc(r.time) : '') + ' · ' + r.dates.length + ' sessions</div>'
           + enrol + '</div></div>';
-      }).join('') : '<div class="bg-cls-empty">No open classes for this choice.</div>');
+      }).join('') : '<div class="bg-cls-empty">' + (all.length ? 'No open classes for this choice.' : 'No open classes right now. Check TMS.') + '</div>');
       renderClassesBar(all, course.name);
     }
 
