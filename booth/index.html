@@ -153,6 +153,16 @@
                  background:transparent; color:transparent; font-size:14px; font-weight:750; }
   .writeStatus.saving { color:var(--muted); background:var(--soft); }
   .writeStatus.saved { color:var(--ok); background:var(--okbg); }
+  /* 24h approval gate (26 Nov 2026): a write that needs Ryan Goh's OK says so in the same reserved status slot. */
+  .writeStatus.pending { color:var(--infoink); background:var(--infobg); }
+  #approvalsCard .apRow { padding:10px 0; border-top:1px solid var(--line); }
+  #approvalsCard .apRow:first-of-type { border-top:0; }
+  #approvalsCard .apText { font-size:14px; line-height:1.4; color:var(--ink); overflow-wrap:anywhere; min-height:40px; }
+  #approvalsCard .apBtns { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px; }
+  #approvalsCard .apBtns button { min-height:44px; width:100%; }
+  #approvalsCard .apStatus { min-height:36px; line-height:18px; margin-top:4px; font-size:13px; font-weight:700; color:var(--ok); overflow-wrap:anywhere; }
+  #approvalsCard .apStatus.error { color:var(--danger); }
+  #approvalsCard .apStatus.saving { color:var(--muted); font-weight:600; }
   .writeStatus.error { color:var(--danger); background:var(--dangerbg); text-decoration:underline;
                        cursor:pointer; }
   /* A refused save shows the real reason (up to 3 lines). The slot keeps its 48px; extra lines are
@@ -873,6 +883,11 @@
       <div id="bookedList"></div>
       <div id="entrepreneurOwing"></div>
     </div>
+    <div class="card" id="approvalsCard" data-g="today" style="display:none">
+      <h2>Pending approvals <span class="tag manual" id="approvalsCount">0</span></h2>
+      <p class="sub" id="approvalsSub">Changes waiting for Ryan Goh. Nothing has changed yet.</p>
+      <div id="approvalsList"></div>
+    </div>
     <div class="card" id="lateApprovalCard" data-g="today" style="display:none">
       <h2>Needs approval <span class="tag manual" id="lateApprovalCount">0</span></h2>
       <p class="sub">Late heads-up reasons for this week and next week.</p>
@@ -956,7 +971,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-24.4';
+  const SHELL_VERSION = '2026-11-26.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1822,6 +1837,7 @@
     writeStatus.onclick = null; writeStatus.onkeydown = null;
     writeStatus.setAttribute('role', 'status'); writeStatus.tabIndex = -1;
     if (state === 'saved') writeStatus.textContent = 'Saved \u2713 ' + what;
+    else if (state === 'pending') writeStatus.textContent = 'Sent to Ryan Goh \u2713 Pending';
     else if (state === 'error' && reason) {
       // Rule refusal: say why, no retry.
       writeStatus.textContent = 'Not saved: ' + reason;
@@ -1837,7 +1853,7 @@
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); retry(); }
       };
     } else writeStatus.textContent = 'Saving\u2026 ' + what;
-    if (state === 'saved') writeStatusTimer = setTimeout(function () {
+    if (state === 'saved' || state === 'pending') writeStatusTimer = setTimeout(function () {
       writeStatus.className = 'writeStatus'; writeStatus.textContent = '';
     }, 6000);
   }
@@ -1868,6 +1884,14 @@
           guard = setTimeout(function () { next(); }, 45000);
         }
         var started = run(fn, args, function (result) {
+          if (result && result.pending) {
+            // Held for Ryan Goh: never 'Saved', never optimistic. Re-read the server so the grid shows what is true.
+            setWriteStatus_('pending', '', attempt);
+            q.held = null;
+            loadAllocation(); loadApprovals_();
+            next();
+            return;
+          }
           var savedWhat = typeof what === 'function' ? what(result) : what;
           setWriteStatus_('saved', savedWhat, attempt);
           if (after) {
@@ -3250,7 +3274,7 @@
       var first = list.children[i].children && list.children[i].children[0];
       attention += first && first.className.indexOf('gap') >= 0 ? (parseInt(first.textContent, 10) || 0) : 0;
     }
-    var today = approvals + attention + (window.mbUrgentUnplaced || 0);
+    var today = approvals + attention + (window.mbUrgentUnplaced || 0) + (window.mbApprovalsPending || 0);
     $('mbBadge-today').textContent = today ? String(today) : '';
     var bk = (window.mbBookingsOpen || 0);
     $('mbBadge-plan').textContent = bk ? String(bk) : '';
@@ -3520,12 +3544,87 @@
     run('getMonthlyExceptions', [token, sel.value || ''], renderMonthRep);
   }
 
+  /* ---- 24h approval gate: Pending approvals panel ---- */
+  var approvalsPending_ = 0, approvalsSeq_ = 0, approvalsHoldUntil_ = 0;
+  function approvalShift_(v) { return String(v || '').split('+').join(' + '); }
+  function approvalDay_(v) { return String(v || '').split('+').map(function (d) { return d.slice(0, 3); }).join(' + '); }
+  function approvalWords_(r) {
+    var who = r.person || 'Everyone', act = String(r.action || '');
+    var what;
+    if (/^move/i.test(act) && r.to) what = (r.from ? r.from + ' to ' + r.to : 'to ' + r.to);
+    else what = act + (r.to ? ' at ' + r.to : (r.from ? ' at ' + r.from : ''));
+    var when = [approvalDay_(r.day), approvalShift_(r.shift)].filter(Boolean).join(' ');
+    return who + ': ' + what + (when ? ', ' + when : '') + ', asked by ' + (r.requestedBy || 'someone')
+      + (r.reason ? ', ' + r.reason : '');
+  }
+  function approvalSetCount_(n) {
+    approvalsPending_ = n; window.mbApprovalsPending = n;
+    $('approvalsCount').textContent = n;
+    if (typeof mbBadges === 'function') mbBadges();
+  }
+  function renderApprovals_(d) {
+    var card = $('approvalsCard'), host = $('approvalsList');
+    var rows = ((d && d.requests) || []).filter(function (r) { return r.status === 'Pending'; });
+    host.innerHTML = '';
+    if (!rows.length) { card.style.display = 'none'; approvalSetCount_(0); return; }
+    card.style.display = '';
+    approvalSetCount_(rows.length);
+    $('approvalsSub').textContent = d.canDecide ? 'Approve to apply the change. Reject leaves things as they are.'
+      : 'Waiting for Ryan Goh. Nothing has changed yet.';
+    rows.forEach(function (r) {
+      var row = document.createElement('div'); row.className = 'apRow'; row.setAttribute('data-request', r.id);
+      var text = document.createElement('div'); text.className = 'apText'; text.textContent = approvalWords_(r);
+      row.appendChild(text);
+      if (d.canDecide) {
+        var btns = document.createElement('div'); btns.className = 'apBtns';
+        var yes = document.createElement('button'); yes.className = 'yes apApprove'; yes.textContent = 'Approve';
+        var no = document.createElement('button'); no.className = 'ghost apReject'; no.textContent = 'Reject';
+        var st = document.createElement('div'); st.className = 'apStatus'; st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite');
+        function decide(fn, word) {
+          yes.disabled = true; no.disabled = true;
+          st.className = 'apStatus saving'; st.textContent = 'Saving\u2026';
+          run(fn, [token, r.id], function (res) {
+            if (res && res.ok === false) { fail(res.message || res.reason || 'not allowed'); return; }
+            st.className = 'apStatus'; st.textContent = 'Saved \u2713 ' + word;
+            setWriteStatus_('saved', word);
+            approvalsHoldUntil_ = Date.now() + 4000;
+            loadAllocation(); loadApprovals_();
+            setTimeout(function () { loadApprovals_(); }, 4200);
+          }, function (e) { fail((e && e.message) ? String(e.message).replace(/^\s*Error:\s*/, '') : 'could not reach the server'); });
+          function fail(why) {
+            yes.disabled = false; no.disabled = false;
+            st.className = 'apStatus error'; st.textContent = 'Not saved: ' + why;
+            setWriteStatus_('error', word, null, why);
+          }
+        }
+        yes.onclick = function () { decide('approveAllocationRequest', 'Approved'); };
+        no.onclick = function () { decide('rejectAllocationRequest', 'Rejected'); };
+        btns.appendChild(yes); btns.appendChild(no); row.appendChild(btns); row.appendChild(st);
+      }
+      host.appendChild(row);
+    });
+  }
+  function loadApprovals_() {
+    if (!data || !data.canAllocate) return;
+    var seq = ++approvalsSeq_;
+    run('listAllocationRequests', [token], function (d) {
+      if (seq !== approvalsSeq_) return;
+      // Keep rows on screen while a decision's feedback is showing; they drop on the next refresh.
+      if (Date.now() < approvalsHoldUntil_) {
+        var left = ((d && d.requests) || []).filter(function (r) { return r.status === 'Pending'; }).length;
+        approvalSetCount_(left); return;
+      }
+      renderApprovals_(d);
+    }, function () { /* panel is optional: stay hidden */ });
+  }
+
   function renderAll(a) {
     if (apSwitch_ && !apSwitch_.failed && a.weekStart !== apSwitch_.week) return;   // stale reply for the week being left
     renderWeeks(a);
     renderBookings(a);
     if (data.canAllocate) {
       loadLateNoticeQueue();
+      loadApprovals_();
       $('monthRepCard').style.display = '';
       if (!monthRepLoaded) { monthRepLoaded = true; loadMonthRep(); }
       renderOpsActions(a);
@@ -3533,6 +3632,7 @@
       renderLate(a);
     } else {
       $('lateApprovalCard').style.display = 'none';
+      $('approvalsCard').style.display = 'none';
       $('monthRepCard').style.display = 'none';
       $('opsActionCard').style.display = 'none';
       $('openCard').style.display = 'none';
@@ -4438,6 +4538,13 @@
     if (!q.length || q[0].sent) return;
     var item = q[0]; item.sent = true;
     run(item.fn, item.args, function (delta) {
+      if (delta && delta.pending) {
+        q.shift(); attData = item.before;
+        setWriteStatus_('pending', '', item.retry);
+        q.forEach(function (pending) { pending.apply(attData); });
+        renderAtt(attData); loadAttendance(); loadApprovals_(); pumpAtt_(key);
+        return;
+      }
       q.shift(); applySlimAtt_(attData, delta);
       setAttFeedback_(item.feedback, 'saved');
       if (item.writeWhat) setWriteStatus_('saved', item.writeWhat, item.retry);
