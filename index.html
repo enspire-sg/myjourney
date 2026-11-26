@@ -333,7 +333,9 @@ body.bg-modal-open{ overflow: hidden; }
 #bells .bg-cls-find{ flex: 0 0 auto; min-width: 112px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--bg-navy-2); color: #fff; font: inherit; font-weight: 800; }
 #bells .bg-cls-find:disabled{ opacity: .6; }
 #bells .bg-cls-note{ margin-top: 6px; font-size: .8rem; color: var(--bg-muted); }
-#bells .bg-cls-geomsg{ min-height: 36px; margin: 4px 0; font-size: .85rem; font-weight: 600; color: var(--bg-navy); }
+#bells .bg-cls-georow{ display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin: 4px 0; min-height: 36px; }
+#bells .bg-cls-link.bg-cls-forget{ flex: none; min-height: 44px; margin: -4px 0; padding: 0 8px; white-space: nowrap; }
+#bells .bg-cls-geomsg{ flex: 1; min-height: 36px; margin: 0; font-size: .85rem; font-weight: 600; color: var(--bg-navy); }
 #bells .bg-cls-venues, #bells .bg-cls-months{ display: flex; flex-wrap: wrap; gap: 7px; }
 #bells .bg-cls-months{ min-height: 44px; align-content: flex-start; }
 #bells .bg-cls-ranked{ display: grid; gap: 8px; width: 100%; margin-top: 4px; }
@@ -902,7 +904,7 @@ body.bg-modal-open{ overflow: hidden; }
               <button id="bgClsFind" type="button" class="bg-cls-find">Find nearest</button>
             </div>
             <div class="bg-cls-note">Type the area or MRT, not the full home address. Not saved; looked up on OpenStreetMap.</div>
-            <div id="bgClsGeoMsg" class="bg-cls-geomsg" aria-live="polite"></div>
+            <div class="bg-cls-georow"><div id="bgClsGeoMsg" class="bg-cls-geomsg" aria-live="polite"></div><button id="bgClsForget" type="button" class="bg-cls-link bg-cls-forget" style="visibility:hidden" tabindex="-1">✕ Clear location</button></div>
             <div id="bgClsVenues" class="bg-cls-venues"></div>
             <div class="bg-cls-label">Month</div>
             <div id="bgClsMonths" class="bg-cls-months"></div>
@@ -1267,7 +1269,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-26.3';
+  const BUILD='2026-11-26.5';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1466,14 +1468,12 @@ body.bg-modal-open{ overflow: hidden; }
    * showing nothing at all meanwhile - the login card and the journey are both hidden while this
    * runs, and the "Loading your journey" message goes into the hidden login card where nobody can
    * read it. The boot card below is the only thing on screen until the data arrives. */
-  /* The hub link. The server sends '' for anyone who cannot use the launcher, and the
-   * button stays hidden - a link to a page that would turn them away is worse than none. */
   /* Your own button only: a View As preview shows what THEY see, and they do not get this. */
   let owcBtnOwn_={dashboard:false,app:false}, tlWalkOwn_=false;   /* cosmetic: who SEES the OWC buttons; the OWC apps re-check on redeem */
-  function syncLauncher_(){ setB2b_(viewAs?viewB2b_:ownB2b_); const d=$('owcDashBtn'), a=$('owcAppBtn'); if(d)d.classList.toggle('hidden',!(owcBtnOwn_.dashboard&&!viewAs)); if(a)a.classList.toggle('hidden',!(owcBtnOwn_.app&&!viewAs)); const w=$('tlWalkBtn'); if(w)w.classList.toggle('hidden',!(tlWalkOwn_&&!viewAs)); }
+  function syncHeaderButtons_(){ setB2b_(viewAs?viewB2b_:ownB2b_); const d=$('owcDashBtn'), a=$('owcAppBtn'); if(d)d.classList.toggle('hidden',!(owcBtnOwn_.dashboard&&!viewAs)); if(a)a.classList.toggle('hidden',!(owcBtnOwn_.app&&!viewAs)); const w=$('tlWalkBtn'); if(w)w.classList.toggle('hidden',!(tlWalkOwn_&&!viewAs)); }
   let ownB2b_=false, viewB2b_=false;
   function setB2b_(v){ window.BELLS_B2B_ACCESS=(v===true); try{ if(window.bellsApplyAccess_)window.bellsApplyAccess_(); }catch(e){} }
-  function applyOwcButtons_(o){ owcBtnOwn_={dashboard:!!(o&&o.dashboard),app:!!(o&&o.app)}; syncLauncher_(); }
+  function applyOwcButtons_(o){ owcBtnOwn_={dashboard:!!(o&&o.dashboard),app:!!(o&&o.app)}; syncHeaderButtons_(); }
   function booting_(on){ $('booting').classList.toggle('hidden',!on); }
   function applyJourneyBundle_(bundle,fromCache,keepView){
       planningAccess=bundle.planningAccess;
@@ -3858,7 +3858,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   async function enterViewAs(pid){ if(!pid)return; $('asGo').disabled=true;
     try{ data=await run('getJourneyAs',token,pid); viewAs=data.viewingAs; viewB2b_=data.b2bAccess===true; $('asPerson').value=pid;
       try{ actionData=await run('getActionItemsAs',token,pid); }catch(ignore){ actionData={items:[],pending:0,unavailable:true}; }
-      showPanel('journey'); $('asCard').classList.remove('hidden'); render(); applyTabs(viewAs&&viewAs.tabs); syncLauncher_(); }
+      showPanel('journey'); $('asCard').classList.remove('hidden'); render(); applyTabs(viewAs&&viewAs.tabs); syncHeaderButtons_(); }
     catch(e){ $('asNote').textContent=e.message; } finally{ $('asGo').disabled=false; } }
   /** Header tabs for whoever the page is currently showing. Only these three vary by person. */
   function applyTabs(t){
@@ -3885,7 +3885,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
                       ||(planningAccess&&planningAccess.allowed)
                       ||(applicationsAccess&&applicationsAccess.allowed)) };
   }
-  function exitViewAs(){ viewAs=null; syncLauncher_(); if(!$('teamPerformance').classList.contains('hidden'))loadTeamPerformance_(); if(!$('ipaOverview').classList.contains('hidden'))loadIpoOverview_(); actionData=ownActionData; $('asCard').classList.add('hidden'); $('asPerson').value=''; applyTabs(ownTabs()); if(ownData){ data=ownData; render(); } else load(); }
+  function exitViewAs(){ viewAs=null; syncHeaderButtons_(); if(!$('teamPerformance').classList.contains('hidden'))loadTeamPerformance_(); if(!$('ipaOverview').classList.contains('hidden'))loadIpoOverview_(); actionData=ownActionData; $('asCard').classList.add('hidden'); $('asPerson').value=''; applyTabs(ownTabs()); if(ownData){ data=ownData; render(); } else load(); }
   $('viewAsBtn').onclick=()=>openViewAs();
   $('asGo').onclick=()=>enterViewAs($('asPerson').value);
   $('asPerson').onchange=()=>enterViewAs($('asPerson').value);
@@ -4829,6 +4829,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       }
       egHtml('bgClsVenues', vh);
       egSet('bgClsGeoMsg', egState.geoMsg);
+      const forget = egEl('bgClsForget');
+      if (forget) { const on = !!(egState.point || egState.geoMsg) && !egState.geoBusy; forget.style.visibility = on ? 'visible' : 'hidden'; forget.tabIndex = on ? 0 : -1; }
       const find = egEl('bgClsFind'); if (find) find.disabled = !!egState.geoBusy;
 
       egHtml('bgClsMonths', months.map(m => '<button type="button" class="bg-filter-chip" data-cls-month="' + egEsc(m.key) + '" aria-pressed="' + (egState.month === m.key) + '">' + egEsc(m.label) + '</button>').join(''));
@@ -4914,7 +4916,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
         else if (t.closest('#bgClsCopy')) { egDoCopy(); }
         else if (t.closest('#bgClsClear')) { egState.ticks = []; egState.copyMsg = ''; renderClasses(); }
         else if (t.closest('#bgClsFind')) { egFind(); }
-        else if (t.closest('#bgClsForget')) { const i = egEl('bgClsWhere'); if (i) i.value = ''; egState.point = null; egState.geoMsg = ''; renderClasses(); }
+        else if (t.closest('#bgClsForget')) { const i = egEl('bgClsWhere'); if (i) i.value = ''; egState.point = null; egState.geoMsg = ''; egState.geoBusy = false; renderClasses(); }
       });
       box.addEventListener('change', event => {
         const t = event.target;
