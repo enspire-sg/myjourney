@@ -163,6 +163,9 @@
   #approvalsCard .apStatus { min-height:36px; line-height:18px; margin-top:4px; font-size:13px; font-weight:700; color:var(--ok); overflow-wrap:anywhere; }
   #approvalsCard .apStatus.error { color:var(--danger); }
   #approvalsCard .apStatus.saving { color:var(--muted); font-weight:600; }
+  .writeStatus .retryBtn { flex:none; margin-left:10px; min-height:34px; padding:4px 14px; border-radius:8px; border:1px solid currentColor; background:transparent; color:inherit; font-weight:800; font-size:13px; cursor:pointer; }
+  /* IC pickers while a save is in flight: dimmed, so 'Saving\2026' is visible on the row itself */
+  .weekGridICSelect:disabled, .slot select:disabled, #alloc select:disabled, .attendanceICControls select:disabled { opacity:.5; }
   .writeStatus.error { color:var(--danger); background:var(--dangerbg); text-decoration:underline;
                        cursor:pointer; }
   /* A refused save shows the real reason (up to 3 lines). The slot keeps its 48px; extra lines are
@@ -971,7 +974,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-26.2';
+  const SHELL_VERSION = '2026-11-27.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -1728,9 +1731,9 @@
   // The server refuses writes during a preview anyway. This stops the round trip and says so
   // in plain words, instead of letting a disabled-looking page throw an error a second later.
   var monthRepLoaded = false;
-  var READS = ['getIcCount', 'getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation', 'getWeekGrid', 'getIpa',
+  var READS = ['getIcCount', 'getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation', 'getWeekGrid', 'getIpa', 'getICSlot',
                'getBookingFor', 'setPreview'];
-  var API_READS = ['getIcCount', 'getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation',
+  var API_READS = ['getICSlot', 'getIcCount', 'getMonthlyExceptions', 'getBooking', 'getAttendance', 'getDiscipline', 'getAllocation',
                    'getWeekGrid', 'getIpa', 'getBookingFor', 'getSaturdayCycle', 'getLateNoticeQueue',
                    'requestAccessCode', 'verifyAccessCode', 'redeemJourneyHandoffAndGetBooking'];
 
@@ -1825,6 +1828,7 @@
 
   var writeStatusTimer = null;
   function setWriteStatus_(state, what, retry, reason) {
+    var withRetry = arguments[4];
     var writeStatus = $('writeStatus');
     if (writeStatusTimer) { clearTimeout(writeStatusTimer); writeStatusTimer = null; }
     writeStatus.className = 'writeStatus ' + state + (state === 'error' && reason ? ' reason' : '');
@@ -1835,6 +1839,11 @@
     else if (state === 'error' && reason) {
       // Rule refusal: say why, no retry.
       writeStatus.textContent = 'Not saved: ' + reason;
+      if (withRetry && typeof document !== 'undefined' && document.createElement) {
+        var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'retryBtn'; rb.textContent = 'Retry';
+        rb.onclick = function () { retry(); };
+        writeStatus.appendChild(rb);
+      }
       if (writeStatus.style && writeStatus.style.setProperty) {
         writeStatus.style.setProperty('--wsx', '0px');
         writeStatus.style.setProperty('--wsx', Math.max(0, (writeStatus.offsetHeight || 0) - 48) + 'px');
@@ -1852,57 +1861,124 @@
     }, 6000);
   }
 
+  /* Shared write helper. Saved only after the server confirms. A write whose reply is lost (network drop,
+     'Load failed', or no reply in 30s) re-reads the slot with a small read and shows Saved if the change is
+     there, otherwise 'Not saved: why' with a Retry button (27 Nov 2026). One identical save in flight at a time. */
+  var WRITE_VERIFY_ = {
+    setIC: function (args) {
+      var wantEnt = String(args[4]) === 'Entrepreneur IC';
+      return { args: [args[0], args[1], args[2], args[3], args[6]],
+        landed: function (r) {
+          var have = String((wantEnt ? r.entIC : r.boothIC) || '').replace(/\s+/g, ' ').trim().toUpperCase();
+          return have === String(args[5] || '').replace(/\s+/g, ' ').trim().toUpperCase();
+        } };
+    }
+  };
+  function writeReplyLost_(error) {
+    var t = String(error && error.message || error || '');
+    return /load failed|failed to fetch|networkerror|network request|could not reach|timed out|timeout|request failed|no reply|connection|offline/i.test(t);
+  }
+
   function writeRun_(fn, args, what, after, failed) {
-    // One save in flight at a time (Keson, 23 Oct 2026: changing the Entrepreneur IC and then the
-    // Booth IC quickly left the page unable to load). Each save returns the whole allocation and
-    // takes the server lock, so two at once queue on the lock, time out, and the first reply
-    // redraws the page under the second. Extra clicks wait their turn here instead, in order.
+    // One save in flight at a time (Keson, 23 Oct 2026). Extra clicks wait their turn here, in order.
     // A reply that has another save queued behind it skips its redraw, because the next reply
     // redraws with newer data; if that last save fails, the held redraw runs so nothing is left
     // greyed out.
     var q = writeRun_.q || (writeRun_.q = { busy: false, jobs: [], held: null });
     var queued = fn === 'setIC';   // only IC changes queue; every other save behaves as before
-    var released = false, guard = null;
+    var key = fn + '|' + JSON.stringify((args || []).slice(1));
+    var inflight = writeRun_.inflight || (writeRun_.inflight = {});
+    var twin = queued ? inflight[key] : null;   // de-dupe is for IC changes only; other saves behave as before
+    if (twin) { twin.waiters.push({ after: after, failed: failed }); return; }   // same save already running: do not stack a duplicate
+    var sendArgs = args;
+    if (queued) { sendArgs = args.slice(); while (sendArgs.length < 10) sendArgs.push(null); sendArgs[10] = true; }   // lean reply: small confirmation, not the whole allocation
+    var entry = { waiters: [], sending: false };
+    var released = false, guard = null, finalized = false;
+    function clearGuard() { if (guard) { clearTimeout(guard); guard = null; } }
     function next() {
       if (!queued || released) return;
-      released = true; if (guard) clearTimeout(guard);
+      released = true; clearGuard();
       q.busy = false; if (q.jobs.length) q.jobs.shift()();
     }
+    function finishKey(ok, payload) {
+      entry.sending = false;
+      if (inflight[key] === entry) delete inflight[key];
+      var w = entry.waiters; entry.waiters = [];
+      w.forEach(function (x) { try { if (ok) { if (x.after) x.after(payload); } else if (x.failed) x.failed(payload); } catch (e) {} });
+    }
     function attempt() {
+      if (entry.sending) return;   // double tap on Retry while the save is still running
       var label = typeof what === 'function' ? 'changes' : what;
+      entry.sending = true; finalized = false; inflight[key] = entry;
       setWriteStatus_('saving', label, attempt);
+      function hardFail(error, reason) {
+        var handled = failed && failed(error) === true;
+        finishKey(false, error);
+        if (handled) { next(); return; }
+        var failReason = fn === 'saveBooking' ? saveFailReason_(error) : ''; if (reason) failReason = reason;
+        setWriteStatus_('error', label, attempt, failReason, !!reason);
+        if (fn === 'saveBooking') scrollToWriteStatus_();
+        if (!failed) $('err').textContent = (error && error.message) ? error.message : String(error || 'Could not save.');
+        if (queued && q.held && !q.jobs.length) { var h = q.held; q.held = null; h.after(h.result); }
+        next();
+      }
+      function onOk(result) {
+        if (finalized === 'ok' || finalized === 'hard') return;
+        finalized = 'ok'; clearGuard();
+        if (result && result.pending) {
+          // Held for Ryan Goh: never 'Saved', never optimistic. Re-read the server so the grid shows what is true.
+          setWriteStatus_('pending', '', attempt);
+          q.held = null;
+          loadAllocation(); loadApprovals_();
+          finishKey(true, result); next();
+          return;
+        }
+        succeed(result);
+      }
+      function succeed(result) {
+        var savedWhat = typeof what === 'function' ? what(result) : what;
+        setWriteStatus_('saved', savedWhat, attempt);
+        if (after) {
+          if (queued && q.jobs.length) q.held = { after: after, result: result };
+          else { q.held = null; after(result); }
+        }
+        finishKey(true, result); next();
+      }
+      function recover(error) {
+        var v = WRITE_VERIFY_[fn](args), tries = 0, delays = [0, 4000, 5000];   // gaps between checks: re-read at 0s, 4s, 9s
+        function giveUp(unknown) {
+          if (finalized === 'ok') return;
+          finalized = 'soft';
+          var why = unknown ? 'No reply, and we could not check if it saved.' : 'No reply from the server and the change is not there.';
+          hardFail({ message: why }, why);
+        }
+        function check() {
+          setTimeout(function () {
+            if (finalized === 'ok') return;
+            var started = run('getICSlot', v.args, function (r) {
+              if (finalized === 'ok') return;
+              if (r && v.landed(r)) { finalized = 'ok'; succeed({ ok: true, lean: true, recovered: true }); return; }
+              if (++tries < delays.length) check(); else giveUp(false);
+            }, function () { if (++tries < delays.length) check(); else giveUp(true); });
+            if (!started) giveUp(true);
+          }, delays[tries]);
+        }
+        check();
+      }
+      function onFail(error) {
+        if (finalized) return;
+        clearGuard();
+        if (typeof WRITE_VERIFY_ !== 'undefined' && WRITE_VERIFY_[fn] && writeReplyLost_(error)) { finalized = 'checking'; recover(error); return; }
+        finalized = 'hard'; hardFail(error);
+      }
       function go() {
         if (queued) {
           q.busy = true; released = false;
-          // If a reply never comes (network drop), do not hold the queue forever.
-          guard = setTimeout(function () { next(); }, 45000);
+          // If a reply never comes (network drop), check whether the change landed instead of hanging on Saving.
+          guard = setTimeout(function () { onFail({ message: 'No reply from the server.' }); }, 30000);
         }
-        var started = run(fn, args, function (result) {
-          if (result && result.pending) {
-            // Held for Ryan Goh: never 'Saved', never optimistic. Re-read the server so the grid shows what is true.
-            setWriteStatus_('pending', '', attempt);
-            q.held = null;
-            loadAllocation(); loadApprovals_();
-            next();
-            return;
-          }
-          var savedWhat = typeof what === 'function' ? what(result) : what;
-          setWriteStatus_('saved', savedWhat, attempt);
-          if (after) {
-            if (queued && q.jobs.length) q.held = { after: after, result: result };
-            else { q.held = null; after(result); }
-          }
-          next();
-        }, function (error) {
-          if (failed && failed(error) === true) { next(); return; }
-          var failReason = fn === 'saveBooking' ? saveFailReason_(error) : '';
-          setWriteStatus_('error', label, attempt, failReason);
-          if (fn === 'saveBooking') scrollToWriteStatus_();
-          if (!failed) $('err').textContent = (error && error.message) ? error.message : String(error || 'Could not save.');
-          if (queued && q.held && !q.jobs.length) { var h = q.held; q.held = null; h.after(h.result); }
-          next();
-        });
-        if (!started) next();   // run() refused (admin preview): no reply will ever come
+        var started = run(fn, sendArgs, onOk, onFail);
+        if (!started) { clearGuard(); finishKey(false, { message: 'Not sent.' }); next(); }   // run() refused (admin preview): no reply will ever come
       }
       if (queued && q.busy) q.jobs.push(go); else go();
     }
@@ -3613,6 +3689,7 @@
   }
 
   function renderAll(a) {
+    if (a && a.lean) { loadAllocation(); return; }   // setIC's small confirmation (27 Nov 2026): refresh the allocation in the background
     if (apSwitch_ && !apSwitch_.failed && a.weekStart !== apSwitch_.week) return;   // stale reply for the week being left
     renderWeeks(a);
     renderBookings(a);
