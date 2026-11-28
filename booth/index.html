@@ -974,7 +974,7 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbyPzSp6MnZawHioc_qWsbGfEAvxT61jYtLV-dHsbfysj_rDVhw0mL7WtvsxxNW7L71k/exec?api=1';
-  const SHELL_VERSION = '2026-11-27.1';
+  const SHELL_VERSION = '2026-11-28.1';
   const CACHE_VERSION = 'booth-booking-v1';
   const CACHE_KEY = 'booth.cache.booking.v1';
   var SSO_HANDOFF = '', EXPECTED_PERSON_ID = '', EXPECTED_CACHE_IDENTITY = '';
@@ -5081,6 +5081,9 @@
     return {onShift:people.length, marked:marked, complete:complete, collapsible:complete,
             status:complete ? 'Complete' : status.join(' · ')};
   }
+  function attendanceShiftVisible_(s) {
+    return !!s.notRunning || (s.people || []).length > 0;
+  }
   function attendanceShiftKey_(identity, a, d, b, s) {
     return [identity, a.weekStart || a.week || '', d.day, b.location, s.shift].join('|');
   }
@@ -5157,13 +5160,19 @@
       h.innerHTML = d.day + ' <span>' + d.date + (d.future ? ' — not yet' : '') + '</span>';
       wrap.appendChild(h);
 
+      var shownShiftCount_ = 0;
       d.booths.forEach(function (b) {
+        // Hide shifts nobody is on (a 'Not running' shift keeps its existing display), and
+        // the venue heading when none of its shifts are left.
+        var visibleShifts_ = b.shifts.filter(attendanceShiftVisible_);
+        if (!visibleShifts_.length) return;
+        shownShiftCount_ += visibleShifts_.length;
         var bh = document.createElement('p');
         bh.className = 'shiftHead';
         bh.innerHTML = '<strong>' + label(b.location) + '</strong>';
         wrap.appendChild(bh);
 
-        b.shifts.forEach(function (s) {
+        visibleShifts_.forEach(function (s) {
           var todo = s.people.filter(function (p) {
             return !p.outcome || p.saving || !!attFeedbackFor_(b.location, d.day, s.shift, p.name)
               || lateHasOpenActions_(d, s, p);   // a Late person with actions still open stays in view
@@ -5340,6 +5349,11 @@
           if (section) wrap.appendChild(section);
         });
       });
+      if (!shownShiftCount_) {
+        var none_ = document.createElement('p'); none_.className = 'sub attNoShifts';
+        none_.textContent = 'No shifts with people ' + (d.day === a.today ? 'today' : 'on ' + d.day) + '.';
+        wrap.appendChild(none_);
+      }
       host.appendChild(wrap);
     });
   }
