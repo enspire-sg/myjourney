@@ -1272,7 +1272,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-28.1';
+  const BUILD='2026-11-28.2';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -1485,7 +1485,7 @@ body.bg-modal-open{ overflow: hidden; }
       if(planningAccess&&planningAccess.allowed&&planningAccess.reviewOnly){ team={duties:{planning:true},me:{name:planningAccess.name,scope:'all agencies'}}; teamTab='planning'; $('login').classList.add('hidden'); showPanel('team'); $('backToJourney').classList.add('hidden'); $('signOut').classList.remove('hidden'); msg($('loginMsg'),'',''); renderTeam(); return; }
       mentorNeedsOwn=bundle.mentorNeeds||[]; data=bundle.journey; ownData=data; actionData=bundle.actions||{items:[],pending:0}; ownActionData=actionData; viewAs=null; if(bundle.tier){ tierData=bundle.tier; tierKey='self'; } guideIndex=bundle.guideIndex||{}; $('asCard').classList.add('hidden'); $('backToJourney').classList.remove('hidden'); render(); $('login').classList.add('hidden'); if(!keepView)showPanel('journey'); $('quickActions').classList.remove('hidden'); $('signOut').classList.remove('hidden'); $('resBtn').classList.remove('hidden'); $('teamPerfBtn').classList.remove('hidden'); $('boothQuickBtn').classList.toggle('hidden',!(bundle.journey.links&&bundle.journey.links.booth)); ownPipelineTab=!!(bundle.tabs&&bundle.tabs.pipeline); ownPreviewTab=!!(bundle.tabs&&bundle.tabs.preview); ownIpoTab=!!(bundle.tabs&&bundle.tabs.ipaOverview); applyTabs(bundle.tabs); msg($('loginMsg'),'','');
       warmBoothHandoff_().catch(()=>{});
-      if(!fromCache){ warmResourceList_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
+      if(!fromCache){ warmResourceList_(); ensureNoExpiry_(); refreshStaySignedInPrompt_(); loadTeam(); if(deepOpen_()==='ipaPerformance')openIpaPerformance_(); }
   }
   async function load(options){
     scheduleTimingOpenFlush_();
@@ -3039,7 +3039,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
   function renderDevices(list){
     const rows=(list&&list.devices)||[];
     $('devList').innerHTML=rows.length?rows.map(d=>'<div class="step" style="flex-direction:column;gap:6px;align-items:flex-start">'
-      +'<div class="row"><b>'+(d.kind==='link'?'Sign-in link':'This browser')+'</b>'+(d.current?'<span class="chip gold">You are here</span>':'')+'</div>'
+      +'<div class="row"><b>'+(d.kind==='link'?'Sign-in link':d.homeScreen?'Home Screen app':'This browser')+'</b>'+(d.current?'<span class="chip gold">You are here</span>':'')+'</div>'
       +'<div class="muted small">Created '+esc(d.issued||'—')+' · '+(d.expires?'expires '+esc(d.expires):'No expiry')
       +(d.kind==='link'?' · used '+esc(String(d.usedCount))+(d.lastUsed?' · last '+esc(d.lastUsed):''):'')+'</div>'
       +'<button class="btn secondary mini" data-revoke="'+esc(d.id)+'">'+(d.current?'Sign out here':'Sign this one out')+'</button>'
@@ -3091,6 +3091,19 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     try{ const r=await run('revokeAllJourneyDevices',token); forceSignOut('Signed out of '+r.removed+' device'+(r.removed===1?'':'s')+'.'); }
     catch(e){ devMsg(e.message,'error'); }
   };
+  /* Expired session -> back to sign-in with a clear message; anything else shows the real reason (Li Wei, 28 Nov 2026). */
+  function isSessionExpiredError_(e){ return /session expired|sign in/i.test(String(e&&e.message||e||'')); }
+  function expiredToLogin_(){ forceSignOut('Your session expired. Sign in again.'); }
+  /* Home Screen app only: ask the server to stop expiring THIS sign-in. The server alters only the caller's own
+   * record and trusts the flag for nothing else. A browser tab never asks, so it keeps 30 days. */
+  function isStandalone_(){ try{ return window.navigator.standalone===true||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches===true); }catch(e){ return false; } }
+  const NOEXPIRY_KEY='journey.noexpiry.token';
+  function ensureNoExpiry_(){
+    if(!token||viewAs||!isStandalone_())return;
+    try{ if(localStorage.getItem(NOEXPIRY_KEY)===token)return; }catch(e){}
+    const asked=token;
+    run('upgradeSessionToNoExpiry',asked,true).then(function(r){ if(r&&r.noExpiry){ try{ localStorage.setItem(NOEXPIRY_KEY,asked); }catch(e){} } }).catch(function(){});
+  }
   /** Local sign-out: the server already dropped the session, so do not call signOut again. */
   function forceSignOut(note){
     clearJourneyBundleCache_(); token=null; saveToken(null); data=null; ownData=null;
@@ -3735,7 +3748,8 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       boothQuickBtn.disabled=false;
       boothQuickBtn.textContent=oldLabel||'Book Shift';
       boothQuickBtn.style.width=oldWidth;
-      $('freshness').textContent='Could not open Booth Shifts. Tap Book Shift to try again.';
+      if(isSessionExpiredError_(e)){ expiredToLogin_(); return; }
+      $('freshness').textContent=(e&&e.message||'Could not open Booth Shifts.')+' Tap Book Shift to try again.';
     }
   }
 
@@ -3749,7 +3763,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       const field=document.createElement('input');
       field.type='hidden'; field.name='sso'; field.value=result.assertion;
       form.appendChild(field); document.body.appendChild(form); form.submit(); form.remove();
-    }catch(e){ if(tab)tab.close(); window.alert(e.message||('Could not open '+label+'.')); }
+    }catch(e){ if(tab)tab.close(); if(isSessionExpiredError_(e)){ expiredToLogin_(); return; } window.alert(e.message||('Could not open '+label+'.')); }
   }
   /* OWC buttons: mint a signed one-time pass (90 s, single use, bound to that app), then open the
    * destination with the pass in the #fragment only. Never an identity in the URL. */
@@ -3762,7 +3776,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       if(url.indexOf('https://enspire-sg.github.io/myjourney/')!==0)throw new Error('Could not open '+label+'.');
       const target=url+'#t='+encodeURIComponent(result.assertion);
       if(tab){ try{ tab.opener=null; }catch(_){} tab.location.href=target; } else window.location.assign(target);
-    }catch(e){ if(tab)tab.close(); window.alert(e.message||('Could not open '+label+'.')); }
+    }catch(e){ if(tab)tab.close(); if(isSessionExpiredError_(e)){ expiredToLogin_(); return; } window.alert(e.message||('Could not open '+label+'.')); }
   }
   if($('owcDashBtn')) $('owcDashBtn').onclick=e=>{ e.preventDefault(); openOwcDestination_(()=>run('issueOwcDashboardHandoff',token),'the OWC dashboard'); };
   if($('owcAppBtn')) $('owcAppBtn').onclick=e=>{ e.preventDefault(); openOwcDestination_(()=>run('issueOwcAppHandoff',token),'the OWC app'); };
@@ -3771,7 +3785,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
     try{ const r=await run('issueTlWalkthroughLink',token), url=String(r&&r.url||'');
       if(url.indexOf('https://script.google.com/')!==0)throw new Error('Could not open the Team Leader walkthrough.');
       if(tab){ try{ tab.opener=null; }catch(_){} tab.location.href=url; } else window.location.assign(url);
-    }catch(err){ if(tab)tab.close(); window.alert(err.message||'Could not open the Team Leader walkthrough.'); } };
+    }catch(err){ if(tab)tab.close(); if(isSessionExpiredError_(err)){ expiredToLogin_(); return; } window.alert(err.message||'Could not open the Team Leader walkthrough.'); } };
 
   // ---- modal
   function findStep(id){ let f=null; data.quests.forEach(q=>q.phases.forEach(ph=>ph.items.forEach(it=>{ if(it.id===id)f=it; }))); return f; }
