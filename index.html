@@ -1272,7 +1272,7 @@ body.bg-modal-open{ overflow: hidden; }
   /* Build stamp. iPhone Home Screen apps can keep an old copy of this page for minutes after a
    * publish, so each open compares itself with version.txt (never cached) and reloads once if it is
    * behind. The stamp is also shown under the page so a screenshot says which build it was. */
-  const BUILD='2026-11-26.9';
+  const BUILD='2026-11-28.1';
   (function selfUpdate_(){
     try{
       fetch('version.txt?'+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():null;}).then(function(v){
@@ -3651,7 +3651,7 @@ function titleHtml(it){ if(guideIndex[it.id])return '<a href="#" data-guide="'+e
       :(va.preview?("Nobody's record — this is the view on day one at "+va.stage+". Steps read as not started and the figures show 0; each member sees their own.")
                   :('Read-only preview of what '+va.name+' sees. Buttons are off — nothing here writes to their record.'));
     $('name').textContent=p.name; $('agency').textContent=p.agency||'Enspire'; $('stage').textContent=p.stage; $('stageTitle').textContent=p.title||''; $('stageTitle').classList.toggle('hidden',!p.title);
-    $('stageSince').textContent=p.daysInStage==null?'':(p.daysInStage+' days in this stage'+(p.mentor?' · mentor '+p.mentor.replace(/@.*/,''):''));
+    $('stageSince').textContent=p.daysInStage==null?'':(p.daysInStage+' days in this stage');
     const stageList=data.stages||[]; const idx=stageList.indexOf(p.stage); $('stagebar').innerHTML=stageList.map((s,i)=>'<i class="'+(i<idx?'on':i===idx?'cur':'')+'" title="'+esc(s)+'"></i>').join('');
     renderActionNeeded_();
     renderMentorHomeNeeds_();
